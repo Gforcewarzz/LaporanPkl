@@ -1,0 +1,229 @@
+/* Custom CSS untuk Navbar dan Sidebar */
+
+/* Variabel Warna (sesuaikan dengan preferensi Anda) */
+:root {
+  --navbar-bg: #ffffff; /* Latar belakang navbar putih bersih */
+  --navbar-shadow: rgba(0, 0, 0, 0.08); /* Bayangan navbar lebih halus */
+  --text-primary: #343a40; /* Warna teks utama */
+  --text-secondary-light: #6c757d; /* Warna teks sekunder */
+  --accent-blue: #007bff; /* Warna aksen utama */
+  --accent-blue-dark: #0056b3; /* Warna aksen gelap */
+  --menu-bg: #f8f9fa; /* Latar belakang sidebar */
+  --menu-item-hover: rgba(0, 123, 255, 0.1); /* Warna hover item menu */
+  --menu-item-active: var(--accent-blue); /* Warna aktif item menu */
+  --menu-item-active-text: #ffffff; /* Warna teks aktif item menu */
+  --menu-sub-bg: #e9ecef; /* Latar belakang submenu */
+  --profile-text-color: #495057; /* Warna teks profil user */
+  --divider-color: #dee2e6; /* Warna divider */
+}
+
+/* Navbar Enhancements */
+.layout-navbar {
+  border-bottom: 1px solid var(--divider-color);
+  box-shadow: 0 2px 10px var(--navbar-shadow);
+  padding: 0.75rem 1.5rem; /* Padding lebih nyaman */
+  background-color: var(--navbar-bg) !important; /* Override jika perlu */
+}
+
+.layout-navbar .navbar-nav .nav-link {
+  font-weight: 500;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.layout-navbar .navbar-nav .nav-link:hover {
+  color: var(--accent-blue);
+}
+
+.layout-navbar .layout-menu-toggle .nav-link {
+  color: var(--text-primary);
+}
+
+/* User Dropdown Profile */
+.navbar-dropdown.dropdown-user .dropdown-toggle {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background-color: transparent;
+  transition: background-color 0.2s ease;
+}
+.navbar-dropdown.dropdown-user .dropdown-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.navbar-dropdown.dropdown-user .user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+  border: 2px solid var(--accent-blue); /* Border avatar */
+}
+
+.navbar-dropdown.dropdown-user .user-info {
+  line-height: 1.2;
+  text-align: left;
+}
+.navbar-dropdown.dropdown-user .user-info .user-name {
+  font-weight: 600;
+  color: var(--profile-text-color);
+  font-size: 0.95rem;
+  white-space: nowrap; /* Mencegah nama terpotong */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px; /* Batasi lebar nama */
+}
+.navbar-dropdown.dropdown-user .user-info .user-role {
+  font-size: 0.75rem;
+  color: var(--text-secondary-light);
+  font-weight: 400;
+}
+
+.navbar-dropdown.dropdown-user .dropdown-menu {
+  border-radius: 8px;
+  box-shadow: 0 5px 15px var(--navbar-shadow);
+  border: 1px solid var(--divider-color);
+  padding: 0.5rem 0;
+}
+.navbar-dropdown.dropdown-user .dropdown-item {
+  font-size: 0.9rem;
+  padding: 10px 15px;
+  color: var(--text-primary);
+  transition: all 0.15s ease;
+}
+.navbar-dropdown.dropdown-user .dropdown-item i {
+  font-size: 1rem;
+  vertical-align: middle;
+}
+.navbar-dropdown.dropdown-user .dropdown-item:hover {
+  background-color: rgba(0, 123, 255, 0.08); /* Hover effect yang halus */
+  color: var(--accent-blue);
+}
+.navbar-dropdown.dropdown-user .dropdown-divider {
+  margin: 0.5rem 0;
+  border-top-color: var(--divider-color);
+}
+
+/* Sidebar Enhancements */
+.layout-menu.menu-vertical {
+  background-color: var(--menu-bg) !important;
+  border-right: 1px solid var(--divider-color);
+  box-shadow: 5px 0 15px var(--navbar-shadow);
+}
+
+.app-brand.demo {
+  padding: 1.5rem 1rem;
+  border-bottom: 1px solid var(--divider-color);
+  background-color: var(--navbar-bg); /* Latar belakang logo sama dengan navbar */
+}
+.app-brand .app-brand-text {
+  color: var(--accent-blue) !important; /* Warna logo */
+  font-size: 1.5rem; /* Ukuran logo lebih besar */
+  font-weight: 700 !important;
+  letter-spacing: -0.5px;
+}
+.app-brand .layout-menu-toggle {
+  color: var(--text-secondary-light);
+}
+
+.menu-inner .menu-item .menu-link {
+  padding: 12px 1rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.menu-inner .menu-item .menu-link:hover {
+  background-color: var(--menu-item-hover);
+  color: var(--accent-blue);
+}
+
+.menu-inner .menu-item.active > .menu-link {
+  background-color: var(--menu-item-active);
+  color: var(--menu-item-active-text) !important;
+  box-shadow: 0 2px 5px rgba(0, 123, 255, 0.2);
+  font-weight: 600;
+}
+.menu-inner .menu-item.active > .menu-link .menu-icon {
+  color: var(--menu-item-active-text) !important;
+}
+
+.menu-inner .menu-item .menu-icon {
+  margin-right: 10px;
+  font-size: 1.2rem;
+  color: var(--text-secondary-light);
+  transition: all 0.2s ease;
+}
+.menu-inner .menu-item.active > .menu-link .menu-icon {
+  color: var(--menu-item-active-text);
+}
+
+/* Submenu Styling */
+.menu-inner .menu-sub {
+  background-color: var(--menu-sub-bg);
+  padding: 0.5rem 0;
+  border-radius: 6px;
+  margin-left: 10px; /* Memberi sedikit indentasi */
+}
+.menu-inner .menu-sub .menu-item .menu-link {
+  padding-left: 2.5rem; /* Indentasi submenu */
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+.menu-inner .menu-sub .menu-item .menu-link:hover {
+  background-color: var(--menu-item-hover);
+  color: var(--accent-blue);
+}
+.menu-inner .menu-sub .menu-item.active > .menu-link {
+  background-color: var(--menu-item-active);
+  color: var(--menu-item-active-text) !important;
+  box-shadow: none; /* Submenu active tidak perlu shadow */
+  font-weight: 500;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1200px) {
+  /* Adjust for smaller laptops/large tablets */
+  .layout-navbar {
+    padding: 0.5rem 1rem;
+  }
+  .navbar-dropdown.dropdown-user .dropdown-toggle {
+    padding: 0.4rem 0.8rem;
+  }
+  .navbar-dropdown.dropdown-user .user-avatar {
+    width: 32px;
+    height: 32px;
+  }
+  .navbar-dropdown.dropdown-user .user-info .user-name {
+    font-size: 0.9rem;
+  }
+  .navbar-dropdown.dropdown-user .user-info .user-role {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Mobile specific adjustments */
+  .layout-navbar {
+    padding: 0.4rem 0.8rem;
+  }
+  .layout-menu.menu-vertical {
+    width: 260px; /* Lebar sidebar di mobile */
+  }
+  .app-brand.demo {
+    padding: 1rem 1rem;
+  }
+  .app-brand .app-brand-text {
+    font-size: 1.3rem;
+  }
+  .menu-inner .menu-item .menu-link {
+    padding: 10px 1rem;
+  }
+  .menu-inner .menu-sub .menu-item .menu-link {
+    padding-left: 2.2rem;
+  }
+  /* Hide some info on very small screens if desired */
+  .navbar-dropdown.dropdown-user .user-info {
+    display: none; /* Hide name/role on very small screens for brevity */
+  }
+}

@@ -13,29 +13,46 @@
                 <div class="content-wrapper">
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <div class="row">
-                            <div class="col-lg-6 col-md-12 col-6 mb-4">
-                                <div class="card h-100">
-                                    <div class="card-body d-flex flex-column align-items-start">
-                                        <div class="avatar flex-shrink-0 mb-3">
-                                            <img src="./assets/img/icons/unicons/user.png" alt="chart success"
-                                                class="rounded" />
+                            <div class="col-lg-4 col-md-6 col-12 mb-4">
+                                <div class="card h-100 shadow-sm border-0">
+                                    <div class="card-body d-flex flex-column align-items-start p-4">
+                                        <div class="avatar flex-shrink-0 mb-3 rounded-circle d-flex justify-content-center align-items-center"
+                                            style="background-color: #007bff; width: 50px; height: 50px; font-size: 1.8rem; color: white;">
+                                            <i class="fas fa-user-graduate"></i>
                                         </div>
-                                        <span class="cards-title fw-semibold d-block mb-1">Total Siswa</span>
-                                        <h3 class="card-title fw-bold mb-0">125</h3>
-                                        <small class="text-muted">Currently active</small>
+                                        <span class="text-muted fw-semibold d-block mb-1 fs-6">Total Siswa</span>
+                                        <h3 class="card-title fw-bold mb-0 display-5 text-dark">125</h3> <small
+                                            class="text-muted d-block mt-1" style="font-size: 0.85rem;">Siswa aktif
+                                            terdaftar</small>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-lg-6 col-md-12 col-6 mb-4">
-                                <div class="card h-100">
-                                    <div class="card-body d-flex flex-column align-items-start">
-                                        <div class="avatar flex-shrink-0 mb-3">
-                                            <img src="./assets/img/icons/unicons/user.png" alt="chart success"
-                                                class="rounded" />
+                            <div class="col-lg-4 col-md-6 col-12 mb-4">
+                                <div class="card h-100 shadow-sm border-0">
+                                    <div class="card-body d-flex flex-column align-items-start p-4">
+                                        <div class="avatar flex-shrink-0 mb-3 rounded-circle d-flex justify-content-center align-items-center"
+                                            style="background-color: #28a745; width: 50px; height: 50px; font-size: 1.8rem; color: white;">
+                                            <i class="fas fa-chalkboard-teacher"></i>
                                         </div>
-                                        <span class="cards-title fw-semibold d-block mb-1">Total Guru Pembimbing</span>
-                                        <h3 class="card-title fw-bold mb-0">50</h3>
-                                        <small class="text-muted">Available mentors</small>
+                                        <span class="text-muted fw-semibold d-block mb-1 fs-6">Total Guru
+                                            Pembimbing</span>
+                                        <h3 class="card-title fw-bold mb-0 display-5 text-dark">50</h3>
+                                        <small class="text-muted d-block mt-1" style="font-size: 0.85rem;">Guru
+                                            pembimbing yang tersedia</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-6 col-12 mb-4">
+                                <div class="card h-100 shadow-sm border-0">
+                                    <div class="card-body d-flex flex-column align-items-start p-4">
+                                        <div class="avatar flex-shrink-0 mb-3 rounded-circle d-flex justify-content-center align-items-center"
+                                            style="background-color: #ffc107; width: 50px; height: 50px; font-size: 1.8rem; color: white;">
+                                            <i class="fas fa-building"></i>
+                                        </div>
+                                        <span class="text-muted fw-semibold d-block mb-1 fs-6">Jumlah Tempat PKL</span>
+                                        <h3 class="card-title fw-bold mb-0 display-5 text-dark">30</h3>
+                                        <small class="text-muted d-block mt-1" style="font-size: 0.85rem;">Mitra
+                                            perusahaan aktif</small>
                                     </div>
                                 </div>
                             </div>
@@ -48,106 +65,7 @@
 
                 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-
                 <?php include './partials/script.php'; ?>
-                <script>
-                const chartData = {
-                    harian: {
-                        selector: "#chartHarian",
-                        series: [{
-                            name: 'Barang Keluar',
-                            data: <?= json_encode($dataHarian); ?>
-                        }],
-                        categories: <?= json_encode($labelsHarian); ?>
-                    },
-                    bulanan: {
-                        selector: "#chartBulanan",
-                        series: [{
-                            name: 'Barang Keluar',
-                            data: <?= json_encode($dataBulanan); ?>
-                        }],
-                        categories: <?= json_encode($labelsBulanan); ?>
-                    },
-                    tahunan: {
-                        selector: "#chartTahunan",
-                        series: [{
-                            name: 'Barang Keluar',
-                            data: <?= json_encode($dataTahunan); ?>
-                        }],
-                        categories: <?= json_encode($labelsTahunan); ?>
-                    }
-                };
-
-                const chartInstances = {};
-
-                const renderChart = (key) => {
-                    const {
-                        selector,
-                        series,
-                        categories
-                    } = chartData[key];
-                    if (chartInstances[key]) return;
-
-                    const options = {
-                        chart: {
-                            type: 'area',
-                            height: 300
-                        },
-                        colors: ['#FF4560', '#00E396', '#008FFB'],
-                        series,
-                        xaxis: {
-                            categories
-                        },
-                        stroke: {
-                            curve: 'smooth',
-                            width: 4
-                        },
-                        fill: {
-                            type: 'gradient',
-                            gradient: {
-                                shade: 'light',
-                                shadeIntensity: 0.5,
-                                inverseColors: false,
-                                opacityFrom: 0.4,
-                                opacityTo: 0.7,
-                                stops: [0, 90, 100]
-                            }
-                        },
-                        markers: {
-                            size: 4,
-                            colors: ['#fff'],
-                            strokeColors: ['#FF4560', '#00E396', '#008FFB'],
-                            strokeWidth: 2,
-                            hover: {
-                                size: 6
-                            }
-                        },
-                        legend: {
-                            position: 'top',
-                            horizontalAlign: 'left'
-                        }
-                    };
-
-                    chartInstances[key] = new ApexCharts(document.querySelector(selector), options);
-                    chartInstances[key].render();
-                };
-
-                // Render all charts initially
-                renderChart('harian');
-                renderChart('bulanan');
-                renderChart('tahunan');
-
-                // Attach event listeners for tab clicks
-                document.addEventListener('DOMContentLoaded', function() {
-                    document.querySelector('#pengeluaranHarian button').addEventListener('click', () =>
-                        renderChart(
-                            'harian'));
-                    document.querySelector('#pengeluaranBulanan button').addEventListener('click', () =>
-                        renderChart('bulanan'));
-                    document.querySelector('#pengeluaranTahunan button').addEventListener('click', () =>
-                        renderChart('tahunan'));
-                });
-                </script>
 </body>
 
 </html>
