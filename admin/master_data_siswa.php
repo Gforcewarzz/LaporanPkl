@@ -107,9 +107,10 @@
                                             <tr>
                                                 <th>No</th>
                                                 <th>Nama</th>
-                                                <th>NISN</th>
+                                                <th>No Induk</th>
                                                 <th>Kelas</th>
                                                 <th>Jurusan</th>
+                                                <th>Guru Pendamping</th>
                                                 <th>Tempat PKL</th>
                                                 <th>Status</th>
                                                 <th>Aksi</th>
@@ -119,9 +120,10 @@
                                             <tr>
                                                 <td>1</td>
                                                 <td><strong>Budi Santoso</strong></td>
-                                                <td>1234567890</td>
+                                                <td>2022001</td>
                                                 <td>XII RPL 1</td>
                                                 <td>Rekayasa Perangkat Lunak</td>
+                                                <td>Ibu Endang S.</td>
                                                 <td>PT. Maju Bersama</td>
                                                 <td><span class="badge bg-label-success me-1">Aktif</span></td>
                                                 <td>
@@ -135,8 +137,9 @@
                                                                 href="master_data_siswa_edit.php?id=123">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
-                                                            <a class="dropdown-item"
-                                                                href="master_data_siswa_delete.php?id=123">
+                                                            <a class="dropdown-item text-danger"
+                                                                href="javascript:void(0);"
+                                                                onclick="confirmDelete('123', 'Budi Santoso')">
                                                                 <i class="bx bx-trash me-1"></i> Hapus
                                                             </a>
                                                         </div>
@@ -146,9 +149,10 @@
                                             <tr>
                                                 <td>2</td>
                                                 <td><strong>Citra Dewi</strong></td>
-                                                <td>0987654321</td>
+                                                <td>2022002</td>
                                                 <td>XI TKJ 2</td>
                                                 <td>Teknik Komputer Jaringan</td>
+                                                <td>Bapak Anto W.</td>
                                                 <td>CV. IT Jaya</td>
                                                 <td><span class="badge bg-label-success me-1">Aktif</span></td>
                                                 <td>
@@ -162,8 +166,9 @@
                                                                 href="master_data_siswa_edit.php?id=456">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
-                                                            <a class="dropdown-item"
-                                                                href="master_data_siswa_delete.php?id=456">
+                                                            <a class="dropdown-item text-danger"
+                                                                href="javascript:void(0);"
+                                                                onclick="confirmDelete('456', 'Citra Dewi')">
                                                                 <i class="bx bx-trash me-1"></i> Hapus
                                                             </a>
                                                         </div>
@@ -173,9 +178,10 @@
                                             <tr>
                                                 <td>3</td>
                                                 <td><strong>Dani Permana</strong></td>
-                                                <td>1122334455</td>
+                                                <td>2022003</td>
                                                 <td>X MM 3</td>
                                                 <td>Multimedia</td>
+                                                <td>Ibu Siti A.</td>
                                                 <td>Studio Kreatif Indah</td>
                                                 <td><span class="badge bg-label-secondary me-1">Tidak Aktif</span></td>
                                                 <td>
@@ -189,8 +195,9 @@
                                                                 href="master_data_siswa_edit.php?id=789">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
-                                                            <a class="dropdown-item"
-                                                                href="master_data_siswa_delete.php?id=789">
+                                                            <a class="dropdown-item text-danger"
+                                                                href="javascript:void(0);"
+                                                                onclick="confirmDelete('789', 'Dani Permana')">
                                                                 <i class="bx bx-trash me-1"></i> Hapus
                                                             </a>
                                                         </div>
@@ -200,9 +207,10 @@
                                             <tr>
                                                 <td>4</td>
                                                 <td><strong>Eka Putri</strong></td>
-                                                <td>5566778899</td>
+                                                <td>2022004</td>
                                                 <td>XII RPL 2</td>
                                                 <td>Rekayasa Perangkat Lunak</td>
+                                                <td>Bapak Rina S.</td>
                                                 <td>Tech Solutions Inc.</td>
                                                 <td><span class="badge bg-label-success me-1">Aktif</span></td>
                                                 <td>
@@ -216,8 +224,9 @@
                                                                 href="master_data_siswa_edit.php?id=012">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
-                                                            <a class="dropdown-item"
-                                                                href="master_data_siswa_delete.php?id=012">
+                                                            <a class="dropdown-item text-danger"
+                                                                href="javascript:void(0);"
+                                                                onclick="confirmDelete('012', 'Eka Putri')">
                                                                 <i class="bx bx-trash me-1"></i> Hapus
                                                             </a>
                                                         </div>
@@ -239,10 +248,9 @@
                                             <div class="d-flex justify-content-between align-items-start mb-3">
                                                 <div>
                                                     <h6 class="mb-1 text-primary"><i class="bx bx-user me-1"></i>
-                                                        <strong>Budi Santoso</strong>
-                                                    </h6>
-                                                    <span class="badge bg-label-primary"><i
-                                                            class="bx bx-id-card me-1"></i> NISN: 1234567890</span>
+                                                        <strong>Budi Santoso</strong></h6>
+                                                    <span class="badge bg-label-primary"><i class="bx bx-hash me-1"></i>
+                                                        No Induk: 2022001</span>
                                                 </div>
                                                 <div class="dropdown">
                                                     <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -254,9 +262,8 @@
                                                             href="master_data_siswa_edit.php?id=123">
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Data
                                                         </a>
-                                                        <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger"
-                                                            href="master_data_siswa_delete.php?id=123">
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="confirmDelete('123', 'Budi Santoso')">
                                                             <i class="bx bx-trash me-1"></i> Hapus
                                                         </a>
                                                     </div>
@@ -264,20 +271,28 @@
                                             </div>
 
                                             <div class="mb-2">
+                                                <strong class="text-dark"><i class="bx bx-award me-1"></i>
+                                                    Kelas:</strong><br>
+                                                XII RPL 1
+                                            </div>
+                                            <div class="mb-2">
                                                 <strong class="text-dark"><i class="bx bx-book-open me-1"></i>
                                                     Jurusan:</strong><br>
                                                 Rekayasa Perangkat Lunak
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong class="text-dark"><i class="bx bx-user-voice me-1"></i> Guru
+                                                    Pendamping:</strong><br>
+                                                Ibu Endang Susanti
                                             </div>
                                             <div class="mb-2">
                                                 <strong class="text-dark"><i class="bx bx-building-house me-1"></i>
                                                     Tempat PKL:</strong><br>
                                                 PT. Maju Bersama
                                             </div>
-                                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                                <span class="badge bg-label-success"><i
-                                                        class="bx bx-check-circle me-1"></i> Aktif</span>
-                                                <small class="text-muted"><i class="bx bx-award me-1"></i> Kelas: XII
-                                                    RPL 1</small>
+                                            <div class="d-flex justify-content-end align-items-baseline mt-3">
+                                                <small class="text-muted"><i class="bx bx-check-circle me-1"></i>
+                                                    Status: Aktif</small>
                                             </div>
                                         </div>
                                     </div>
@@ -288,10 +303,9 @@
                                             <div class="d-flex justify-content-between align-items-start mb-3">
                                                 <div>
                                                     <h6 class="mb-1 text-warning"><i class="bx bx-user me-1"></i>
-                                                        <strong>Citra Dewi</strong>
-                                                    </h6>
-                                                    <span class="badge bg-label-warning"><i
-                                                            class="bx bx-id-card me-1"></i> NISN: 0987654321</span>
+                                                        <strong>Citra Dewi</strong></h6>
+                                                    <span class="badge bg-label-warning"><i class="bx bx-hash me-1"></i>
+                                                        No Induk: 2022002</span>
                                                 </div>
                                                 <div class="dropdown">
                                                     <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -304,8 +318,8 @@
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Data
                                                         </a>
                                                         <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger"
-                                                            href="master_data_siswa_delete.php?id=456">
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="confirmDelete('456', 'Citra Dewi')">
                                                             <i class="bx bx-trash me-1"></i> Hapus
                                                         </a>
                                                     </div>
@@ -313,20 +327,28 @@
                                             </div>
 
                                             <div class="mb-2">
+                                                <strong class="text-dark"><i class="bx bx-award me-1"></i>
+                                                    Kelas:</strong><br>
+                                                XI TKJ 2
+                                            </div>
+                                            <div class="mb-2">
                                                 <strong class="text-dark"><i class="bx bx-book-open me-1"></i>
                                                     Jurusan:</strong><br>
                                                 Teknik Komputer Jaringan
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong class="text-dark"><i class="bx bx-user-voice me-1"></i> Guru
+                                                    Pendamping:</strong><br>
+                                                Bapak Anto Wijaya
                                             </div>
                                             <div class="mb-2">
                                                 <strong class="text-dark"><i class="bx bx-building-house me-1"></i>
                                                     Tempat PKL:</strong><br>
                                                 CV. IT Jaya
                                             </div>
-                                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                                <span class="badge bg-label-success"><i
-                                                        class="bx bx-check-circle me-1"></i> Aktif</span>
-                                                <small class="text-muted"><i class="bx bx-award me-1"></i> Kelas: XI TKJ
-                                                    2</small>
+                                            <div class="d-flex justify-content-end align-items-baseline mt-3">
+                                                <small class="text-muted"><i class="bx bx-check-circle me-1"></i>
+                                                    Status: Aktif</small>
                                             </div>
                                         </div>
                                     </div>
@@ -337,10 +359,9 @@
                                             <div class="d-flex justify-content-between align-items-start mb-3">
                                                 <div>
                                                     <h6 class="mb-1 text-info"><i class="bx bx-user me-1"></i>
-                                                        <strong>Dani Permana</strong>
-                                                    </h6>
-                                                    <span class="badge bg-label-info"><i class="bx bx-id-card me-1"></i>
-                                                        NISN: 1122334455</span>
+                                                        <strong>Dani Permana</strong></h6>
+                                                    <span class="badge bg-label-info"><i class="bx bx-hash me-1"></i> No
+                                                        Induk: 2022003</span>
                                                 </div>
                                                 <div class="dropdown">
                                                     <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -353,8 +374,8 @@
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Data
                                                         </a>
                                                         <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger"
-                                                            href="master_data_siswa_delete.php?id=789">
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="confirmDelete('789', 'Dani Permana')">
                                                             <i class="bx bx-trash me-1"></i> Hapus
                                                         </a>
                                                     </div>
@@ -362,20 +383,28 @@
                                             </div>
 
                                             <div class="mb-2">
+                                                <strong class="text-dark"><i class="bx bx-award me-1"></i>
+                                                    Kelas:</strong><br>
+                                                X MM 3
+                                            </div>
+                                            <div class="mb-2">
                                                 <strong class="text-dark"><i class="bx bx-book-open me-1"></i>
                                                     Jurusan:</strong><br>
                                                 Multimedia
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong class="text-dark"><i class="bx bx-user-voice me-1"></i> Guru
+                                                    Pendamping:</strong><br>
+                                                Ibu Siti Aminah
                                             </div>
                                             <div class="mb-2">
                                                 <strong class="text-dark"><i class="bx bx-building-house me-1"></i>
                                                     Tempat PKL:</strong><br>
                                                 Studio Kreatif Indah
                                             </div>
-                                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                                <span class="badge bg-label-secondary"><i
-                                                        class="bx bx-x-circle me-1"></i> Tidak Aktif</span>
-                                                <small class="text-muted"><i class="bx bx-award me-1"></i> Kelas: X MM
-                                                    3</small>
+                                            <div class="d-flex justify-content-end align-items-baseline mt-3">
+                                                <small class="text-muted"><i class="bx bx-x-circle me-1"></i> Status:
+                                                    Tidak Aktif</small>
                                             </div>
                                         </div>
                                     </div>
@@ -386,10 +415,9 @@
                                             <div class="d-flex justify-content-between align-items-start mb-3">
                                                 <div>
                                                     <h6 class="mb-1 text-success"><i class="bx bx-user me-1"></i>
-                                                        <strong>Eka Putri</strong>
-                                                    </h6>
-                                                    <span class="badge bg-label-success"><i
-                                                            class="bx bx-id-card me-1"></i> NISN: 5566778899</span>
+                                                        <strong>Eka Putri</strong></h6>
+                                                    <span class="badge bg-label-success"><i class="bx bx-hash me-1"></i>
+                                                        No Induk: 2022004</span>
                                                 </div>
                                                 <div class="dropdown">
                                                     <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -402,8 +430,8 @@
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Data
                                                         </a>
                                                         <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger"
-                                                            href="master_data_siswa_delete.php?id=012">
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="confirmDelete('012', 'Eka Putri')">
                                                             <i class="bx bx-trash me-1"></i> Hapus
                                                         </a>
                                                     </div>
@@ -411,20 +439,28 @@
                                             </div>
 
                                             <div class="mb-2">
+                                                <strong class="text-dark"><i class="bx bx-award me-1"></i>
+                                                    Kelas:</strong><br>
+                                                XII RPL 2
+                                            </div>
+                                            <div class="mb-2">
                                                 <strong class="text-dark"><i class="bx bx-book-open me-1"></i>
                                                     Jurusan:</strong><br>
                                                 Rekayasa Perangkat Lunak
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong class="text-dark"><i class="bx bx-user-voice me-1"></i> Guru
+                                                    Pendamping:</strong><br>
+                                                Bapak Rina Sari
                                             </div>
                                             <div class="mb-2">
                                                 <strong class="text-dark"><i class="bx bx-building-house me-1"></i>
                                                     Tempat PKL:</strong><br>
                                                 Tech Solutions Inc.
                                             </div>
-                                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                                <span class="badge bg-label-success"><i
-                                                        class="bx bx-check-circle me-1"></i> Aktif</span>
-                                                <small class="text-muted"><i class="bx bx-award me-1"></i> Kelas: XII
-                                                    RPL 2</small>
+                                            <div class="d-flex justify-content-end align-items-baseline mt-3">
+                                                <small class="text-muted"><i class="bx bx-check-circle me-1"></i>
+                                                    Status: Aktif</small>
                                             </div>
                                         </div>
                                     </div>
@@ -450,6 +486,31 @@
         </div>
     </div>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+    function confirmDelete(id, nama) {
+        Swal.fire({
+            title: 'Konfirmasi Hapus Data',
+            html: "Apakah Anda yakin ingin menghapus data siswa bernama <strong>" + nama +
+                "</strong>?<br>Tindakan ini tidak dapat dibatalkan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545', // Warna merah untuk konfirmasi hapus
+            cancelButtonColor: '#6c757d', // Warna abu-abu untuk batal
+            confirmButtonText: 'Ya, Hapus Sekarang!',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Jika dikonfirmasi, arahkan ke skrip PHP untuk delete
+                // Pastikan Anda membuat file 'proses_delete_data_siswa.php'
+                window.location.href = 'proses_delete_data_siswa.php?id=' + id;
+            }
+        });
+    }
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
