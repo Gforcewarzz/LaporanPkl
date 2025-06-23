@@ -110,6 +110,7 @@
                                                 <th>Nama Perusahaan</th>
                                                 <th>Alamat</th>
                                                 <th>Kontak</th>
+                                                <th>Nama Instruktur</th>
                                                 <th>Kuota Siswa</th>
                                                 <th>Aksi</th>
                                             </tr>
@@ -120,6 +121,7 @@
                                                 <td><strong>PT. Inovasi Digital</strong></td>
                                                 <td>Jl. Merdeka No. 123, Bandung</td>
                                                 <td>(022) 1234567</td>
+                                                <td>Bpk. Joni Iskandar</td>
                                                 <td><span class="badge bg-label-info me-1">10 Siswa</span></td>
                                                 <td>
                                                     <div class="dropdown">
@@ -132,8 +134,9 @@
                                                                 href="master_tempat_pkl_edit.php?id=TPKL001">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
-                                                            <a class="dropdown-item"
-                                                                href="master_tempat_pkl_delete.php?id=TPKL001">
+                                                            <a class="dropdown-item text-danger"
+                                                                href="javascript:void(0);"
+                                                                onclick="confirmDeleteTempatPKL('TPKL001', 'PT. Inovasi Digital')">
                                                                 <i class="bx bx-trash me-1"></i> Hapus
                                                             </a>
                                                         </div>
@@ -145,6 +148,7 @@
                                                 <td><strong>CV. Solusi Kreatif</strong></td>
                                                 <td>Jl. Diponegoro No. 45, Cimahi</td>
                                                 <td>(022) 7654321</td>
+                                                <td>Ibu Maya Sari</td>
                                                 <td><span class="badge bg-label-info me-1">8 Siswa</span></td>
                                                 <td>
                                                     <div class="dropdown">
@@ -157,8 +161,9 @@
                                                                 href="master_tempat_pkl_edit.php?id=TPKL002">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
-                                                            <a class="dropdown-item"
-                                                                href="master_tempat_pkl_delete.php?id=TPKL002">
+                                                            <a class="dropdown-item text-danger"
+                                                                href="javascript:void(0);"
+                                                                onclick="confirmDeleteTempatPKL('TPKL002', 'CV. Solusi Kreatif')">
                                                                 <i class="bx bx-trash me-1"></i> Hapus
                                                             </a>
                                                         </div>
@@ -170,6 +175,7 @@
                                                 <td><strong>Bumi Digital Studio</strong></td>
                                                 <td>Jl. Asia Afrika No. 78, Bandung</td>
                                                 <td>(022) 9876543</td>
+                                                <td>Bpk. Asep Setiawan</td>
                                                 <td><span class="badge bg-label-info me-1">5 Siswa</span></td>
                                                 <td>
                                                     <div class="dropdown">
@@ -182,8 +188,9 @@
                                                                 href="master_tempat_pkl_edit.php?id=TPKL003">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
-                                                            <a class="dropdown-item"
-                                                                href="master_tempat_pkl_delete.php?id=TPKL003">
+                                                            <a class="dropdown-item text-danger"
+                                                                href="javascript:void(0);"
+                                                                onclick="confirmDeleteTempatPKL('TPKL003', 'Bumi Digital Studio')">
                                                                 <i class="bx bx-trash me-1"></i> Hapus
                                                             </a>
                                                         </div>
@@ -197,55 +204,6 @@
                                     <div class="text-center text-muted mb-4 animate__animated animate__fadeInUp">
                                         <small><i class="bx bx-mobile me-1"></i> Geser ke bawah untuk melihat daftar
                                             tempat PKL</small>
-                                    </div>
-
-                                    <div
-                                        class="card mb-4 shadow-lg border-start border-4 border-primary rounded-3 animate__animated animate__fadeInUp">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                                <div>
-                                                    <h6 class="mb-1 text-primary"><i class="bx bx-building me-1"></i>
-                                                        <strong>PT. Inovasi Digital</strong>
-                                                    </h6>
-                                                    <span class="badge bg-label-primary"><i
-                                                            class="bx bx-map-alt me-1"></i> Bandung</span>
-                                                </div>
-                                                <div class="dropdown">
-                                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                        data-bs-toggle="dropdown">
-                                                        <i class="bx bx-dots-vertical-rounded"></i>
-                                                    </button>
-                                                    <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item"
-                                                            href="master_tempat_pkl_edit.php?id=TPKL001">
-                                                            <i class="bx bx-edit-alt me-1"></i> Edit Data
-                                                        </a>
-                                                        <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger"
-                                                            href="master_tempat_pkl_delete.php?id=TPKL001">
-                                                            <i class="bx bx-trash me-1"></i> Hapus
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="mb-2">
-                                                <strong class="text-dark"><i class="bx bx-home-alt me-1"></i>
-                                                    Alamat:</strong><br>
-                                                Jl. Merdeka No. 123, Bandung
-                                            </div>
-                                            <div class="mb-2">
-                                                <strong class="text-dark"><i class="bx bx-phone-call me-1"></i>
-                                                    Kontak:</strong><br>
-                                                (022) 1234567
-                                            </div>
-                                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                                <span class="badge bg-label-info"><i class="bx bx-user-plus me-1"></i>
-                                                    Kuota: 10 Siswa</span>
-                                                <small class="text-muted"><i class="bx bx-user-check me-1 ms-4"></i>
-                                                    Instruktur: Bpk. Joni Iskandar</small>
-                                            </div>
-                                        </div>
                                     </div>
 
                                     <div
@@ -269,8 +227,8 @@
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Data
                                                         </a>
                                                         <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger"
-                                                            href="master_tempat_pkl_delete.php?id=TPKL001">
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="confirmDeleteTempatPKL('TPKL001', 'PT. Inovasi Digital')">
                                                             <i class="bx bx-trash me-1"></i> Hapus
                                                         </a>
                                                     </div>
@@ -287,12 +245,14 @@
                                                     Kontak:</strong><br>
                                                 (022) 1234567
                                             </div>
-                                            <div class="d-flex justify-content-between align-items-baseline mt-3">
-                                                <span class="badge bg-label-info"><i class="bx bx-user-plus me-1"></i>
-                                                    Kuota: 10 Siswa</span>
-                                                <small class="text-muted ms-auto text-end" style="max-width: 55%;"><i
-                                                        class="bx bx-user-check me-1"></i> Instruktur: Bpk. Joni
-                                                    Iskandar</small>
+                                            <div class="mb-2">
+                                                <strong class="text-dark"><i class="bx bx-user-check me-1"></i> Nama
+                                                    Instruktur:</strong><br>
+                                                Bpk. Joni Iskandar
+                                            </div>
+                                            <div class="d-flex justify-content-end align-items-baseline mt-3">
+                                                <small class="text-muted"><i class="bx bx-user-plus me-1"></i> Kuota: 10
+                                                    Siswa</small>
                                             </div>
                                         </div>
                                     </div>
@@ -318,8 +278,8 @@
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Data
                                                         </a>
                                                         <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger"
-                                                            href="master_tempat_pkl_delete.php?id=TPKL002">
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="confirmDeleteTempatPKL('TPKL002', 'CV. Solusi Kreatif')">
                                                             <i class="bx bx-trash me-1"></i> Hapus
                                                         </a>
                                                     </div>
@@ -336,12 +296,14 @@
                                                     Kontak:</strong><br>
                                                 (022) 7654321
                                             </div>
-                                            <div class="d-flex justify-content-between align-items-baseline mt-3">
-                                                <span class="badge bg-label-info"><i class="bx bx-user-plus me-1"></i>
-                                                    Kuota: 8 Siswa</span>
-                                                <small class="text-muted ms-auto text-end" style="max-width: 55%;"><i
-                                                        class="bx bx-user-check me-1"></i> Instruktur: Ibu Maya
-                                                    Sari</small>
+                                            <div class="mb-2">
+                                                <strong class="text-dark"><i class="bx bx-user-check me-1"></i> Nama
+                                                    Instruktur:</strong><br>
+                                                Ibu Maya Sari
+                                            </div>
+                                            <div class="d-flex justify-content-end align-items-baseline mt-3">
+                                                <small class="text-muted"><i class="bx bx-user-plus me-1"></i> Kuota: 8
+                                                    Siswa</small>
                                             </div>
                                         </div>
                                     </div>
@@ -367,8 +329,8 @@
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Data
                                                         </a>
                                                         <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger"
-                                                            href="master_tempat_pkl_delete.php?id=TPKL003">
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="confirmDeleteTempatPKL('TPKL003', 'Bumi Digital Studio')">
                                                             <i class="bx bx-trash me-1"></i> Hapus
                                                         </a>
                                                     </div>
@@ -385,61 +347,14 @@
                                                     Kontak:</strong><br>
                                                 (022) 9876543
                                             </div>
-                                            <div class="d-flex justify-content-between align-items-baseline mt-3">
-                                                <span class="badge bg-label-info"><i class="bx bx-user-plus me-1"></i>
-                                                    Kuota: 5 Siswa</span>
-                                                <small class="text-muted ms-auto text-end" style="max-width: 55%;"><i
-                                                        class="bx bx-user-check me-1"></i> Instruktur: Bpk. Asep
-                                                    Setiawan</small>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        class="card mb-4 shadow-lg border-start border-4 border-info rounded-3 animate__animated animate__fadeInUp animate__delay-0-2s">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                                <div>
-                                                    <h6 class="mb-1 text-info"><i class="bx bx-building me-1"></i>
-                                                        <strong>Bumi Digital Studio</strong>
-                                                    </h6>
-                                                    <span class="badge bg-label-info"><i class="bx bx-map-alt me-1"></i>
-                                                        Bandung</span>
-                                                </div>
-                                                <div class="dropdown">
-                                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                        data-bs-toggle="dropdown">
-                                                        <i class="bx bx-dots-vertical-rounded"></i>
-                                                    </button>
-                                                    <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item"
-                                                            href="master_tempat_pkl_edit.php?id=TPKL003">
-                                                            <i class="bx bx-edit-alt me-1"></i> Edit Data
-                                                        </a>
-                                                        <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger"
-                                                            href="master_tempat_pkl_delete.php?id=TPKL003">
-                                                            <i class="bx bx-trash me-1"></i> Hapus
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            </div>
-
                                             <div class="mb-2">
-                                                <strong class="text-dark"><i class="bx bx-home-alt me-1"></i>
-                                                    Alamat:</strong><br>
-                                                Jl. Asia Afrika No. 78, Bandung
+                                                <strong class="text-dark"><i class="bx bx-user-check me-1"></i> Nama
+                                                    Instruktur:</strong><br>
+                                                Bpk. Asep Setiawan
                                             </div>
-                                            <div class="mb-2">
-                                                <strong class="text-dark"><i class="bx bx-phone-call me-1"></i>
-                                                    Kontak:</strong><br>
-                                                (022) 9876543
-                                            </div>
-                                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                                <span class="badge bg-label-info"><i class="bx bx-user-plus me-1"></i>
-                                                    Kuota: 5 Siswa</span>
-                                                <small class="text-muted"><i class="bx bx-user-check me-1 ms-4"></i>
-                                                    Instruktur: Bpk. Asep Setiawan</small>
+                                            <div class="d-flex justify-content-end align-items-baseline mt-3">
+                                                <small class="text-muted"><i class="bx bx-user-plus me-1"></i> Kuota: 5
+                                                    Siswa</small>
                                             </div>
                                         </div>
                                     </div>
@@ -465,6 +380,31 @@
         </div>
     </div>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+    function confirmDeleteTempatPKL(id, namaPerusahaan) {
+        Swal.fire({
+            title: 'Konfirmasi Hapus Data Tempat PKL',
+            html: "Apakah Anda yakin ingin menghapus data tempat PKL <strong>" + namaPerusahaan +
+                "</strong>?<br>Tindakan ini tidak dapat dibatalkan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545', // Warna merah untuk konfirmasi hapus
+            cancelButtonColor: '#6c757d', // Warna abu-abu untuk batal
+            confirmButtonText: 'Ya, Hapus Sekarang!',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Jika dikonfirmasi, arahkan ke skrip PHP untuk delete
+                // Pastikan Anda membuat file 'proses_delete_tempat_pkl.php'
+                window.location.href = 'proses_delete_tempat_pkl.php?id=' + id;
+            }
+        });
+    }
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>

@@ -64,7 +64,7 @@
                                         class="btn btn-outline-secondary w-100 animate__animated animate__fadeInUp animate__delay-0-2s">
                                         <i class="bx bx-arrow-back me-1"></i> Kembali
                                     </a>
-                                    <a href="master_data_guru_add.php"
+                                    <a href="master_guru_pendamping_add.php"
                                         class="btn btn-primary w-100 animate__animated animate__fadeInUp animate__delay-0-3s">
                                         <i class="bx bx-plus me-1"></i> Tambah Guru
                                     </a>
@@ -106,20 +106,18 @@
                                         <thead>
                                             <tr>
                                                 <th>No</th>
-                                                <th>Nama</th>
+                                                <th>Nama Guru</th>
                                                 <th>NIP</th>
                                                 <th>Bidang Keahlian</th>
-                                                <th>Status</th>
                                                 <th>Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody class="table-border-bottom-0">
                                             <tr>
                                                 <td>1</td>
-                                                <td><strong>Bpk. Arman Syahputra</strong></td>
-                                                <td>198001012005011001</td>
+                                                <td><strong>Ibu Endang Susanti, S.Kom.</strong></td>
+                                                <td>198001012005011002</td>
                                                 <td>Rekayasa Perangkat Lunak</td>
-                                                <td><span class="badge bg-label-success me-1">Aktif</span></td>
                                                 <td>
                                                     <div class="dropdown">
                                                         <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -128,11 +126,12 @@
                                                         </button>
                                                         <div class="dropdown-menu">
                                                             <a class="dropdown-item"
-                                                                href="master_data_guru_edit.php?id=G001">
+                                                                href="master_guru_pendamping_edit.php?id=G001">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
-                                                            <a class="dropdown-item"
-                                                                href="master_data_guru_delete.php?id=G001">
+                                                            <a class="dropdown-item text-danger"
+                                                                href="javascript:void(0);"
+                                                                onclick="confirmDeleteGuru('G001', 'Ibu Endang Susanti, S.Kom.')">
                                                                 <i class="bx bx-trash me-1"></i> Hapus
                                                             </a>
                                                         </div>
@@ -141,10 +140,9 @@
                                             </tr>
                                             <tr>
                                                 <td>2</td>
-                                                <td><strong>Ibu Retno Sari</strong></td>
-                                                <td>198505152009022005</td>
+                                                <td><strong>Bapak Anto Wijaya, M.Pd.</strong></td>
+                                                <td>197505102000021005</td>
                                                 <td>Teknik Komputer Jaringan</td>
-                                                <td><span class="badge bg-label-success me-1">Aktif</span></td>
                                                 <td>
                                                     <div class="dropdown">
                                                         <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -153,11 +151,12 @@
                                                         </button>
                                                         <div class="dropdown-menu">
                                                             <a class="dropdown-item"
-                                                                href="master_data_guru_edit.php?id=G002">
+                                                                href="master_guru_pendamping_edit.php?id=G002">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
-                                                            <a class="dropdown-item"
-                                                                href="master_data_guru_delete.php?id=G002">
+                                                            <a class="dropdown-item text-danger"
+                                                                href="javascript:void(0);"
+                                                                onclick="confirmDeleteGuru('G002', 'Bapak Anto Wijaya, M.Pd.')">
                                                                 <i class="bx bx-trash me-1"></i> Hapus
                                                             </a>
                                                         </div>
@@ -166,10 +165,9 @@
                                             </tr>
                                             <tr>
                                                 <td>3</td>
-                                                <td><strong>Bpk. Heru Wibowo</strong></td>
-                                                <td>197510202000031010</td>
+                                                <td><strong>Ibu Siti Aminah, S.T.</strong></td>
+                                                <td>198811202015032001</td>
                                                 <td>Multimedia</td>
-                                                <td><span class="badge bg-label-secondary me-1">Tidak Aktif</span></td>
                                                 <td>
                                                     <div class="dropdown">
                                                         <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -178,11 +176,12 @@
                                                         </button>
                                                         <div class="dropdown-menu">
                                                             <a class="dropdown-item"
-                                                                href="master_data_guru_edit.php?id=G003">
+                                                                href="master_guru_pendamping_edit.php?id=G003">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
-                                                            <a class="dropdown-item"
-                                                                href="master_data_guru_delete.php?id=G003">
+                                                            <a class="dropdown-item text-danger"
+                                                                href="javascript:void(0);"
+                                                                onclick="confirmDeleteGuru('G003', 'Ibu Siti Aminah, S.T.')">
                                                                 <i class="bx bx-trash me-1"></i> Hapus
                                                             </a>
                                                         </div>
@@ -191,10 +190,9 @@
                                             </tr>
                                             <tr>
                                                 <td>4</td>
-                                                <td><strong>Ibu Siti Aminah</strong></td>
+                                                <td><strong>Bapak Rina Sari, S.Kom.</strong></td>
                                                 <td>199003032015042002</td>
                                                 <td>Desain Komunikasi Visual</td>
-                                                <td><span class="badge bg-label-success me-1">Aktif</span></td>
                                                 <td>
                                                     <div class="dropdown">
                                                         <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -203,11 +201,12 @@
                                                         </button>
                                                         <div class="dropdown-menu">
                                                             <a class="dropdown-item"
-                                                                href="master_data_guru_edit.php?id=G004">
+                                                                href="master_guru_pendamping_edit.php?id=G004">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
-                                                            <a class="dropdown-item"
-                                                                href="master_data_guru_delete.php?id=G004">
+                                                            <a class="dropdown-item text-danger"
+                                                                href="javascript:void(0);"
+                                                                onclick="confirmDeleteGuru('G004', 'Bapak Rina Sari, S.Kom.')">
                                                                 <i class="bx bx-trash me-1"></i> Hapus
                                                             </a>
                                                         </div>
@@ -229,10 +228,11 @@
                                             <div class="d-flex justify-content-between align-items-start mb-3">
                                                 <div>
                                                     <h6 class="mb-1 text-primary"><i class="bx bx-user me-1"></i>
-                                                        <strong>Bpk. Arman Syahputra</strong></h6>
+                                                        <strong>Ibu Endang Susanti, S.Kom.</strong>
+                                                    </h6>
                                                     <span class="badge bg-label-primary"><i
                                                             class="bx bx-id-card me-1"></i> NIP:
-                                                        198001012005011001</span>
+                                                        198001012005011002</span>
                                                 </div>
                                                 <div class="dropdown">
                                                     <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -241,12 +241,12 @@
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end">
                                                         <a class="dropdown-item"
-                                                            href="master_data_guru_edit.php?id=G001">
+                                                            href="master_guru_pendamping_edit.php?id=G001">
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Data
                                                         </a>
                                                         <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger"
-                                                            href="master_data_guru_delete.php?id=G001">
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="confirmDeleteGuru('G001', 'Ibu Endang Susanti, S.Kom.')">
                                                             <i class="bx bx-trash me-1"></i> Hapus
                                                         </a>
                                                     </div>
@@ -258,12 +258,6 @@
                                                     Keahlian:</strong><br>
                                                 Rekayasa Perangkat Lunak
                                             </div>
-                                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                                <span class="badge bg-label-success"><i
-                                                        class="bx bx-check-circle me-1"></i> Aktif</span>
-                                                <small class="text-muted"><i class="bx bx-phone me-1"></i> Kontak:
-                                                    081234567890</small>
-                                            </div>
                                         </div>
                                     </div>
 
@@ -273,10 +267,11 @@
                                             <div class="d-flex justify-content-between align-items-start mb-3">
                                                 <div>
                                                     <h6 class="mb-1 text-warning"><i class="bx bx-user me-1"></i>
-                                                        <strong>Ibu Retno Sari</strong></h6>
+                                                        <strong>Bapak Anto Wijaya, M.Pd.</strong>
+                                                    </h6>
                                                     <span class="badge bg-label-warning"><i
                                                             class="bx bx-id-card me-1"></i> NIP:
-                                                        198505152009022005</span>
+                                                        197505102000021005</span>
                                                 </div>
                                                 <div class="dropdown">
                                                     <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -285,12 +280,12 @@
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end">
                                                         <a class="dropdown-item"
-                                                            href="master_data_guru_edit.php?id=G002">
+                                                            href="master_guru_pendamping_edit.php?id=G002">
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Data
                                                         </a>
                                                         <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger"
-                                                            href="master_data_guru_delete.php?id=G002">
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="confirmDeleteGuru('G002', 'Bapak Anto Wijaya, M.Pd.')">
                                                             <i class="bx bx-trash me-1"></i> Hapus
                                                         </a>
                                                     </div>
@@ -302,12 +297,6 @@
                                                     Keahlian:</strong><br>
                                                 Teknik Komputer Jaringan
                                             </div>
-                                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                                <span class="badge bg-label-success"><i
-                                                        class="bx bx-check-circle me-1"></i> Aktif</span>
-                                                <small class="text-muted"><i class="bx bx-phone me-1"></i> Kontak:
-                                                    081345678901</small>
-                                            </div>
                                         </div>
                                     </div>
 
@@ -317,9 +306,10 @@
                                             <div class="d-flex justify-content-between align-items-start mb-3">
                                                 <div>
                                                     <h6 class="mb-1 text-info"><i class="bx bx-user me-1"></i>
-                                                        <strong>Bpk. Heru Wibowo</strong></h6>
+                                                        <strong>Ibu Siti Aminah, S.T.</strong>
+                                                    </h6>
                                                     <span class="badge bg-label-info"><i class="bx bx-id-card me-1"></i>
-                                                        NIP: 197510202000031010</span>
+                                                        NIP: 198811202015032001</span>
                                                 </div>
                                                 <div class="dropdown">
                                                     <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -328,12 +318,12 @@
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end">
                                                         <a class="dropdown-item"
-                                                            href="master_data_guru_edit.php?id=G003">
+                                                            href="master_guru_pendamping_edit.php?id=G003">
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Data
                                                         </a>
                                                         <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger"
-                                                            href="master_data_guru_delete.php?id=G003">
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="confirmDeleteGuru('G003', 'Ibu Siti Aminah, S.T.')">
                                                             <i class="bx bx-trash me-1"></i> Hapus
                                                         </a>
                                                     </div>
@@ -345,12 +335,6 @@
                                                     Keahlian:</strong><br>
                                                 Multimedia
                                             </div>
-                                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                                <span class="badge bg-label-secondary"><i
-                                                        class="bx bx-x-circle me-1"></i> Tidak Aktif</span>
-                                                <small class="text-muted"><i class="bx bx-phone me-1"></i> Kontak:
-                                                    087890123456</small>
-                                            </div>
                                         </div>
                                     </div>
 
@@ -360,7 +344,8 @@
                                             <div class="d-flex justify-content-between align-items-start mb-3">
                                                 <div>
                                                     <h6 class="mb-1 text-success"><i class="bx bx-user me-1"></i>
-                                                        <strong>Ibu Siti Aminah</strong></h6>
+                                                        <strong>Bapak Rina Sari, S.Kom.</strong>
+                                                    </h6>
                                                     <span class="badge bg-label-success"><i
                                                             class="bx bx-id-card me-1"></i> NIP:
                                                         199003032015042002</span>
@@ -372,12 +357,12 @@
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end">
                                                         <a class="dropdown-item"
-                                                            href="master_data_guru_edit.php?id=G004">
+                                                            href="master_guru_pendamping_edit.php?id=G004">
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Data
                                                         </a>
                                                         <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger"
-                                                            href="master_data_guru_delete.php?id=G004">
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="confirmDeleteGuru('G004', 'Bapak Rina Sari, S.Kom.')">
                                                             <i class="bx bx-trash me-1"></i> Hapus
                                                         </a>
                                                     </div>
@@ -389,12 +374,6 @@
                                                     Keahlian:</strong><br>
                                                 Desain Komunikasi Visual
                                             </div>
-                                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                                <span class="badge bg-label-success"><i
-                                                        class="bx bx-check-circle me-1"></i> Aktif</span>
-                                                <small class="text-muted"><i class="bx bx-phone me-1"></i> Kontak:
-                                                    087890123456</small>
-                                            </div>
                                         </div>
                                     </div>
 
@@ -404,7 +383,8 @@
                                         </h5>
                                         <p class="mb-3">Belum ada data guru pendamping yang tercatat di sini.</p>
                                         <p class="mb-0">
-                                            Ayo, <a href="master_data_guru_add.php" class="alert-link fw-bold">tambahkan
+                                            Ayo, <a href="master_guru_pendamping_add.php"
+                                                class="alert-link fw-bold">tambahkan
                                                 data guru pertama Anda</a> sekarang!
                                         </p>
                                     </div>
@@ -418,6 +398,31 @@
         </div>
     </div>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+    function confirmDeleteGuru(id, nama) {
+        Swal.fire({
+            title: 'Konfirmasi Hapus Data Guru',
+            html: "Apakah Anda yakin ingin menghapus data guru bernama <strong>" + nama +
+                "</strong>?<br>Tindakan ini tidak dapat dibatalkan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545', // Warna merah untuk konfirmasi hapus
+            cancelButtonColor: '#6c757d', // Warna abu-abu untuk batal
+            confirmButtonText: 'Ya, Hapus Sekarang!',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Jika dikonfirmasi, arahkan ke skrip PHP untuk delete
+                // Pastikan Anda membuat file 'proses_delete_data_guru.php'
+                window.location.href = 'proses_delete_data_guru.php?id=' + id;
+            }
+        });
+    }
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
