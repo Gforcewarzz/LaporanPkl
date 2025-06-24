@@ -1,10 +1,13 @@
 <?php
 include 'partials/head.php';
 include 'partials/db.php';
+
+// Ambil keyword dari input pencarian (jika ada)
+$keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
 ?>
 
 <!DOCTYPE html>
-<html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="./assets/" data-template="vertical-menu-template-free">
+<html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default">
 
 <body>
 <div class="layout-wrapper layout-content-navbar">
@@ -60,17 +63,21 @@ include 'partials/db.php';
                                 </button>
                             </div>
                         </div>
+
+                        <!-- Filter -->
                         <div class="card-footer bg-light border-top p-3">
-                            <div class="row align-items-center">
-                                <div class="col-md-8 mb-2 mb-md-0">
-                                    <input type="text" class="form-control" placeholder="Cari guru berdasarkan nama, NIP, atau bidang keahlian...">
+                            <form method="GET" action="">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8 mb-2 mb-md-0">
+                                        <input type="text" name="keyword" class="form-control" placeholder="Cari guru berdasarkan nama atau NIP..." value="<?= htmlspecialchars($keyword) ?>">
+                                    </div>
+                                    <div class="col-md-4 text-md-end">
+                                        <button type="submit" class="btn btn-outline-dark w-100 w-md-auto">
+                                            <i class="bx bx-filter-alt me-1"></i> Filter Guru
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="col-md-4 text-md-end">
-                                    <button class="btn btn-outline-dark w-100 w-md-auto">
-                                        <i class="bx bx-filter-alt me-1"></i> Filter Guru
-                                    </button>
-                                </div>
-                            </div>
+                            </form>
                         </div>
                     </div>
 
@@ -85,23 +92,31 @@ include 'partials/db.php';
                                 <table class="table table-hover" style="min-width: 800px;">
                                     <thead class="table-light">
                                         <tr>
-                                            <th style="width: 50px;">No</th>
+                                            <th>No</th>
                                             <th>Nama Guru</th>
                                             <th>NIP</th>
                                             <th>Password</th>
-                                            <th style="width: 100px;">Aksi</th>
+                                            <th>Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php
                                         $no = 1;
-                                        $query = "SELECT * FROM guru_pembimbing ORDER BY id_pembimbing ASC";
-                                        $result = mysqli_query($koneksi, $query);
+                                        // SQL dengan filter jika keyword diisi
+                                        $sql = "SELECT * FROM guru_pembimbing";
+                                        if (!empty($keyword)) {
+                                            $keyword_safe = mysqli_real_escape_string($koneksi, $keyword);
+                                            $sql .= " WHERE nama_pembimbing LIKE '%$keyword_safe%' OR nip LIKE '%$keyword_safe%'";
+                                        }
+                                        $sql .= " ORDER BY id_pembimbing ASC";
 
-                                        while ($row = mysqli_fetch_assoc($result)) {
-                                            echo "<tr>
+                                        $result = mysqli_query($koneksi, $sql);
+
+                                        if (mysqli_num_rows($result) > 0) {
+                                            while ($row = mysqli_fetch_assoc($result)) {
+                                                echo "<tr>
                                                     <td>{$no}</td>
-                                                    <td class='text-wrap'>{$row['nama_pembimbing']}</td>
+                                                    <td>{$row['nama_pembimbing']}</td>
                                                     <td>{$row['nip']}</td>
                                                     <td>{$row['password']}</td>
                                                     <td>
@@ -119,8 +134,11 @@ include 'partials/db.php';
                                                             </div>
                                                         </div>
                                                     </td>
-                                                  </tr>";
-                                            $no++;
+                                                </tr>";
+                                                $no++;
+                                            }
+                                        } else {
+                                            echo "<tr><td colspan='5' class='text-center text-muted'>Tidak ada data ditemukan.</td></tr>";
                                         }
                                         ?>
                                     </tbody>
@@ -136,20 +154,19 @@ include 'partials/db.php';
     </div>
 </div>
 
-<!-- SweetAlert & Script -->
+<!-- SweetAlert -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function confirmDeleteGuru(id, nama) {
     Swal.fire({
         title: 'Konfirmasi Hapus Data Guru',
-        html: `Apakah Anda yakin ingin menghapus data guru <strong>${nama}</strong>?<br>Tindakan ini tidak dapat dibatalkan!`,
+        html: `Apakah Anda yakin ingin menghapus <strong>${nama}</strong>?`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#dc3545',
         cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Ya, Hapus Sekarang!',
-        cancelButtonText: 'Batal',
-        reverseButtons: true
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal'
     }).then((result) => {
         if (result.isConfirmed) {
             window.location.href = 'master_guru_pendamping_delete.php?id=' + id;
