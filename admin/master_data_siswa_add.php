@@ -2,7 +2,7 @@
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="./assets/"
     data-template="vertical-menu-template-free">
 
-<?php include 'partials/head.php' ?>
+<?php include 'partials/head.php'; include 'partials/db.php' ?>
 
 <body>
     <div class="layout-wrapper layout-content-navbar">
@@ -51,7 +51,7 @@
                                 <small class="text-muted">Pastikan data siswa diisi dengan benar dan lengkap.</small>
                             </div>
                             <div class="card-body p-4">
-                                <form action="proses_tambah_data_siswa.php" method="POST">
+                                <form action="master_data_siswa_add_act.php" method="POST">
                                     <?php
                                     $nama_siswa_options = ['Budi Santoso', 'Citra Dewi', 'Dani Permana', 'Eka Putri', 'Fandi Ahmad', 'Gita Cahyani'];
                                     $nisn_options = ['1234567890', '0987654321', '1122334455', '5566778899', '6789012345', '2345678901'];

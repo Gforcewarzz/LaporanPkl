@@ -2,7 +2,7 @@
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="./assets/"
     data-template="vertical-menu-template-free">
 
-<?php include 'partials/head.php' ?>
+<?php include 'partials/head.php'; include "partials/db.php"; ?>
 
 <body>
     <div class="layout-wrapper layout-content-navbar">
@@ -117,122 +117,67 @@
                                             </tr>
                                         </thead>
                                         <tbody class="table-border-bottom-0">
-                                            <tr>
-                                                <td>1</td>
-                                                <td><strong>Budi Santoso</strong></td>
-                                                <td>2022001</td>
-                                                <td>XII RPL 1</td>
-                                                <td>Rekayasa Perangkat Lunak</td>
-                                                <td>Ibu Endang S.</td>
-                                                <td>PT. Maju Bersama</td>
-                                                <td><span class="badge bg-label-success me-1">Aktif</span></td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                            data-bs-toggle="dropdown">
-                                                            <i class="bx bx-dots-vertical-rounded"></i>
-                                                        </button>
-                                                        <div class="dropdown-menu">
-                                                            <a class="dropdown-item"
-                                                                href="master_data_siswa_edit.php?id=123">
-                                                                <i class="bx bx-edit-alt me-1"></i> Edit
-                                                            </a>
-                                                            <a class="dropdown-item text-danger"
-                                                                href="javascript:void(0);"
-                                                                onclick="confirmDelete('123', 'Budi Santoso')">
-                                                                <i class="bx bx-trash me-1"></i> Hapus
-                                                            </a>
+
+                                            <?php
+                                        
+
+                                        $query = "SELECT 
+                                                    siswa.id_siswa,
+                                                    siswa.nama_siswa,
+                                                    siswa.no_induk,
+                                                    siswa.kelas,
+                                                    siswa.status,
+                                                    jurusan.nama_jurusan,
+                                                    guru_pembimbing.nama_pembimbing,
+                                                    tempat_pkl.nama_tempat_pkl
+                                                FROM siswa
+                                                LEFT JOIN jurusan ON siswa.jurusan_id = jurusan.id_jurusan
+                                                LEFT JOIN guru_pembimbing ON siswa.pembimbing_id = guru_pembimbing.id_pembimbing
+                                                LEFT JOIN tempat_pkl ON siswa.tempat_pkl_id = tempat_pkl.id_tempat_pkl
+                                                ORDER BY siswa.id_siswa ASC";
+
+                                        $result = mysqli_query($koneksi, $query);
+                                        $no = 1;
+
+                                        while ($row = mysqli_fetch_assoc($result)) {
+                                            // Badge warna berdasarkan status
+                                            $badgeColor = 'bg-label-success';
+                                            if ($row['status'] == 'Tidak Aktif') {
+                                                $badgeColor = 'bg-label-warning';
+                                            } elseif ($row['status'] == 'Selesai') {
+                                                $badgeColor = 'bg-label-info';
+                                            }
+
+                                            echo "<tr>
+                                                    <td>{$no}</td>
+                                                    <td><strong>{$row['nama_siswa']}</strong></td>
+                                                    <td>{$row['no_induk']}</td>
+                                                    <td>{$row['kelas']}</td>
+                                                    <td>{$row['nama_jurusan']}</td>
+                                                    <td>{$row['nama_pembimbing']}</td>
+                                                    <td>{$row['nama_tempat_pkl']}</td>
+                                                    <td><span class='badge {$badgeColor} me-1'>{$row['status']}</span></td>
+                                                    <td>
+                                                        <div class='dropdown'>
+                                                            <button type='button' class='btn p-0 dropdown-toggle hide-arrow'
+                                                                data-bs-toggle='dropdown'>
+                                                                <i class='bx bx-dots-vertical-rounded'></i>
+                                                            </button>
+                                                            <div class='dropdown-menu'>
+                                                                <a class='dropdown-item' href='master_data_siswa_edit.php?id={$row['id_siswa']}'>
+                                                                    <i class='bx bx-edit-alt me-1'></i> Edit
+                                                                </a>
+                                                                <a class='dropdown-item text-danger' href='javascript:void(0);'
+                                                                    onclick=\"confirmDelete('{$row['id_siswa']}', '{$row['nama_siswa']}')\">
+                                                                    <i class='bx bx-trash me-1'></i> Hapus
+                                                                </a>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>2</td>
-                                                <td><strong>Citra Dewi</strong></td>
-                                                <td>2022002</td>
-                                                <td>XI TKJ 2</td>
-                                                <td>Teknik Komputer Jaringan</td>
-                                                <td>Bapak Anto W.</td>
-                                                <td>CV. IT Jaya</td>
-                                                <td><span class="badge bg-label-success me-1">Aktif</span></td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                            data-bs-toggle="dropdown">
-                                                            <i class="bx bx-dots-vertical-rounded"></i>
-                                                        </button>
-                                                        <div class="dropdown-menu">
-                                                            <a class="dropdown-item"
-                                                                href="master_data_siswa_edit.php?id=456">
-                                                                <i class="bx bx-edit-alt me-1"></i> Edit
-                                                            </a>
-                                                            <a class="dropdown-item text-danger"
-                                                                href="javascript:void(0);"
-                                                                onclick="confirmDelete('456', 'Citra Dewi')">
-                                                                <i class="bx bx-trash me-1"></i> Hapus
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>3</td>
-                                                <td><strong>Dani Permana</strong></td>
-                                                <td>2022003</td>
-                                                <td>X MM 3</td>
-                                                <td>Multimedia</td>
-                                                <td>Ibu Siti A.</td>
-                                                <td>Studio Kreatif Indah</td>
-                                                <td><span class="badge bg-label-secondary me-1">Tidak Aktif</span></td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                            data-bs-toggle="dropdown">
-                                                            <i class="bx bx-dots-vertical-rounded"></i>
-                                                        </button>
-                                                        <div class="dropdown-menu">
-                                                            <a class="dropdown-item"
-                                                                href="master_data_siswa_edit.php?id=789">
-                                                                <i class="bx bx-edit-alt me-1"></i> Edit
-                                                            </a>
-                                                            <a class="dropdown-item text-danger"
-                                                                href="javascript:void(0);"
-                                                                onclick="confirmDelete('789', 'Dani Permana')">
-                                                                <i class="bx bx-trash me-1"></i> Hapus
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>4</td>
-                                                <td><strong>Eka Putri</strong></td>
-                                                <td>2022004</td>
-                                                <td>XII RPL 2</td>
-                                                <td>Rekayasa Perangkat Lunak</td>
-                                                <td>Bapak Rina S.</td>
-                                                <td>Tech Solutions Inc.</td>
-                                                <td><span class="badge bg-label-success me-1">Aktif</span></td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                            data-bs-toggle="dropdown">
-                                                            <i class="bx bx-dots-vertical-rounded"></i>
-                                                        </button>
-                                                        <div class="dropdown-menu">
-                                                            <a class="dropdown-item"
-                                                                href="master_data_siswa_edit.php?id=012">
-                                                                <i class="bx bx-edit-alt me-1"></i> Edit
-                                                            </a>
-                                                            <a class="dropdown-item text-danger"
-                                                                href="javascript:void(0);"
-                                                                onclick="confirmDelete('012', 'Eka Putri')">
-                                                                <i class="bx bx-trash me-1"></i> Hapus
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
+                                                    </td>
+                                                </tr>";
+                                            $no++;
+                                        }
+                                        ?>
                                         </tbody>
                                     </table>
                                 </div>
