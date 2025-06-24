@@ -65,7 +65,7 @@
                                         class="btn btn-outline-secondary w-100 animate__animated animate__fadeInUp animate__delay-0-2s">
                                         <i class="bx bx-arrow-back me-1"></i> Kembali
                                     </a>
-                                    <a href="master_tugas_project_add.php"
+                                    <a href="laporan_tugas_add.php"
                                         class="btn btn-primary w-100 animate__animated animate__fadeInUp animate__delay-0-3s">
                                         <i class="bx bx-plus me-1"></i> Tambah Laporan Tugas
                                     </a>
@@ -129,8 +129,7 @@
                                                             <i class="bx bx-dots-vertical-rounded"></i>
                                                         </button>
                                                         <div class="dropdown-menu">
-                                                            <a class="dropdown-item"
-                                                                href="master_tugas_project_edit.php?id=1">
+                                                            <a class="dropdown-item" href="laporan_tugas_edit.php?id=1">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
                                                             <a class="dropdown-item text-danger"
@@ -143,6 +142,10 @@
                                                                 href="master_tugas_project_print.php?id=1"
                                                                 target="_blank">
                                                                 <i class="bx bx-printer me-1"></i> Print
+                                                            </a>
+                                                            <a class="dropdown-item" href="generate_tugas_pdf.php?id=1"
+                                                                target="_blank">
+                                                                <i class="bx bxs-download me-1"></i> Download PDF
                                                             </a>
                                                         </div>
                                                     </div>
@@ -163,8 +166,7 @@
                                                             <i class="bx bx-dots-vertical-rounded"></i>
                                                         </button>
                                                         <div class="dropdown-menu">
-                                                            <a class="dropdown-item"
-                                                                href="master_tugas_project_edit.php?id=2">
+                                                            <a class="dropdown-item" href="laporan_tugas_edit.php?id=2">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
                                                             <a class="dropdown-item text-danger"
@@ -177,6 +179,10 @@
                                                                 href="master_tugas_project_print.php?id=2"
                                                                 target="_blank">
                                                                 <i class="bx bx-printer me-1"></i> Print
+                                                            </a>
+                                                            <a class="dropdown-item" href="generate_tugas_pdf.php?id=2"
+                                                                target="_blank">
+                                                                <i class="bx bxs-download me-1"></i> Download PDF
                                                             </a>
                                                         </div>
                                                     </div>
@@ -198,8 +204,7 @@
                                                             <i class="bx bx-dots-vertical-rounded"></i>
                                                         </button>
                                                         <div class="dropdown-menu">
-                                                            <a class="dropdown-item"
-                                                                href="master_tugas_project_edit.php?id=3">
+                                                            <a class="dropdown-item" href="laporan_tugas_edit.php?id=3">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
                                                             <a class="dropdown-item text-danger"
@@ -212,6 +217,10 @@
                                                                 href="master_tugas_project_print.php?id=3"
                                                                 target="_blank">
                                                                 <i class="bx bx-printer me-1"></i> Print
+                                                            </a>
+                                                            <a class="dropdown-item" href="generate_tugas_pdf.php?id=3"
+                                                                target="_blank">
+                                                                <i class="bx bxs-download me-1"></i> Download PDF
                                                             </a>
                                                         </div>
                                                     </div>
@@ -232,8 +241,7 @@
                                             <div class="d-flex justify-content-between align-items-start mb-3">
                                                 <div>
                                                     <h6 class="mb-1 text-primary"><i class="bx bx-folder me-1"></i>
-                                                        <strong>Pengembangan Website E-Commerce</strong>
-                                                    </h6>
+                                                        <strong>Pengembangan Website E-Commerce</strong></h6>
                                                     <span class="badge bg-label-primary"><i class="bx bx-hash me-1"></i>
                                                         Proyek #1</span>
                                                 </div>
@@ -243,8 +251,7 @@
                                                         <i class="bx bx-dots-vertical-rounded"></i>
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item"
-                                                            href="master_tugas_project_edit.php?id=1">
+                                                        <a class="dropdown-item" href="laporan_tugas_edit.php?id=1">
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Laporan
                                                         </a>
                                                         <a class="dropdown-item text-danger" href="javascript:void(0);"
@@ -255,6 +262,10 @@
                                                         <a class="dropdown-item"
                                                             href="master_tugas_project_print.php?id=1" target="_blank">
                                                             <i class="bx bx-printer me-1"></i> Print
+                                                        </a>
+                                                        <a class="dropdown-item" href="generate_tugas_pdf.php?id=1"
+                                                            target="_blank">
+                                                            <i class="bx bxs-download me-1"></i> Download PDF
                                                         </a>
                                                     </div>
                                                 </div>
@@ -291,8 +302,7 @@
                                             <div class="d-flex justify-content-between align-items-start mb-3">
                                                 <div>
                                                     <h6 class="mb-1 text-warning"><i class="bx bx-folder me-1"></i>
-                                                        <strong>Instalasi & Konfigurasi Server Jaringan</strong>
-                                                    </h6>
+                                                        <strong>Instalasi & Konfigurasi Server Jaringan</strong></h6>
                                                     <span class="badge bg-label-warning"><i class="bx bx-hash me-1"></i>
                                                         Proyek #2</span>
                                                 </div>
@@ -302,8 +312,7 @@
                                                         <i class="bx bx-dots-vertical-rounded"></i>
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item"
-                                                            href="master_tugas_project_edit.php?id=2">
+                                                        <a class="dropdown-item" href="laporan_tugas_edit.php?id=2">
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Laporan
                                                         </a>
                                                         <div class="dropdown-divider"></div>
@@ -315,6 +324,10 @@
                                                         <a class="dropdown-item"
                                                             href="master_tugas_project_print.php?id=2" target="_blank">
                                                             <i class="bx bx-printer me-1"></i> Print
+                                                        </a>
+                                                        <a class="dropdown-item" href="generate_tugas_pdf.php?id=2"
+                                                            target="_blank">
+                                                            <i class="bx bxs-download me-1"></i> Download PDF
                                                         </a>
                                                     </div>
                                                 </div>
@@ -352,8 +365,7 @@
                                             <div class="d-flex justify-content-between align-items-start mb-3">
                                                 <div>
                                                     <h6 class="mb-1 text-info"><i class="bx bx-folder me-1"></i>
-                                                        <strong>Desain Materi Promosi Digital</strong>
-                                                    </h6>
+                                                        <strong>Desain Materi Promosi Digital</strong></h6>
                                                     <span class="badge bg-label-info"><i class="bx bx-hash me-1"></i>
                                                         Proyek #3</span>
                                                 </div>
@@ -363,8 +375,7 @@
                                                         <i class="bx bx-dots-vertical-rounded"></i>
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item"
-                                                            href="master_tugas_project_edit.php?id=3">
+                                                        <a class="dropdown-item" href="laporan_tugas_edit.php?id=3">
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Laporan
                                                         </a>
                                                         <div class="dropdown-divider"></div>
@@ -376,6 +387,10 @@
                                                         <a class="dropdown-item"
                                                             href="master_tugas_project_print.php?id=3" target="_blank">
                                                             <i class="bx bx-printer me-1"></i> Print
+                                                        </a>
+                                                        <a class="dropdown-item" href="generate_tugas_pdf.php?id=3"
+                                                            target="_blank">
+                                                            <i class="bx bxs-download me-1"></i> Download PDF
                                                         </a>
                                                     </div>
                                                 </div>
@@ -396,9 +411,8 @@
                                             <div class="mb-2 text-wrap">
                                                 <strong class="text-dark"><i class="bx bx-message-square-dots me-1"></i>
                                                     Catatan Instruktur:</strong><br>
-                                                Kreativitas dalam desain sangat baik dan orisinal. Namun, perlu
-                                                perhatian lebih pada optimasi ukuran file gambar untuk web agar tidak
-                                                memberatkan loading halaman.
+                                                Kreativitas sangat baik, perlu perhatian lebih pada optimasi ukuran file
+                                                gambar untuk web agar tidak memberatkan loading halaman.
                                             </div>
                                             <div class="d-flex justify-content-end mt-3">
                                                 <small class="text-muted"><i class="bx bx-time me-1"></i> Terakhir
@@ -412,8 +426,7 @@
                                         <h5 class="alert-heading mb-3"><i class="bx bx-task-x bx-lg text-info"></i></h5>
                                         <p class="mb-3">Belum ada laporan tugas proyek yang tercatat di sini.</p>
                                         <p class="mb-0">
-                                            Ayo, <a href="master_tugas_project_add.php"
-                                                class="alert-link fw-bold">tambahkan
+                                            Ayo, <a href="laporan_tugas_add.php" class="alert-link fw-bold">tambahkan
                                                 laporan proyek pertama Anda</a> sekarang!
                                         </p>
                                     </div>
@@ -446,8 +459,8 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 // Jika dikonfirmasi, arahkan ke skrip PHP untuk delete
-                // Pastikan Anda membuat file 'proses_delete_master_tugas_project.php'
-                window.location.href = 'proses_delete_master_tugas_project.php?id=' + id;
+                // Pastikan Anda membuat file 'proses_delete_laporan_tugas.php'
+                window.location.href = 'proses_delete_laporan_tugas.php?id=' + id;
             }
         });
     }
