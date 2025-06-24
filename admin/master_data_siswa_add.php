@@ -53,13 +53,57 @@
                             <div class="card-body p-4">
                                 <form action="master_data_siswa_add_act.php" method="POST">
                                     <?php
-                                    $nama_siswa_options = ['Budi Santoso', 'Citra Dewi', 'Dani Permana', 'Eka Putri', 'Fandi Ahmad', 'Gita Cahyani'];
-                                    $nisn_options = ['1234567890', '0987654321', '1122334455', '5566778899', '6789012345', '2345678901'];
-                                    $no_induk_options = ['2022001', '2022002', '2022003', '2022004', '2022005', '2022006']; // Data baru
-                                    $kelas_options = ['X RPL 1', 'X RPL 2', 'XI TKJ 1', 'XI TKJ 2', 'XII MM 1', 'XII MM 2'];
-                                    $jurusan_options = ['Rekayasa Perangkat Lunak', 'Teknik Komputer Jaringan', 'Multimedia', 'Desain Komunikasi Visual'];
-                                    $guru_pendamping_options = ['Ibu Endang Susanti', 'Bapak Anto Wijaya', 'Ibu Siti Aminah', 'Bapak Rina Sari'];
-                                    $tempat_pkl_options = ['PT. Maju Bersama', 'CV. IT Jaya', 'Studio Kreatif Indah', 'Tech Solutions Inc.'];
+                                    $jurusan_options = querys("SELECT * FROM jurusan ORDER BY nama_jurusan ASC");
+                                    $no_induk_options = querys("SELECT no_induk FROM siswa");
+                                    $nisn_options = querys("SELECT nisn FROM siswa");
+                                    $nama_siswa_options = querys(("SELECT nama_siswa FROM siswa"));
+                                    
+
+                                    $kelas_options = [
+                                        // RPL
+                                        // 'X RPL 1', 'X RPL 2',
+                                        // 'XI RPL 1', 'XI RPL 2',
+                                        'XII RPL 1', 'XII RPL 2',
+                                    
+                                        // DKV
+                                        // 'X DKV 1', 'X DKV 2',
+                                        // 'XI DKV 1', 'XI DKV 2',
+                                        'XII DKV 1', 'XII DKV 2',
+                                    
+                                        // DPIB
+                                        // 'X DPIB 1', 'X DPIB 2',
+                                        // 'XI DPIB 1', 'XI DPIB 2',
+                                        'XII DPIB 1', 'XII DPIB 2',
+                                    
+                                        // FI (Farmasi Industri)
+                                        // 'X FI 1',
+                                        // 'XI FI 1',
+                                        'XII FI 1',
+                                    
+                                        // TP (Teknik Pengelasan)
+                                        // 'X TP 1', 'X TP 2',
+                                        // 'XI TP 1', 'XI TP 2',
+                                        'XII TP 1',
+                                    
+                                        // TKR (Teknik Kendaraan Ringan)
+                                        // 'X TKR 1', 'X TKR 2', 'X TKR 3',
+                                        // 'XI TKR 1', 'XI TKR 2', 'XI TKR 3',
+                                        'XII TKR 1', 'XII TKR 2', 'XII TKR 3',
+                                    
+                                        // TBO (Teknik Bodi Otomotif)
+                                        // 'X TBO 1',
+                                        // 'XI TBO 1',
+                                        'XII TBO 1',
+                                    
+                                        // AKKL (Akuntansi Keuangan Lembaga)
+                                        // 'X AKKL 1', 'X AKKL 2',
+                                        // 'XI AKKL 1', 'XI AKKL 2',
+                                        'XII AKKL 1', 'XII AKKL 2',
+                                    ];
+                                    
+                                    $guru_pendamping_options = querys("SELECT * from guru_pembimbing");
+                                    
+                                    $tempat_pkl_options = querys("SELECT * FROM tempat_pkl");
                                     ?>
 
                                     <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-2s">
@@ -70,7 +114,7 @@
                                             required>
                                         <datalist id="datalistNamaSiswa">
                                             <?php foreach ($nama_siswa_options as $nama_siswa) : ?>
-                                            <option value="<?php echo htmlspecialchars($nama_siswa); ?>">
+                                            <option value="<?php echo htmlspecialchars($nama_siswa['nama_siswa']); ?>">
                                                 <?php endforeach; ?>
                                         </datalist>
                                         <div class="form-text text-muted">Nama lengkap siswa (akan menyarankan nama yang
@@ -85,7 +129,7 @@
                                             required>
                                         <datalist id="datalistNoInduk">
                                             <?php foreach ($no_induk_options as $no_induk) : ?>
-                                            <option value="<?php echo htmlspecialchars($no_induk); ?>">
+                                            <option value="<?php echo htmlspecialchars($no_induk['no_induk']); ?>">
                                                 <?php endforeach; ?>
                                         </datalist>
                                         <div class="form-text text-muted">Nomor Induk siswa (contoh: 2022001).</div>
@@ -96,16 +140,30 @@
                                             NISN:</label>
                                         <input type="text" class="form-control" id="nisn" name="nisn"
                                             list="datalistNisn" placeholder="Ketik NISN atau pilih..."
-                                            pattern="[0-9]{10}" title="NISN harus 10 digit angka" required>
+                                            title="NISN harus 10 digit angka" required>
                                         <datalist id="datalistNisn">
                                             <?php foreach ($nisn_options as $nisn) : ?>
-                                            <option value="<?php echo htmlspecialchars($nisn); ?>">
+                                            <option value="<?php echo htmlspecialchars($nisn['nisn']); ?>">
                                                 <?php endforeach; ?>
                                         </datalist>
                                         <div class="form-text text-muted">Nomor Induk Siswa Nasional (10 digit angka,
                                             akan menyarankan NISN yang sudah ada).</div>
                                     </div>
+                                    
 
+                                    <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-9s">
+                                        <label for="jenis_kelamin" class="form-label fw-bold"><i
+                                                class="fa-solid fa-venus-mars"></i> Jenis Kelamin:</label>
+                                        <select class="form-select" id="jenis_kelamin" name="jenis_kelamin" required>
+                                            <option value="">Pilih JK</option>
+                                            <option value="Laki-laki">Laki-laki</option>
+                                            <option value="Perempuan">Perempuan</option>
+                                            
+                                        </select>
+                                        <div class="form-text text-muted">Jenis Kelamin siswa.
+                                        </div>
+                                    </div>
+                                    
                                     <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-5s">
                                         <label for="kelas" class="form-label fw-bold"><i class="bx bx-award me-1"></i>
                                             Kelas:</label>
@@ -123,14 +181,14 @@
                                     <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-6s">
                                         <label for="jurusan" class="form-label fw-bold"><i
                                                 class="bx bx-book-open me-1"></i> Jurusan:</label>
-                                        <input type="text" class="form-control" id="jurusan" name="jurusan"
-                                            list="datalistJurusan" placeholder="Pilih atau ketik jurusan..." required>
-                                        <datalist id="datalistJurusan">
-                                            <?php foreach ($jurusan_options as $jurusan) : ?>
-                                            <option value="<?php echo htmlspecialchars($jurusan); ?>">
+                                                <select class="form-select" id="jurusan" name="jurusan" required>
+                                            <option value="">Pilih Jurusan</option>
+                                            <?php foreach($jurusan_options as $jurusan): ?>
+                                            <option value="<?= $jurusan['id_jurusan'] ?>"><?= $jurusan['nama_jurusan'] ?></option>
                                                 <?php endforeach; ?>
-                                        </datalist>
-                                        <div class="form-text text-muted">Jurusan atau kompetensi keahlian siswa.</div>
+                                        </select>
+                                        <div class="form-text text-muted">Jurusan
+                                        </div>
                                     </div>
 
                                     <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-7s">
@@ -141,7 +199,7 @@
                                             placeholder="Pilih atau ketik nama guru..." required>
                                         <datalist id="datalistGuruPendamping">
                                             <?php foreach ($guru_pendamping_options as $guru) : ?>
-                                            <option value="<?php echo htmlspecialchars($guru); ?>">
+                                            <option value="<?php echo htmlspecialchars($guru['nama_pembimbing']); ?>">
                                                 <?php endforeach; ?>
                                         </datalist>
                                         <div class="form-text text-muted">Guru yang mendampingi siswa selama PKL.</div>
@@ -155,7 +213,7 @@
                                             required>
                                         <datalist id="datalistTempatPKL">
                                             <?php foreach ($tempat_pkl_options as $tempat) : ?>
-                                            <option value="<?php echo htmlspecialchars($tempat); ?>">
+                                            <option value="<?php echo htmlspecialchars($tempat['nama_tempat_pkl']); ?>">
                                                 <?php endforeach; ?>
                                         </datalist>
                                         <div class="form-text text-muted">Nama perusahaan/instansi tempat siswa PKL.
@@ -186,7 +244,7 @@
                                         <button type="reset" class="btn btn-outline-secondary w-100 w-sm-auto">
                                             <i class="bx bx-refresh me-1"></i> Reset Form
                                         </button>
-                                        <button type="submit" class="btn btn-primary w-100 w-sm-auto">
+                                        <button type="submit" name="submit" class="btn btn-primary w-100 w-sm-auto">
                                             <i class="bx bx-save me-1"></i> Simpan Data Siswa
                                         </button>
                                     </div>

@@ -23,6 +23,8 @@
     <!-- Icons. Uncomment required icon fonts -->
     <link rel="stylesheet" href="./assets/vendor/fonts/boxicons.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
     <!-- Core CSS -->
     <link rel="stylesheet" href="./assets/vendor/css/core.css" class="template-customizer-core-css" />
@@ -37,6 +39,8 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.css" />
 
     <link rel="stylesheet" href="./assets/vendor/libs/apex-charts/apex-charts.css" />
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <!-- Page CSS -->
 
