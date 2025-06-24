@@ -129,11 +129,13 @@
                                                             <i class="bx bx-dots-vertical-rounded"></i>
                                                         </button>
                                                         <div class="dropdown-menu">
-                                                            <a class="dropdown-item" href="laporan_tugas_edit.php?id=1">
+                                                            <a class="dropdown-item"
+                                                                href="master_tugas_project_edit.php?id=1">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
-                                                            <a class="dropdown-item"
-                                                                href="laporan_tugas_delete.php?id=1">
+                                                            <a class="dropdown-item text-danger"
+                                                                href="javascript:void(0);"
+                                                                onclick="confirmDeleteLaporanTugas('1', 'Pengembangan Website E-Commerce')">
                                                                 <i class="bx bx-trash me-1"></i> Hapus
                                                             </a>
                                                             <div class="dropdown-divider"></div>
@@ -161,11 +163,13 @@
                                                             <i class="bx bx-dots-vertical-rounded"></i>
                                                         </button>
                                                         <div class="dropdown-menu">
-                                                            <a class="dropdown-item" href="laporan_tugas_edit.php?id=2">
+                                                            <a class="dropdown-item"
+                                                                href="master_tugas_project_edit.php?id=2">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
-                                                            <a class="dropdown-item"
-                                                                href="laporan_tugas_delete.php?id=2">
+                                                            <a class="dropdown-item text-danger"
+                                                                href="javascript:void(0);"
+                                                                onclick="confirmDeleteLaporanTugas('2', 'Instalasi & Konfigurasi Server Jaringan')">
                                                                 <i class="bx bx-trash me-1"></i> Hapus
                                                             </a>
                                                             <div class="dropdown-divider"></div>
@@ -185,8 +189,8 @@
                                                 </td>
                                                 <td>Pembuatan banner iklan untuk sosial media (3 desain), revisi minor.
                                                 </td>
-                                                <td>Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                                                    Repellendus, eveniet!</td>
+                                                <td>Kreativitas sangat baik, perlu lebih fokus pada optimasi ukuran file
+                                                    untuk web.</td>
                                                 <td>
                                                     <div class="dropdown">
                                                         <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -194,11 +198,13 @@
                                                             <i class="bx bx-dots-vertical-rounded"></i>
                                                         </button>
                                                         <div class="dropdown-menu">
-                                                            <a class="dropdown-item" href="laporan_tugas_edit.php?id=3">
+                                                            <a class="dropdown-item"
+                                                                href="master_tugas_project_edit.php?id=3">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
                                                             <a class="dropdown-item text-danger"
-                                                                href="laporan_tugas_delete.php?id=3">
+                                                                href="javascript:void(0);"
+                                                                onclick="confirmDeleteLaporanTugas('3', 'Desain Materi Promosi Digital')">
                                                                 <i class="bx bx-trash me-1"></i> Hapus
                                                             </a>
                                                             <div class="dropdown-divider"></div>
@@ -237,11 +243,12 @@
                                                         <i class="bx bx-dots-vertical-rounded"></i>
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item" href="laporan_tugas_edit.php?id=1">
+                                                        <a class="dropdown-item"
+                                                            href="master_tugas_project_edit.php?id=1">
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Laporan
                                                         </a>
-                                                        <a class="dropdown-item text-danger"
-                                                            href="laporan_tugas_delete.php?id=1">
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="confirmDeleteLaporanTugas('1', 'Pengembangan Website E-Commerce')">
                                                             <i class="bx bx-trash me-1"></i> Hapus
                                                         </a>
                                                         <div class="dropdown-divider"></div>
@@ -295,12 +302,13 @@
                                                         <i class="bx bx-dots-vertical-rounded"></i>
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item" href="laporan_tugas_edit.php?id=2">
+                                                        <a class="dropdown-item"
+                                                            href="master_tugas_project_edit.php?id=2">
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Laporan
                                                         </a>
                                                         <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger"
-                                                            href="laporan_tugas_delete.php?id=2">
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="confirmDeleteLaporanTugas('2', 'Instalasi & Konfigurasi Server Jaringan')">
                                                             <i class="bx bx-trash me-1"></i> Hapus
                                                         </a>
                                                         <div class="dropdown-divider"></div>
@@ -327,7 +335,7 @@
                                             <div class="mb-2 text-wrap">
                                                 <strong class="text-dark"><i class="bx bx-message-square-dots me-1"></i>
                                                     Catatan Instruktur:</strong><br>
-                                                Pemahaman dasar jaringan sudah cukup kuat. Namun, perlu pendalaman lebih
+                                                Pemahaman dasar jaringan cukup kuat. Namun, perlu pendalaman lebih
                                                 lanjut pada konsep subnetting dan routing untuk tugas yang lebih
                                                 kompleks.
                                             </div>
@@ -355,12 +363,13 @@
                                                         <i class="bx bx-dots-vertical-rounded"></i>
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item" href="laporan_tugas_edit.php?id=3">
+                                                        <a class="dropdown-item"
+                                                            href="master_tugas_project_edit.php?id=3">
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Laporan
                                                         </a>
                                                         <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger"
-                                                            href="laporan_tugas_delete.php?id=3">
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="confirmDeleteLaporanTugas('3', 'Desain Materi Promosi Digital')">
                                                             <i class="bx bx-trash me-1"></i> Hapus
                                                         </a>
                                                         <div class="dropdown-divider"></div>
@@ -403,9 +412,9 @@
                                         <h5 class="alert-heading mb-3"><i class="bx bx-task-x bx-lg text-info"></i></h5>
                                         <p class="mb-3">Belum ada laporan tugas proyek yang tercatat di sini.</p>
                                         <p class="mb-0">
-                                            Yuk, <a href="master_tugas_project_add.php"
+                                            Ayo, <a href="master_tugas_project_add.php"
                                                 class="alert-link fw-bold">tambahkan
-                                                laporan proyek pertama Anda</a> untuk memulai dokumentasi!
+                                                laporan proyek pertama Anda</a> sekarang!
                                         </p>
                                     </div>
                                 </div>
@@ -418,6 +427,31 @@
         </div>
     </div>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+    function confirmDeleteLaporanTugas(id, namaProyek) {
+        Swal.fire({
+            title: 'Konfirmasi Hapus Laporan Proyek',
+            html: "Apakah Anda yakin ingin menghapus laporan proyek <strong>" + namaProyek +
+                "</strong>?<br>Tindakan ini tidak dapat dibatalkan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545', // Warna merah untuk konfirmasi hapus
+            cancelButtonColor: '#6c757d', // Warna abu-abu untuk batal
+            confirmButtonText: 'Ya, Hapus Sekarang!',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Jika dikonfirmasi, arahkan ke skrip PHP untuk delete
+                // Pastikan Anda membuat file 'proses_delete_master_tugas_project.php'
+                window.location.href = 'proses_delete_master_tugas_project.php?id=' + id;
+            }
+        });
+    }
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>

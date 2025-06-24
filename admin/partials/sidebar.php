@@ -89,6 +89,12 @@ $userRole = 'Super Admin'; // Gunakan role statis untuk menguji kondisi Super Ad
             </a>
         </li>
         <li class="menu-item">
+            <a href="master_tugas_project.php" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-book-content"></i>
+                <div data-i18n="Kegiatan Harian">Kegiatan Project</div>
+            </a>
+        </li>
+        <li class="menu-item">
             <a href="penilaian_pkl.php" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-star"></i>
                 <div data-i18n="Penilaian PKL">Penilaian PKL</div>

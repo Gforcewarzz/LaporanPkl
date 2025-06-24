@@ -1,45 +1,54 @@
 <?php
-$tasks = [
-    1 => [
-        'nama_peserta' => 'Budi Santoso',
-        'dunia_kerja_tempat_pkl' => 'PT. Inovasi Digital (Software House)',
-        'nama_instruktur' => 'Bpk. Joni Iskandar, S.T.',
-        'nama_guru_pembimbing' => 'Ibu Endang Susanti, S.Kom., M.TI.',
-        'nama_pekerjaan' => 'Pengembangan Modul Login Aplikasi Web',
-        'perencanaan_kegiatan' => "1. Mempelajari alur autentikasi OAuth2.\n2. Merancang ERD untuk tabel user.\n3. Membuat wireframe halaman login & register.",
-        'pelaksanaan_kegiatan' => "1. Implementasi frontend halaman login (HTML, CSS, JS).\n2. Integrasi API login dengan backend.\n3. Melakukan unit testing pada modul login dan registrasi.\n4. Menganalisis log error dan melakukan debugging.",
-        'catatan_instruktur' => "Progres sangat memuaskan, Budi menunjukkan inisiatif tinggi dalam memahami teknologi baru. Kemampuan debugging baik. Pertahankan kualitas kode yang bersih.",
-    ],
-    2 => [
-        'nama_peserta' => 'Citra Dewi',
-        'dunia_kerja_tempat_pkl' => 'CV. Solusi Kreatif (Desain Grafis & Multimedia)',
-        'nama_instruktur' => 'Ibu Maya Sari, S.Ds.',
-        'nama_guru_pembimbing' => 'Bapak Anto Wijaya, M.Pd.',
-        'nama_pekerjaan' => 'Desain Infografis Kampanye Lingkungan',
-        'perencanaan_kegiatan' => "1. Riset data statistik tentang polusi plastik.\n2. Mengumpulkan referensi desain infografis yang efektif.\n3. Membuat sketsa layout dan memilih palet warna.",
-        'pelaksanaan_kegiatan' => "1. Membuat 3 draf infografis menggunakan Adobe Illustrator.\n2. Melakukan revisi minor berdasarkan masukan tim kreatif.\n3. Menyiapkan aset final dalam format JPG dan PDF untuk web dan cetak.",
-        'catatan_instruktur' => "Desain Citra sangat inovatif dan komunikatif. Pemilihan visual tepat sasaran. Perhatikan lagi konsistensi ukuran font di elemen kecil untuk keterbacaan optimal.",
-    ],
-    3 => [
-        'nama_peserta' => 'Dani Permana',
-        'dunia_kerja_tempat_pkl' => 'Bumi Digital Studio (Game Development)',
-        'nama_instruktur' => 'Bpk. Asep Setiawan, S.Kom.',
-        'nama_guru_pembimbing' => 'Ibu Siti Aminah, S.T.',
-        'nama_pekerjaan' => 'Pengembangan Karakter 3D untuk Game Edukasi',
-        'perencanaan_kegiatan' => "1. Studi referensi gaya visual game edukasi.\n2. Membuat konsep sketsa karakter (pose & ekspresi).\n3. Menentukan topologi mesh model 3D.",
-        'pelaksanaan_kegiatan' => "1. Modeling dasar karakter di Blender.\n2. Texturing menggunakan Substance Painter.\n3. Rigging sederhana untuk pose awal karakter.\n4. Render preview karakter di karakter dari berbagai sudut.",
-        'catatan_instruktur' => "Dani memiliki bakat kuat dalam modeling 3D. Perlu lebih banyak latihan dalam teknik retopologi untuk optimasi aset game. Tingkatkan kecepatan kerja.",
-    ],
-];
-
 $taskId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-$taskData = $tasks[$taskId] ?? null;
 
-if (!$taskData) {
-    echo "Data tugas tidak ditemukan.";
+// --- MENGAMBIL DATA STATIS BERDASARKAN ID MENGGUNAKAN IF/ELSE IF ---
+// PENTING: Pendekatan ini hanya untuk memenuhi permintaan spesifik "tanpa array global".
+// Untuk banyak data atau aplikasi nyata, ini SANGAT TIDAK DISARANKAN dan sulit di-maintain.
+// Selalu gunakan array untuk data statis, atau query database untuk data dinamis.
+
+$nama_peserta = '';
+$dunia_kerja_tempat_pkl = '';
+$nama_instruktur = '';
+$nama_guru_pembimbing = '';
+$nama_pekerjaan = '';
+$perencanaan_kegiatan = '';
+$pelaksanaan_kegiatan = '';
+$catatan_instruktur = '';
+
+if ($taskId == 1) {
+    $nama_peserta = 'Budi Santoso';
+    $dunia_kerja_tempat_pkl = 'PT. Inovasi Digital (Software House)';
+    $nama_instruktur = 'Bpk. Joni Iskandar, S.T.';
+    $nama_guru_pembimbing = 'Ibu Endang Susanti, S.Kom., M.TI.';
+    $nama_pekerjaan = 'Pengembangan Modul Login Aplikasi Web';
+    $perencanaan_kegiatan = "1. Mempelajari alur autentikasi OAuth2.\n2. Merancang ERD untuk tabel user.\n3. Membuat wireframe halaman login & register.";
+    $pelaksanaan_kegiatan = "1. Implementasi frontend halaman login (HTML, CSS, JS).\n2. Integrasi API login dengan backend.\n3. Melakukan unit testing pada modul login dan registrasi.\n4. Menganalisis log error dan melakukan debugging.";
+    $catatan_instruktur = "Progres sangat memuaskan, Budi menunjukkan inisiatif tinggi dalam memahami teknologi baru. Kemampuan debugging baik. Pertahankan kualitas kode yang bersih.";
+} elseif ($taskId == 2) {
+    $nama_peserta = 'Citra Dewi';
+    $dunia_kerja_tempat_pkl = 'CV. Solusi Kreatif (Desain Grafis & Multimedia)';
+    $nama_instruktur = 'Ibu Maya Sari, S.Ds.';
+    $nama_guru_pembimbing = 'Bapak Anto Wijaya, M.Pd.';
+    $nama_pekerjaan = 'Desain Infografis Kampanye Lingkungan';
+    $perencanaan_kegiatan = "1. Riset data statistik tentang polusi plastik.\n2. Mengumpulkan referensi desain infografis yang efektif.\n3. Membuat sketsa layout dan memilih palet warna.";
+    $pelaksanaan_kegiatan = "1. Membuat 3 draf infografis menggunakan Adobe Illustrator.\n2. Melakukan revisi minor berdasarkan masukan tim kreatif.\n3. Menyiapkan aset final dalam format JPG dan PDF untuk web dan cetak.";
+    $catatan_instruktur = "Desain Citra sangat inovatif dan komunikatif. Pemilihan visual tepat sasaran. Perhatikan lagi konsistensi ukuran font di elemen kecil untuk keterbacaan optimal.";
+} elseif ($taskId == 3) {
+    $nama_peserta = 'Dani Permana';
+    $dunia_kerja_tempat_pkl = 'Bumi Digital Studio (Game Development)';
+    $nama_instruktur = 'Bpk. Asep Setiawan, S.Kom.';
+    $nama_guru_pembimbing = 'Ibu Siti Aminah, S.T.';
+    $nama_pekerjaan = 'Pengembangan Karakter 3D untuk Game Edukasi';
+    $perencanaan_kegiatan = "1. Studi referensi gaya visual game edukasi.\n2. Membuat konsep sketsa karakter (pose & ekspresi).\n3. Menentukan topologi mesh model 3D.";
+    $pelaksanaan_kegiatan = "1. Modeling dasar karakter di Blender.\n2. Texturing menggunakan Substance Painter.\n3. Rigging sederhana untuk pose awal karakter.\n4. Render preview karakter di karakter dari berbagai sudut.";
+    $catatan_instruktur = "Dani memiliki bakat kuat dalam modeling 3D. Perlu lebih banyak latihan dalam teknik retopologi untuk optimasi aset game. Tingkatkan kecepatan kerja.";
+} else {
+    // Jika ID tidak cocok dengan data statis yang ada
+    echo "Data tugas tidak ditemukan atau ID tidak valid.";
     exit;
 }
 
+// Data tambahan yang mungkin diambil dari sesi atau setting
 $location = "Bandung";
 $currentDate = date('d F Y', time());
 ?>
@@ -49,7 +58,7 @@ $currentDate = date('d F Y', time());
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cetak Laporan Tugas PKL: <?php echo htmlspecialchars($taskData['nama_pekerjaan']); ?></title>
+    <title>Cetak Laporan Tugas PKL: <?php echo htmlspecialchars($nama_pekerjaan); ?></title>
     <style>
     body {
         font-family: 'Times New Roman', serif;
@@ -193,34 +202,32 @@ $currentDate = date('d F Y', time());
 
         <div class="info-section">
             <div class="info-item">
-                <strong>Nama Peserta Didik</strong> :
-                <span><?php echo htmlspecialchars($taskData['nama_peserta']); ?></span>
+                <strong>Nama Peserta Didik</strong> : <span><?php echo htmlspecialchars($nama_peserta); ?></span>
             </div>
             <div class="info-item">
                 <strong>Dunia Kerja Tempat PKL</strong> :
-                <span><?php echo htmlspecialchars($taskData['dunia_kerja_tempat_pkl']); ?></span>
+                <span><?php echo htmlspecialchars($dunia_kerja_tempat_pkl); ?></span>
             </div>
             <div class="info-item">
-                <strong>Nama Instruktur</strong> :
-                <span><?php echo htmlspecialchars($taskData['nama_instruktur']); ?></span>
+                <strong>Nama Instruktur</strong> : <span><?php echo htmlspecialchars($nama_instruktur); ?></span>
             </div>
             <div class="info-item">
                 <strong>Nama Guru Pembimbing</strong> :
-                <span><?php echo htmlspecialchars($taskData['nama_guru_pembimbing']); ?></span>
+                <span><?php echo htmlspecialchars($nama_guru_pembimbing); ?></span>
             </div>
         </div>
 
         <div class="section-block">
             <div class="section-title">A. Nama Pekerjaan</div>
             <div class="content-box">
-                <?php echo nl2br(htmlspecialchars($taskData['nama_pekerjaan'])); ?>
+                <?php echo nl2br(htmlspecialchars($nama_pekerjaan)); ?>
             </div>
         </div>
 
         <div class="section-block">
             <div class="section-title">B. Perencanaan Kegiatan</div>
             <div class="content-box">
-                <?php echo nl2br(htmlspecialchars($taskData['perencanaan_kegiatan'])); ?>
+                <?php echo nl2br(htmlspecialchars($perencanaan_kegiatan)); ?>
                 <div class="small-note">(Jadwal kegiatan/dokumen perencanaan)</div>
             </div>
         </div>
@@ -228,7 +235,7 @@ $currentDate = date('d F Y', time());
         <div class="section-block">
             <div class="section-title">C. Pelaksanaan Kegiatan/Hasil</div>
             <div class="content-box">
-                <?php echo nl2br(htmlspecialchars($taskData['pelaksanaan_kegiatan'])); ?>
+                <?php echo nl2br(htmlspecialchars($pelaksanaan_kegiatan)); ?>
                 <div class="small-note">(Uraian proses kerja dan foto hasil)</div>
             </div>
         </div>
@@ -236,7 +243,7 @@ $currentDate = date('d F Y', time());
         <div class="section-block">
             <div class="section-title">D. Catatan Instruktur</div>
             <div class="content-box">
-                <?php echo nl2br(htmlspecialchars($taskData['catatan_instruktur'])); ?>
+                <?php echo nl2br(htmlspecialchars($catatan_instruktur)); ?>
             </div>
         </div>
 
