@@ -1,22 +1,18 @@
 <?php
-// Pastikan sesi sudah dimulai di awal file
-// if (session_status() == PHP_SESSION_NONE) {
-//     session_start();
-// }
+// Baris session_start() sudah dijamin ada di partials/head.php
 
 // Ambil data dari sesi, atau gunakan nilai default jika sesi belum aktif atau data tidak ada
-// $userName = $_SESSION['nama'] ?? 'Administrator'; // Nilai default jika sesi tidak aktif/data tidak ada
-// $userRole = $_SESSION['role'] ?? 'Super Admin';   // Nilai default jika sesi tidak aktif/data tidak ada
-// $userAvatar = './assets/img/avatars/1.png'; // Path avatar default (contoh)
-// Anda bisa menambahkan logika untuk avatar berdasarkan role atau user ID
-// Misal: if ($userRole == 'Siswa') $userAvatar = './assets/img/avatars/siswa.png';
-
-// --- DATA STATIS UNTUK PENGUJIAN TAMPILAN (Hapus atau komentari ini saat sesi aktif) ---
-$userName = 'Anjay Mabar';
-$userRole = 'Admin';
-$userAvatar = './assets/img/avatars/1.png'; // Ganti dengan path avatar default Anda
-// --- AKHIR DATA STATIS ---
-
+if (isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in') {
+    $userName = $_SESSION['siswa_nama'] ?? 'Siswa Tidak Dikenal';
+    $userRole = 'Siswa PKL';
+    $userAvatar = 'assets/img/avatars/1.png'; // Path avatar default siswa
+} else {
+    // Ini adalah kondisi jika belum login atau login sebagai Admin/Guru
+    // Anda bisa menyesuaikannya dengan sistem role/user Anda yang sebenarnya
+    $userName = 'Guest';
+    $userRole = 'Pengunjung';
+    $userAvatar = 'assets/img/avatars/1.png'; // Path avatar default guest/admin
+}
 ?>
 
 <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
@@ -32,9 +28,11 @@ $userAvatar = './assets/img/avatars/1.png'; // Ganti dengan path avatar default 
             <li class="nav-item navbar-dropdown dropdown-user dropdown">
                 <a class="nav-link dropdown-toggle hide-arrow d-flex align-items-center" href="javascript:void(0);"
                     data-bs-toggle="dropdown">
-                    <img src="<?= htmlspecialchars($userAvatar); ?>" alt="User Avatar" class="user-avatar">
-                    <div class="user-info d-none d-md-block"> <span
-                            class="user-name"><?= htmlspecialchars($userName); ?></span>
+                    <div class="avatar avatar-online me-2"> <img src="<?= htmlspecialchars($userAvatar); ?>"
+                            alt="User Avatar" class="w-px-40 h-auto rounded-circle">
+                    </div>
+                    <div class="user-info d-none d-md-block">
+                        <span class="user-name fw-semibold d-block"><?= htmlspecialchars($userName); ?></span>
                         <small class="user-role"><?= htmlspecialchars($userRole); ?></small>
                     </div>
                 </a>
@@ -72,26 +70,24 @@ $userAvatar = './assets/img/avatars/1.png'; // Ganti dengan path avatar default 
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    document.getElementById("logoutBtn").addEventListener("click", function(e) {
-        e.preventDefault();
+document.getElementById("logoutBtn").addEventListener("click", function(e) {
+    e.preventDefault();
 
-        Swal.fire({
-            title: 'Konfirmasi Logout',
-            text: "Apakah Anda yakin ingin keluar dari sesi ini?",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#007bff',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Ya, Logout',
-            cancelButtonText: 'Batal',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Di sini Anda bisa arahkan ke halaman logout statis atau simulasi logout
-                alert("Simulasi Logout: Anda telah keluar.");
-                // Hapus baris alert di atas dan uncomment baris di bawah ini saat sesi PHP aktif
-                // window.location.href = "../logout.php"; 
-            }
-        });
+    Swal.fire({
+        title: 'Konfirmasi Logout',
+        text: "Apakah Anda yakin ingin keluar dari sesi ini?",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#007bff',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Logout',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Pastikan path ke logout.php benar
+            window.location.href = "../logout.php";
+        }
     });
+});
 </script>

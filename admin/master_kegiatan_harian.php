@@ -1,18 +1,41 @@
 <?php
-session_start(); // Pastikan session dimulai di paling atas, sebelum output HTML apapun
+include 'partials/head.php';
+include 'partials/db.php';
+
+$keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
+
+if (!isset($_SESSION['id_siswa'])) {
+    header("Location: ../login.php");
+    exit;
+}
+
+$siswa_id = $_SESSION['id_siswa'];
+
+$sql_laporan = "SELECT id_jurnal_harian, tanggal, pekerjaan, catatan FROM jurnal_harian WHERE siswa_id = ?";
+if (!empty($keyword)) {
+    $sql_laporan .= " AND (pekerjaan LIKE '%" . mysqli_real_escape_string($koneksi, $keyword) . "%' OR catatan LIKE '%" . mysqli_real_escape_string($koneksi, $keyword) . "%')";
+}
+$sql_laporan .= " ORDER BY tanggal DESC";
+
+$stmt_laporan = $koneksi->prepare($sql_laporan);
+$stmt_laporan->bind_param("i", $siswa_id);
+$stmt_laporan->execute();
+$result_laporan = $stmt_laporan->get_result();
+
+$laporan_data = $result_laporan->fetch_all(MYSQLI_ASSOC);
+$stmt_laporan->close();
 ?>
+
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="./assets/"
     data-template="vertical-menu-template-free">
 
-<?php include 'partials/head.php'; // Memasukkan bagian <head> ?>
-
 <body>
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
-            <?php include './partials/sidebar.php'; // Memasukkan sidebar ?>
+            <?php include './partials/sidebar.php'; ?>
             <div class="layout-page">
-                <?php include './partials/navbar.php'; // Memasukkan navbar ?>
+                <?php include './partials/navbar.php'; ?>
                 <div class="content-wrapper">
                     <div class="container-xxl flex-grow-1 container-p-y">
 
@@ -76,10 +99,11 @@ session_start(); // Pastikan session dimulai di paling atas, sebelum output HTML
                                     </a>
                                 </div>
                                 <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-1 order-md-2">
-                                    <button type="button"
-                                        class="btn btn-outline-danger w-100 animate__animated animate__fadeInDown animate__delay-0-3s">
+                                    <a href="generate_laporan_harian_pdf.php<?= !empty($keyword) ? '?keyword=' . htmlspecialchars($keyword) : '' ?>"
+                                        class="btn btn-outline-danger w-100 animate__animated animate__fadeInDown animate__delay-0-3s"
+                                        target="_blank">
                                         <i class="bx bxs-file-pdf me-1"></i> Cetak PDF
-                                    </button>
+                                    </a>
                                     <button type="button"
                                         class="btn btn-outline-success w-100 animate__animated animate__fadeInDown animate__delay-0-2s">
                                         <i class="bx bxs-file-excel me-1"></i> Ekspor Excel
@@ -90,12 +114,15 @@ session_start(); // Pastikan session dimulai di paling atas, sebelum output HTML
                                 <div
                                     class="row align-items-center animate__animated animate__fadeInUp animate__delay-0-4s">
                                     <div class="col-12 col-md-8 mb-2 mb-md-0">
-                                        <input type="text" class="form-control"
-                                            placeholder="Cari laporan berdasarkan kata kunci..." aria-label="Search" />
+                                        <form method="GET" action="" id="filterForm">
+                                            <input type="text" name="keyword" class="form-control"
+                                                placeholder="Cari laporan berdasarkan kata kunci..." aria-label="Search"
+                                                value="<?= htmlspecialchars($keyword) ?>" />
                                     </div>
                                     <div class="col-12 col-md-4 text-md-end">
-                                        <button class="btn btn-outline-dark w-100 w-md-auto"><i
+                                        <button type="submit" class="btn btn-outline-dark w-100 w-md-auto"><i
                                                 class="bx bx-filter-alt me-1"></i> Filter Laporan</button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -120,57 +147,60 @@ session_start(); // Pastikan session dimulai di paling atas, sebelum output HTML
                                         </thead>
                                         <tbody class="table-border-bottom-0">
                                             <?php
-                                            // Memanggil koneksi database
-                                            include 'partials/db.php';
-
-                                            // Contoh: Ambil ID siswa dari session. Sesuaikan dengan implementasi otentikasi Anda.
-                                            // Jika 'id_siswa' tidak diset di session, gunakan nilai default (misal: 1) untuk demo.
-                                            $siswa_id = isset($_SESSION['id_siswa']) ? $_SESSION['id_siswa'] : 1;
-
-                                            // Query untuk mengambil data jurnal harian berdasarkan siswa_id
-                                            $sql = "SELECT id_jurnal_harian, tanggal, pekerjaan, catatan FROM jurnal_harian WHERE siswa_id = ? ORDER BY tanggal DESC";
-                                            $stmt = $koneksi->prepare($sql);
-                                            $stmt->bind_param("i", $siswa_id); // 'i' menandakan integer
-                                            $stmt->execute();
-                                            $result = $stmt->get_result();
-
-                                            if ($result->num_rows > 0) {
+                                            if (count($laporan_data) > 0) {
                                                 $no = 1;
-                                                while ($row = $result->fetch_assoc()) {
-                                                    echo '<tr>';
-                                                    echo '<td>' . $no++ . '</td>';
-                                                    // Format tanggal ke Hari, DD Bulan YYYY (contoh: Senin, 24 Juni 2024)
-                                                    echo '<td><strong>' . date('l, d F Y', strtotime($row['tanggal'])) . '</strong></td>';
-                                                    echo '<td>' . htmlspecialchars($row['pekerjaan']) . '</td>';
-                                                    echo '<td>' . htmlspecialchars($row['catatan']) . '</td>';
-                                                    echo '<td>';
-                                                    echo '<div class="dropdown">';
-                                                    // Tombol aksi dropdown (ini yang harusnya bekerja dengan Bootstrap JS)
-                                                    echo '<button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown" aria-expanded="false">';
-                                                    echo '<i class="bx bx-dots-vertical-rounded"></i>';
-                                                    echo '</button>';
-                                                    echo '<div class="dropdown-menu">';
-                                                    echo '<a class="dropdown-item" href="master_kegiatan_harian_edit.php?id=' . $row['id_jurnal_harian'] . '">';
-                                                    echo '<i class="bx bx-edit-alt me-1"></i> Edit Laporan';
-                                                    echo '</a>';
-                                                    echo '<div class="dropdown-divider"></div>';
-                                                    // Fungsi JavaScript untuk konfirmasi hapus
-                                                    echo '<a class="dropdown-item text-danger" href="javascript:void(0);" onclick="confirmDeleteKegiatanHarian(\'' . $row['id_jurnal_harian'] . '\', \'' . date('l, d F Y', strtotime($row['tanggal'])) . '\')">';
-                                                    echo '<i class="bx bx-trash me-1"></i> Hapus';
-                                                    echo '</a>';
-                                                    echo '</div>';
-                                                    echo '</div>';
-                                                    echo '</td>';
-                                                    echo '</tr>';
+                                                foreach ($laporan_data as $row) {
+                                                    $hari_indonesia = [
+                                                        'Sunday' => 'Minggu',
+                                                        'Monday' => 'Senin',
+                                                        'Tuesday' => 'Selasa',
+                                                        'Wednesday' => 'Rabu',
+                                                        'Thursday' => 'Kamis',
+                                                        'Friday' => 'Jumat',
+                                                        'Saturday' => 'Sabtu'
+                                                    ];
+                                                    $nama_hari_inggris = date('l', strtotime($row['tanggal']));
+                                                    $formatted_date_display = $hari_indonesia[$nama_hari_inggris] . ', ' . date('d F Y', strtotime($row['tanggal']));
+                                            ?>
+                                                    <tr>
+                                                        <td><?= $no++ ?></td>
+                                                        <td><strong><?= htmlspecialchars($formatted_date_display) ?></strong>
+                                                        </td>
+                                                        <td><?= nl2br(htmlspecialchars($row['pekerjaan'])) ?></td>
+                                                        <td><?= nl2br(htmlspecialchars($row['catatan'])) ?></td>
+                                                        <td>
+                                                            <div class="dropdown">
+                                                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                                                    <i class="bx bx-dots-vertical-rounded"></i>
+                                                                </button>
+                                                                <div class="dropdown-menu">
+                                                                    <a class="dropdown-item"
+                                                                        href="master_kegiatan_harian_edit.php?id=<?= htmlspecialchars($row['id_jurnal_harian']) ?>">
+                                                                        <i class="bx bx-edit-alt me-1"></i> Edit
+                                                                    </a>
+                                                                    <div class="dropdown-divider"></div>
+                                                                    <a class="dropdown-item text-danger"
+                                                                        href="javascript:void(0);"
+                                                                        onclick="confirmDeleteKegiatanHarian('<?= htmlspecialchars($row['id_jurnal_harian']) ?>', '<?= htmlspecialchars($formatted_date_display) ?>')">
+                                                                        <i class="bx bx-trash me-1"></i> Hapus
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                <?php
                                                 }
                                             } else {
-                                                // Pesan jika tidak ada data
-                                                echo '<tr><td colspan="5" class="text-center py-4 text-muted">';
-                                                echo '<i class="bx bx-info-circle me-1"></i> Belum ada laporan kegiatan yang tercatat.';
-                                                echo '</td></tr>';
+                                                ?>
+                                                <tr>
+                                                    <td colspan="5" class="text-center py-4 text-muted">
+                                                        <i class="bx bx-info-circle me-1"></i> Belum ada laporan kegiatan
+                                                        yang tercatat.
+                                                    </td>
+                                                </tr>
+                                            <?php
                                             }
-                                            $stmt->close();
-                                            // Tidak menutup koneksi di sini karena akan digunakan lagi untuk tampilan mobile
                                             ?>
                                         </tbody>
                                     </table>
@@ -183,41 +213,50 @@ session_start(); // Pastikan session dimulai di paling atas, sebelum output HTML
                                     </div>
 
                                     <?php
-                                    // Ambil ID siswa untuk tampilan mobile (menggunakan variabel yang sama)
-                                    $siswa_id_mobile = isset($_SESSION['id_siswa']) ? $_SESSION['id_siswa'] : 1;
-
-                                    $sql_mobile = "SELECT id_jurnal_harian, tanggal, pekerjaan, catatan FROM jurnal_harian WHERE siswa_id = ? ORDER BY tanggal DESC";
-                                    $stmt_mobile = $koneksi->prepare($sql_mobile);
-                                    $stmt_mobile->bind_param("i", $siswa_id_mobile);
-                                    $stmt_mobile->execute();
-                                    $result_mobile = $stmt_mobile->get_result();
-
-                                    if ($result_mobile->num_rows > 0) {
-                                        // Array warna untuk border card agar bervariasi
+                                    if (count($laporan_data) > 0) {
                                         $colors = ['primary', 'warning', 'info', 'success', 'danger'];
                                         $color_index = 0;
-                                        while ($row_mobile = $result_mobile->fetch_assoc()) {
-                                            $current_color = $colors[$color_index % count($colors)]; // Mengambil warna bergantian
+                                        foreach ($laporan_data as $row_mobile) {
+                                            $current_color = $colors[$color_index % count($colors)];
                                             $color_index++;
+                                            $hari_indonesia = [
+                                                'Sunday' => 'Minggu',
+                                                'Monday' => 'Senin',
+                                                'Tuesday' => 'Selasa',
+                                                'Wednesday' => 'Rabu',
+                                                'Thursday' => 'Kamis',
+                                                'Friday' => 'Jumat',
+                                                'Saturday' => 'Sabtu'
+                                            ];
+                                            $nama_hari_inggris_mobile = date('l', strtotime($row_mobile['tanggal']));
+                                            $formatted_date_mobile = $hari_indonesia[$nama_hari_inggris_mobile] . ', ' . date('d F Y', strtotime($row_mobile['tanggal']));
                                     ?>
-                                            <div class="card mb-4 shadow-lg border-start border-4 border-<?= $current_color ?> rounded-3 animate__animated animate__fadeInUp">
+                                            <div
+                                                class="card mb-4 shadow-lg border-start border-4 border-<?= $current_color ?> rounded-3 animate__animated animate__fadeInUp">
                                                 <div class="card-body">
                                                     <div class="d-flex justify-content-between align-items-start mb-3">
                                                         <div>
-                                                            <h6 class="mb-1 text-<?= $current_color ?>"><i class="bx bx-calendar-event me-1"></i> <strong><?= date('l, d F Y', strtotime($row_mobile['tanggal'])) ?></strong></h6>
-                                                            <span class="badge bg-label-<?= $current_color ?>"><i class="bx bx-file me-1"></i> Laporan #<?= $row_mobile['id_jurnal_harian'] ?></span>
+                                                            <h6 class="mb-1 text-<?= $current_color ?>"><i
+                                                                    class="bx bx-calendar-event me-1"></i>
+                                                                <strong><?= htmlspecialchars($formatted_date_mobile) ?></strong>
+                                                            </h6>
+                                                            <span class="badge bg-label-<?= $current_color ?>"><i
+                                                                    class="bx bx-file me-1"></i> Laporan
+                                                                #<?= htmlspecialchars($row_mobile['id_jurnal_harian']) ?></span>
                                                         </div>
                                                         <div class="dropdown">
-                                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                                data-bs-toggle="dropdown" aria-expanded="false">
                                                                 <i class="bx bx-dots-vertical-rounded"></i>
                                                             </button>
                                                             <div class="dropdown-menu dropdown-menu-end">
-                                                                <a class="dropdown-item" href="master_kegiatan_harian_edit.php?id=<?= $row_mobile['id_jurnal_harian'] ?>">
+                                                                <a class="dropdown-item"
+                                                                    href="master_kegiatan_harian_edit.php?id=<?= htmlspecialchars($row_mobile['id_jurnal_harian']) ?>">
                                                                     <i class="bx bx-edit-alt me-1"></i> Edit Laporan
                                                                 </a>
                                                                 <div class="dropdown-divider"></div>
                                                                 <a class="dropdown-item text-danger" href="javascript:void(0);"
-                                                                    onclick="confirmDeleteKegiatanHarian('<?= $row_mobile['id_jurnal_harian'] ?>', '<?= date('l, d F Y', strtotime($row_mobile['tanggal'])) ?>')">
+                                                                    onclick="confirmDeleteKegiatanHarian('<?= htmlspecialchars($row_mobile['id_jurnal_harian']) ?>', '<?= htmlspecialchars($formatted_date_mobile) ?>')">
                                                                     <i class="bx bx-trash me-1"></i> Hapus
                                                                 </a>
                                                             </div>
@@ -225,32 +264,40 @@ session_start(); // Pastikan session dimulai di paling atas, sebelum output HTML
                                                     </div>
 
                                                     <div class="mb-2">
-                                                        <strong class="text-dark"><i class="bx bx-task me-1"></i> Pekerjaan:</strong><br>
+                                                        <strong class="text-dark"><i class="bx bx-task me-1"></i>
+                                                            Pekerjaan:</strong><br>
                                                         <?= nl2br(htmlspecialchars($row_mobile['pekerjaan'])) ?>
                                                     </div>
                                                     <div class="mb-0 text-wrap">
-                                                        <strong class="text-dark"><i class="bx bx-info-circle me-1"></i> Catatan:</strong><br>
+                                                        <strong class="text-dark"><i class="bx bx-info-circle me-1"></i>
+                                                            Catatan:</strong><br>
                                                         <?= nl2br(htmlspecialchars($row_mobile['catatan'])) ?>
                                                     </div>
                                                     <div class="d-flex justify-content-end mt-3">
-                                                        <small class="text-muted"><i class="bx bx-calendar-check me-1"></i> Dilaporkan: <?= date('d F Y, H:i', strtotime($row_mobile['tanggal'])) ?> WIB</small>
+                                                        <small class="text-muted"><i class="bx bx-calendar-check me-1"></i>
+                                                            Dilaporkan:
+                                                            <?= date('d F Y, H:i', strtotime($row_mobile['tanggal'])) ?>
+                                                            WIB</small>
                                                     </div>
                                                 </div>
                                             </div>
-                                    <?php
+                                        <?php
                                         }
                                     } else {
-                                        // Pesan jika tidak ada data untuk mobile
-                                        echo '<div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp animate__delay-0-3s" role="alert" style="border-radius: 8px;">';
-                                        echo '<h5 class="alert-heading mb-3"><i class="bx bx-list-plus bx-lg text-info"></i></h5>';
-                                        echo '<p class="mb-3">Belum ada laporan kegiatan yang tercatat di sini.</p>';
-                                        echo '<p class="mb-0">';
-                                        echo 'Ayo, <a href="master_kegiatan_harian_add.php" class="alert-link fw-bold">tambahkan laporan pertama Anda</a> sekarang!';
-                                        echo '</p>';
-                                        echo '</div>';
+                                        ?>
+                                        <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp animate__delay-0-3s"
+                                            role="alert" style="border-radius: 8px;">
+                                            <h5 class="alert-heading mb-3"><i class="bx bx-list-plus bx-lg text-info"></i>
+                                            </h5>
+                                            <p class="mb-3">Belum ada laporan kegiatan yang tercatat di sini.</p>
+                                            <p class="mb-0">
+                                                Ayo, <a href="master_kegiatan_harian_add.php"
+                                                    class="alert-link fw-bold">tambahkan laporan pertama Anda</a> sekarang!
+                                            </p>
+                                        </div>
+                                    <?php
                                     }
-                                    $stmt_mobile->close();
-                                    $koneksi->close(); // Tutup koneksi database setelah semua query selesai
+                                    $koneksi->close();
                                     ?>
                                 </div>
                             </div>
@@ -263,32 +310,28 @@ session_start(); // Pastikan session dimulai di paling atas, sebelum output HTML
     </div>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
-    function confirmDeleteKegiatanHarian(id, tanggal) {
-        Swal.fire({
-            title: 'Konfirmasi Hapus Laporan Harian',
-            html: "Apakah Anda yakin ingin menghapus laporan kegiatan pada tanggal <strong>" + tanggal +
-                "</strong>?<br>Tindakan ini tidak dapat dibatalkan!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Ya, Hapus Sekarang!',
-            cancelButtonText: 'Batal',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Redirect ke script delete jika dikonfirmasi
-                window.location.href = 'master_kegiatan_harian_delete.php?id=' + id;
-            }
-        });
-    }
+        function confirmDeleteKegiatanHarian(id, tanggal) {
+            Swal.fire({
+                title: 'Konfirmasi Hapus Laporan Harian',
+                html: "Apakah Anda yakin ingin menghapus laporan kegiatan pada tanggal <strong>" + tanggal +
+                    "</strong>?<br>Tindakan ini tidak dapat dibatalkan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Hapus Sekarang!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'master_kegiatan_harian_delete.php?id=' + id;
+                }
+            });
+        }
     </script>
-
-    <?php include './partials/script.php'; // Memasukkan semua script JS lainnya, termasuk BOOTSTRAP JS ?>
+    <?php include './partials/script.php'; ?>
 </body>
 
 </html>
