@@ -124,18 +124,17 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
                                                     <td>{$row['nip']}</td>
                                                     <td>
                                                         <div class='dropdown'>
-                                                            <button class='btn p-0 dropdown-toggle' data-bs-toggle='dropdown'>
-                                                                <i class='bx bx-dots-vertical-rounded'></i>
-                                                            </button>
-                                                            <div class='dropdown-menu'>
-                                                                <a class='dropdown-item' href='master_guru_pendamping_edit.php?id={$row['id_pembimbing']}'>
-                                                                    <i class='bx bx-edit-alt me-1'></i> Edit
-                                                                </a>
-                                                                <a class='dropdown-item text-danger' href='javascript:void(0);' onclick=\"confirmDeleteGuru('{$row['id_pembimbing']}', '{$row['nama_pembimbing']}')\">
-                                                                    <i class='bx bx-trash me-1'></i> Hapus
-                                                                </a>
-                                                            </div>
-                                                        </div>
+    <button class='btn p-0 dropdown-toggle' data-bs-toggle='dropdown'>
+        <i class='bx bx-dots-vertical-rounded'></i>
+    </button>
+    <div class='dropdown-menu' style='z-index: 1050;'> <a class='dropdown-item' href='master_guru_pendamping_edit.php?id={$row['id_pembimbing']}'>
+            <i class='bx bx-edit-alt me-1'></i> Edit
+        </a>
+        <a class='dropdown-item text-danger' href='javascript:void(0);' onclick=\"confirmDeleteGuru('{$row['id_pembimbing']}', '{$row['nama_pembimbing']}')\">
+            <i class='bx bx-trash me-1'></i> Hapus
+        </a>
+    </div>
+</div>
                                                     </td>
                                                 </tr>";
                                                     $no++;
@@ -160,22 +159,22 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
     <!-- SweetAlert -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-    function confirmDeleteGuru(id, nama) {
-        Swal.fire({
-            title: 'Konfirmasi Hapus Data Guru',
-            html: `Apakah Anda yakin ingin menghapus <strong>${nama}</strong>?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = 'master_guru_pendamping_delete.php?id=' + id;
-            }
-        });
-    }
+        function confirmDeleteGuru(id, nama) {
+            Swal.fire({
+                title: 'Konfirmasi Hapus Data Guru',
+                html: `Apakah Anda yakin ingin menghapus <strong>${nama}</strong>?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'master_guru_pendamping_delete.php?id=' + id;
+                }
+            });
+        }
     </script>
 
     <?php include './partials/script.php'; ?>

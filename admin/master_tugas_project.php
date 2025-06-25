@@ -241,7 +241,8 @@
                                             <div class="d-flex justify-content-between align-items-start mb-3">
                                                 <div>
                                                     <h6 class="mb-1 text-primary"><i class="bx bx-folder me-1"></i>
-                                                        <strong>Pengembangan Website E-Commerce</strong></h6>
+                                                        <strong>Pengembangan Website E-Commerce</strong>
+                                                    </h6>
                                                     <span class="badge bg-label-primary"><i class="bx bx-hash me-1"></i>
                                                         Proyek #1</span>
                                                 </div>
@@ -302,7 +303,8 @@
                                             <div class="d-flex justify-content-between align-items-start mb-3">
                                                 <div>
                                                     <h6 class="mb-1 text-warning"><i class="bx bx-folder me-1"></i>
-                                                        <strong>Instalasi & Konfigurasi Server Jaringan</strong></h6>
+                                                        <strong>Instalasi & Konfigurasi Server Jaringan</strong>
+                                                    </h6>
                                                     <span class="badge bg-label-warning"><i class="bx bx-hash me-1"></i>
                                                         Proyek #2</span>
                                                 </div>
@@ -365,7 +367,8 @@
                                             <div class="d-flex justify-content-between align-items-start mb-3">
                                                 <div>
                                                     <h6 class="mb-1 text-info"><i class="bx bx-folder me-1"></i>
-                                                        <strong>Desain Materi Promosi Digital</strong></h6>
+                                                        <strong>Desain Materi Promosi Digital</strong>
+                                                    </h6>
                                                     <span class="badge bg-label-info"><i class="bx bx-hash me-1"></i>
                                                         Proyek #3</span>
                                                 </div>
@@ -374,8 +377,8 @@
                                                         data-bs-toggle="dropdown">
                                                         <i class="bx bx-dots-vertical-rounded"></i>
                                                     </button>
-                                                    <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item" href="laporan_tugas_edit.php?id=3">
+                                                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-atas"> <a
+                                                            class="dropdown-item" href="laporan_tugas_edit.php?id=3">
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Laporan
                                                         </a>
                                                         <div class="dropdown-divider"></div>
@@ -444,26 +447,26 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-    function confirmDeleteLaporanTugas(id, namaProyek) {
-        Swal.fire({
-            title: 'Konfirmasi Hapus Laporan Proyek',
-            html: "Apakah Anda yakin ingin menghapus laporan proyek <strong>" + namaProyek +
-                "</strong>?<br>Tindakan ini tidak dapat dibatalkan!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545', // Warna merah untuk konfirmasi hapus
-            cancelButtonColor: '#6c757d', // Warna abu-abu untuk batal
-            confirmButtonText: 'Ya, Hapus Sekarang!',
-            cancelButtonText: 'Batal',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Jika dikonfirmasi, arahkan ke skrip PHP untuk delete
-                // Pastikan Anda membuat file 'proses_delete_laporan_tugas.php'
-                window.location.href = 'proses_delete_laporan_tugas.php?id=' + id;
-            }
-        });
-    }
+        function confirmDeleteLaporanTugas(id, namaProyek) {
+            Swal.fire({
+                title: 'Konfirmasi Hapus Laporan Proyek',
+                html: "Apakah Anda yakin ingin menghapus laporan proyek <strong>" + namaProyek +
+                    "</strong>?<br>Tindakan ini tidak dapat dibatalkan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545', // Warna merah untuk konfirmasi hapus
+                cancelButtonColor: '#6c757d', // Warna abu-abu untuk batal
+                confirmButtonText: 'Ya, Hapus Sekarang!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jika dikonfirmasi, arahkan ke skrip PHP untuk delete
+                    // Pastikan Anda membuat file 'proses_delete_laporan_tugas.php'
+                    window.location.href = 'proses_delete_laporan_tugas.php?id=' + id;
+                }
+            });
+        }
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
