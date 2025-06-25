@@ -42,30 +42,44 @@ include 'partials/db.php'; // Asumsi file ini berisi koneksi ke database ($konek
                             </div>
                         </div>
 
-                        <div class="card mb-4 shadow-lg position-relative" style="border-radius: 10px;">
+                        <div class="card mb-4 shadow-lg">
                             <div
                                 class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 p-4">
-                                <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-2 order-md-1">
-                                    <a href="index.php"
-                                        class="btn btn-outline-secondary w-100 animate__animated animate__fadeInUp animate__delay-0-2s">
+                                <div class="d-flex gap-2 w-100 w-md-auto">
+                                    <a href="index.php" class="btn btn-outline-secondary w-100">
                                         <i class="bx bx-arrow-back me-1"></i> Kembali
                                     </a>
-                                    <a href="master_data_siswa_add.php"
-                                        class="btn btn-primary w-100 animate__animated animate__fadeInUp animate__delay-0-3s">
-                                        <i class="bx bx-plus me-1"></i> Tambah Siswa
+                                    <a href="master_data_siswa_add.php" class="btn btn-primary w-100">
+                                        <i class="bx bx-plus me-1"></i> Tambah Guru
                                     </a>
                                 </div>
-                                <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-1 order-md-2">
-                                    <a href="generate_siswa_pdf.php<?= isset($_GET['keyword']) ? '?keyword=' . htmlspecialchars($_GET['keyword']) : '' ?>"
-                                        class="btn btn-outline-danger w-100 animate__animated animate__fadeInDown animate__delay-0-3s"
-                                        target="_blank">
-                                        <i class="bx bxs-file-pdf me-1"></i> Cetak PDF
+                                <div class="d-flex gap-2 w-100 w-md-auto">
+                                    <a href="generate_siswa.php<?= !empty($keyword) ? '?keyword=' . htmlspecialchars($keyword) : '' ?>"
+                                        class="btn btn-outline-danger w-100" target="_blank"> <i
+                                            class="bx bxs-file-pdf me-1"></i> Cetak PDF
                                     </a>
-                                    <button type="button"
-                                        class="btn btn-outline-success w-100 animate__animated animate__fadeInDown animate__delay-0-2s">
+                                    <button type="button" class="btn btn-outline-success w-100">
                                         <i class="bx bxs-file-excel me-1"></i> Ekspor Excel
                                     </button>
                                 </div>
+                            </div>
+
+                            <!-- Filter -->
+                            <div class="card-footer bg-light border-top p-3">
+                                <form method="GET" action="">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-8 mb-2 mb-md-0">
+                                            <input type="text" name="keyword" class="form-control"
+                                                placeholder="Cari guru berdasarkan nama atau NIP..."
+                                                value="<?= htmlspecialchars($keyword) ?>">
+                                        </div>
+                                        <div class="col-md-4 text-md-end">
+                                            <button type="submit" class="btn btn-outline-dark w-100 w-md-auto">
+                                                <i class="bx bx-filter-alt me-1"></i> Filter Guru
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
                             </div>
                         </div>
 
@@ -137,37 +151,37 @@ include 'partials/db.php'; // Asumsi file ini berisi koneksi ke database ($konek
                                                         default => 'bg-label-success', // Default untuk 'Aktif'
                                                     };
                                             ?>
-                                            <tr>
-                                                <td><?= $no ?></td>
-                                                <td><strong><?= htmlspecialchars($row['nama_siswa']) ?></strong></td>
-                                                <td><?= htmlspecialchars($row['no_induk']) ?></td>
-                                                <td><?= htmlspecialchars($row['kelas']) ?></td>
-                                                <td><?= htmlspecialchars($row['nama_jurusan'] ?? '-') ?></td>
-                                                <td><?= htmlspecialchars($row['nama_pembimbing'] ?? '-') ?></td>
-                                                <td><?= htmlspecialchars($row['nama_tempat_pkl'] ?? '-') ?></td>
-                                                <td><span
-                                                        class='badge <?= $badgeColor ?>'><?= htmlspecialchars($row['status']) ?></span>
-                                                </td>
-                                                <td>
-                                                    <div class='dropdown'>
-                                                        <button class='btn p-0 dropdown-toggle hide-arrow'
-                                                            data-bs-toggle='dropdown'>
-                                                            <i class='bx bx-dots-vertical-rounded'></i>
-                                                        </button>
-                                                        <div class='dropdown-menu'>
-                                                            <a class='dropdown-item'
-                                                                href='master_data_siswa_edit.php?id=<?= htmlspecialchars($row['id_siswa']) ?>'>
-                                                                <i class='bx bx-edit-alt me-1'></i> Edit
-                                                            </a>
-                                                            <a class='dropdown-item text-danger'
-                                                                href='javascript:void(0);'
-                                                                onclick="confirmDelete('<?= htmlspecialchars($row['id_siswa']) ?>', '<?= htmlspecialchars($row['nama_siswa']) ?>')">
-                                                                <i class='bx bx-trash me-1'></i> Hapus
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
+                                                    <tr>
+                                                        <td><?= $no ?></td>
+                                                        <td><strong><?= htmlspecialchars($row['nama_siswa']) ?></strong></td>
+                                                        <td><?= htmlspecialchars($row['no_induk']) ?></td>
+                                                        <td><?= htmlspecialchars($row['kelas']) ?></td>
+                                                        <td><?= htmlspecialchars($row['nama_jurusan'] ?? '-') ?></td>
+                                                        <td><?= htmlspecialchars($row['nama_pembimbing'] ?? '-') ?></td>
+                                                        <td><?= htmlspecialchars($row['nama_tempat_pkl'] ?? '-') ?></td>
+                                                        <td><span
+                                                                class='badge <?= $badgeColor ?>'><?= htmlspecialchars($row['status']) ?></span>
+                                                        </td>
+                                                        <td>
+                                                            <div class='dropdown'>
+                                                                <button class='btn p-0 dropdown-toggle hide-arrow'
+                                                                    data-bs-toggle='dropdown'>
+                                                                    <i class='bx bx-dots-vertical-rounded'></i>
+                                                                </button>
+                                                                <div class='dropdown-menu'>
+                                                                    <a class='dropdown-item'
+                                                                        href='master_data_siswa_edit.php?id=<?= htmlspecialchars($row['id_siswa']) ?>'>
+                                                                        <i class='bx bx-edit-alt me-1'></i> Edit
+                                                                    </a>
+                                                                    <a class='dropdown-item text-danger'
+                                                                        href='javascript:void(0);'
+                                                                        onclick="confirmDelete('<?= htmlspecialchars($row['id_siswa']) ?>', '<?= htmlspecialchars($row['nama_siswa']) ?>')">
+                                                                        <i class='bx bx-trash me-1'></i> Hapus
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
                                             <?php
                                                     $no++;
                                                 }
@@ -191,77 +205,77 @@ include 'partials/db.php'; // Asumsi file ini berisi koneksi ke database ($konek
                                                 default => 'bg-label-success',
                                             };
                                     ?>
-                                    <div
-                                        class="card mb-4 shadow-lg border-start border-4 border-primary rounded-3 animate__animated animate__fadeInUp">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                                <div>
-                                                    <h6 class="mb-1 text-primary"><i class="bx bx-user me-1"></i>
-                                                        <strong><?= htmlspecialchars($row['nama_siswa']) ?></strong>
-                                                    </h6>
-                                                    <span class="badge bg-label-primary"><i class="bx bx-hash me-1"></i>
-                                                        No Induk: <?= htmlspecialchars($row['no_induk']) ?></span>
-                                                </div>
-                                                <div class="dropdown">
-                                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                        data-bs-toggle="dropdown">
-                                                        <i class="bx bx-dots-vertical-rounded"></i>
-                                                    </button>
-                                                    <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item"
-                                                            href="master_data_siswa_edit.php?id=<?= htmlspecialchars($row['id_siswa']) ?>">
-                                                            <i class="bx bx-edit-alt me-1"></i> Edit Data
-                                                        </a>
-                                                        <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
-                                                            onclick="confirmDelete('<?= htmlspecialchars($row['id_siswa']) ?>', '<?= htmlspecialchars($row['nama_siswa']) ?>')">
-                                                            <i class="bx bx-trash me-1"></i> Hapus
-                                                        </a>
+                                            <div
+                                                class="card mb-4 shadow-lg border-start border-4 border-primary rounded-3 animate__animated animate__fadeInUp">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                                        <div>
+                                                            <h6 class="mb-1 text-primary"><i class="bx bx-user me-1"></i>
+                                                                <strong><?= htmlspecialchars($row['nama_siswa']) ?></strong>
+                                                            </h6>
+                                                            <span class="badge bg-label-primary"><i class="bx bx-hash me-1"></i>
+                                                                No Induk: <?= htmlspecialchars($row['no_induk']) ?></span>
+                                                        </div>
+                                                        <div class="dropdown">
+                                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                                data-bs-toggle="dropdown">
+                                                                <i class="bx bx-dots-vertical-rounded"></i>
+                                                            </button>
+                                                            <div class="dropdown-menu dropdown-menu-end">
+                                                                <a class="dropdown-item"
+                                                                    href="master_data_siswa_edit.php?id=<?= htmlspecialchars($row['id_siswa']) ?>">
+                                                                    <i class="bx bx-edit-alt me-1"></i> Edit Data
+                                                                </a>
+                                                                <div class="dropdown-divider"></div>
+                                                                <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                                    onclick="confirmDelete('<?= htmlspecialchars($row['id_siswa']) ?>', '<?= htmlspecialchars($row['nama_siswa']) ?>')">
+                                                                    <i class="bx bx-trash me-1"></i> Hapus
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="mb-2">
+                                                        <strong class="text-dark"><i class="bx bx-award me-1"></i>
+                                                            Kelas:</strong><br>
+                                                        <?= htmlspecialchars($row['kelas']) ?>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <strong class="text-dark"><i class="bx bx-book-open me-1"></i>
+                                                            Jurusan:</strong><br>
+                                                        <?= htmlspecialchars($row['nama_jurusan'] ?? '-') ?>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <strong class="text-dark"><i class="bx bx-user-voice me-1"></i> Guru
+                                                            Pendamping:</strong><br>
+                                                        <?= htmlspecialchars($row['nama_pembimbing'] ?? '-') ?>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <strong class="text-dark"><i class="bx bx-building-house me-1"></i>
+                                                            Tempat PKL:</strong><br>
+                                                        <?= htmlspecialchars($row['nama_tempat_pkl'] ?? '-') ?>
+                                                    </div>
+                                                    <div class="d-flex justify-content-end align-items-baseline mt-3">
+                                                        <small class="text-muted"><i class="bx bx-calendar-check me-1"></i>
+                                                            Status: <?= htmlspecialchars($row['status']) ?></small>
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            <div class="mb-2">
-                                                <strong class="text-dark"><i class="bx bx-award me-1"></i>
-                                                    Kelas:</strong><br>
-                                                <?= htmlspecialchars($row['kelas']) ?>
-                                            </div>
-                                            <div class="mb-2">
-                                                <strong class="text-dark"><i class="bx bx-book-open me-1"></i>
-                                                    Jurusan:</strong><br>
-                                                <?= htmlspecialchars($row['nama_jurusan'] ?? '-') ?>
-                                            </div>
-                                            <div class="mb-2">
-                                                <strong class="text-dark"><i class="bx bx-user-voice me-1"></i> Guru
-                                                    Pendamping:</strong><br>
-                                                <?= htmlspecialchars($row['nama_pembimbing'] ?? '-') ?>
-                                            </div>
-                                            <div class="mb-2">
-                                                <strong class="text-dark"><i class="bx bx-building-house me-1"></i>
-                                                    Tempat PKL:</strong><br>
-                                                <?= htmlspecialchars($row['nama_tempat_pkl'] ?? '-') ?>
-                                            </div>
-                                            <div class="d-flex justify-content-end align-items-baseline mt-3">
-                                                <small class="text-muted"><i class="bx bx-calendar-check me-1"></i>
-                                                    Status: <?= htmlspecialchars($row['status']) ?></small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <?php
+                                        <?php
                                         }
                                     } else {
                                         // Display alert if no data found after filter
                                         ?>
-                                    <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp"
-                                        role="alert" style="border-radius: 8px;">
-                                        <h5 class="alert-heading mb-3"><i class="bx bx-user-plus bx-lg text-info"></i>
-                                        </h5>
-                                        <p class="mb-3">Tidak ada data siswa ditemukan dengan kriteria tersebut.</p>
-                                        <p class="mb-0">
-                                            <a href="master_data_siswa_add.php" class="alert-link fw-bold">Tambahkan
-                                                siswa baru</a> atau coba filter lainnya!
-                                        </p>
-                                    </div>
+                                        <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp"
+                                            role="alert" style="border-radius: 8px;">
+                                            <h5 class="alert-heading mb-3"><i class="bx bx-user-plus bx-lg text-info"></i>
+                                            </h5>
+                                            <p class="mb-3">Tidak ada data siswa ditemukan dengan kriteria tersebut.</p>
+                                            <p class="mb-0">
+                                                <a href="master_data_siswa_add.php" class="alert-link fw-bold">Tambahkan
+                                                    siswa baru</a> atau coba filter lainnya!
+                                            </p>
+                                        </div>
                                     <?php
                                     }
                                     ?>
@@ -279,23 +293,23 @@ include 'partials/db.php'; // Asumsi file ini berisi koneksi ke database ($konek
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-    function confirmDelete(id, nama) {
-        Swal.fire({
-            title: 'Konfirmasi Hapus Data',
-            html: `Apakah Anda yakin ingin menghapus data siswa bernama <strong>${nama}</strong>?<br>Tindakan ini tidak dapat dibatalkan!`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Ya, Hapus Sekarang!',
-            cancelButtonText: 'Batal',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = 'proses_delete_data_siswa.php?id=' + id;
-            }
-        });
-    }
+        function confirmDelete(id, nama) {
+            Swal.fire({
+                title: 'Konfirmasi Hapus Data',
+                html: `Apakah Anda yakin ingin menghapus data siswa bernama <strong>${nama}</strong>?<br>Tindakan ini tidak dapat dibatalkan!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Hapus Sekarang!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'proses_delete_data_siswa.php?id=' + id;
+                }
+            });
+        }
     </script>
     <?php include './partials/script.php'; ?>
 </body>
