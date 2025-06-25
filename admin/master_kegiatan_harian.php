@@ -1,15 +1,18 @@
+<?php
+session_start(); // Pastikan session dimulai di paling atas, sebelum output HTML apapun
+?>
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="./assets/"
     data-template="vertical-menu-template-free">
 
-<?php include 'partials/head.php' ?>
+<?php include 'partials/head.php'; // Memasukkan bagian <head> ?>
 
 <body>
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
-            <?php include './partials/sidebar.php'; ?>
+            <?php include './partials/sidebar.php'; // Memasukkan sidebar ?>
             <div class="layout-page">
-                <?php include './partials/navbar.php'; ?>
+                <?php include './partials/navbar.php'; // Memasukkan navbar ?>
                 <div class="content-wrapper">
                     <div class="container-xxl flex-grow-1 container-p-y">
 
@@ -21,6 +24,7 @@
                             <i class="fas fa-edit fa-2x text-info animate__animated animate__fadeInRight"
                                 style="opacity: 0.6;"></i>
                         </div>
+
                         <div class="card bg-gradient-primary-to-secondary text-white mb-4 shadow-lg animate__animated animate__fadeInDown"
                             style="border-radius: 12px; overflow: hidden; background: linear-gradient(135deg, #696cff 0%, #a4bdfa 100%);">
                             <div
@@ -45,6 +49,7 @@
                                 </div>
                             </div>
                         </div>
+
                         <div class="card mb-4 shadow-lg position-relative" style="border-radius: 10px;">
                             <div class="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
                                 style="pointer-events: none; z-index: 0; opacity: 0.05;">
@@ -95,6 +100,7 @@
                                 </div>
                             </div>
                         </div>
+
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0">Daftar Laporan Harian Anda</h5>
@@ -113,252 +119,139 @@
                                             </tr>
                                         </thead>
                                         <tbody class="table-border-bottom-0">
-                                            <tr>
-                                                <td>1</td>
-                                                <td><strong>Senin, 23 Juni 2025</strong></td>
-                                                <td>Membantu setup jaringan kantor dan instalasi OS.</td>
-                                                <td>Selesai 80%, perlu melanjutkan esok hari.</td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                            data-bs-toggle="dropdown">
-                                                            <i class="bx bx-dots-vertical-rounded"></i>
-                                                        </button>
-                                                        <div class="dropdown-menu">
-                                                            <a class="dropdown-item"
-                                                                href="master_kegiatan_harian_edit.php?id=1">
-                                                                <i class="bx bx-edit-alt me-1"></i> Edit Laporan
-                                                            </a>
-                                                            <div class="dropdown-divider"></div>
-                                                            <a class="dropdown-item text-danger"
-                                                                href="javascript:void(0);"
-                                                                onclick="confirmDeleteKegiatanHarian('1', 'Senin, 23 Juni 2025')">
-                                                                <i class="bx bx-trash me-1"></i> Hapus
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>2</td>
-                                                <td><strong>Selasa, 24 Juni 2025</strong></td>
-                                                <td>Menganalisis kebutuhan sistem inventaris baru.</td>
-                                                <td>Sudah berdiskusi dengan tim, memahami alur kerja.</td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                            data-bs-toggle="dropdown">
-                                                            <i class="bx bx-dots-vertical-rounded"></i>
-                                                        </button>
-                                                        <div class="dropdown-menu">
-                                                            <a class="dropdown-item"
-                                                                href="master_kegiatan_harian_edit.php?id=2">
-                                                                <i class="bx bx-edit-alt me-1"></i> Edit Laporan
-                                                            </a>
-                                                            <div class="dropdown-divider"></div>
-                                                            <a class="dropdown-item text-danger"
-                                                                href="javascript:void(0);"
-                                                                onclick="confirmDeleteKegiatanHarian('2', 'Selasa, 24 Juni 2025')">
-                                                                <i class="bx bx-trash me-1"></i> Hapus
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>3</td>
-                                                <td><strong>Rabu, 25 Juni 2025</strong></td>
-                                                <td>Membuat desain antarmuka pengguna (UI) modul laporan.</td>
-                                                <td>Menyelesaikan 3 mock-up awal menggunakan Figma.</td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                            data-bs-toggle="dropdown">
-                                                            <i class="bx bx-dots-vertical-rounded"></i>
-                                                        </button>
-                                                        <div class="dropdown-menu">
-                                                            <a class="dropdown-item"
-                                                                href="master_kegiatan_harian_edit.php?id=3">
-                                                                <i class="bx bx-edit-alt me-1"></i> Edit Laporan
-                                                            </a>
-                                                            <div class="dropdown-divider"></div>
-                                                            <a class="dropdown-item text-danger"
-                                                                href="javascript:void(0);"
-                                                                onclick="confirmDeleteKegiatanHarian('3', 'Rabu, 25 Juni 2025')">
-                                                                <i class="bx bx-trash me-1"></i> Hapus
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
+                                            <?php
+                                            // Memanggil koneksi database
+                                            include 'partials/db.php';
+
+                                            // Contoh: Ambil ID siswa dari session. Sesuaikan dengan implementasi otentikasi Anda.
+                                            // Jika 'id_siswa' tidak diset di session, gunakan nilai default (misal: 1) untuk demo.
+                                            $siswa_id = isset($_SESSION['id_siswa']) ? $_SESSION['id_siswa'] : 1;
+
+                                            // Query untuk mengambil data jurnal harian berdasarkan siswa_id
+                                            $sql = "SELECT id_jurnal_harian, tanggal, pekerjaan, catatan FROM jurnal_harian WHERE siswa_id = ? ORDER BY tanggal DESC";
+                                            $stmt = $koneksi->prepare($sql);
+                                            $stmt->bind_param("i", $siswa_id); // 'i' menandakan integer
+                                            $stmt->execute();
+                                            $result = $stmt->get_result();
+
+                                            if ($result->num_rows > 0) {
+                                                $no = 1;
+                                                while ($row = $result->fetch_assoc()) {
+                                                    echo '<tr>';
+                                                    echo '<td>' . $no++ . '</td>';
+                                                    // Format tanggal ke Hari, DD Bulan YYYY (contoh: Senin, 24 Juni 2024)
+                                                    echo '<td><strong>' . date('l, d F Y', strtotime($row['tanggal'])) . '</strong></td>';
+                                                    echo '<td>' . htmlspecialchars($row['pekerjaan']) . '</td>';
+                                                    echo '<td>' . htmlspecialchars($row['catatan']) . '</td>';
+                                                    echo '<td>';
+                                                    echo '<div class="dropdown">';
+                                                    // Tombol aksi dropdown (ini yang harusnya bekerja dengan Bootstrap JS)
+                                                    echo '<button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown" aria-expanded="false">';
+                                                    echo '<i class="bx bx-dots-vertical-rounded"></i>';
+                                                    echo '</button>';
+                                                    echo '<div class="dropdown-menu">';
+                                                    echo '<a class="dropdown-item" href="master_kegiatan_harian_edit.php?id=' . $row['id_jurnal_harian'] . '">';
+                                                    echo '<i class="bx bx-edit-alt me-1"></i> Edit Laporan';
+                                                    echo '</a>';
+                                                    echo '<div class="dropdown-divider"></div>';
+                                                    // Fungsi JavaScript untuk konfirmasi hapus
+                                                    echo '<a class="dropdown-item text-danger" href="javascript:void(0);" onclick="confirmDeleteKegiatanHarian(\'' . $row['id_jurnal_harian'] . '\', \'' . date('l, d F Y', strtotime($row['tanggal'])) . '\')">';
+                                                    echo '<i class="bx bx-trash me-1"></i> Hapus';
+                                                    echo '</a>';
+                                                    echo '</div>';
+                                                    echo '</div>';
+                                                    echo '</td>';
+                                                    echo '</tr>';
+                                                }
+                                            } else {
+                                                // Pesan jika tidak ada data
+                                                echo '<tr><td colspan="5" class="text-center py-4 text-muted">';
+                                                echo '<i class="bx bx-info-circle me-1"></i> Belum ada laporan kegiatan yang tercatat.';
+                                                echo '</td></tr>';
+                                            }
+                                            $stmt->close();
+                                            // Tidak menutup koneksi di sini karena akan digunakan lagi untuk tampilan mobile
+                                            ?>
                                         </tbody>
                                     </table>
                                 </div>
+
                                 <div class="d-md-none p-3">
                                     <div class="text-center text-muted mb-4 animate__animated animate__fadeInUp">
                                         <small><i class="bx bx-mobile me-1"></i> Geser ke bawah untuk melihat laporan
                                             Anda</small>
                                     </div>
 
-                                    <div
-                                        class="card mb-4 shadow-lg border-start border-4 border-primary rounded-3 animate__animated animate__fadeInUp">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                                <div>
-                                                    <h6 class="mb-1 text-primary"><i
-                                                            class="bx bx-calendar-event me-1"></i> <strong>Senin, 23
-                                                            Juni 2025</strong></h6>
-                                                    <span class="badge bg-label-primary"><i class="bx bx-file me-1"></i>
-                                                        Laporan #1</span>
-                                                </div>
-                                                <div class="dropdown">
-                                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                        data-bs-toggle="dropdown">
-                                                        <i class="bx bx-dots-vertical-rounded"></i>
-                                                    </button>
-                                                    <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item"
-                                                            href="master_kegiatan_harian_edit.php?id=1">
-                                                            <i class="bx bx-edit-alt me-1"></i> Edit Laporan
-                                                        </a>
-                                                        <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
-                                                            onclick="confirmDeleteKegiatanHarian('1', 'Senin, 23 Juni 2025')">
-                                                            <i class="bx bx-trash me-1"></i> Hapus
-                                                        </a>
+                                    <?php
+                                    // Ambil ID siswa untuk tampilan mobile (menggunakan variabel yang sama)
+                                    $siswa_id_mobile = isset($_SESSION['id_siswa']) ? $_SESSION['id_siswa'] : 1;
+
+                                    $sql_mobile = "SELECT id_jurnal_harian, tanggal, pekerjaan, catatan FROM jurnal_harian WHERE siswa_id = ? ORDER BY tanggal DESC";
+                                    $stmt_mobile = $koneksi->prepare($sql_mobile);
+                                    $stmt_mobile->bind_param("i", $siswa_id_mobile);
+                                    $stmt_mobile->execute();
+                                    $result_mobile = $stmt_mobile->get_result();
+
+                                    if ($result_mobile->num_rows > 0) {
+                                        // Array warna untuk border card agar bervariasi
+                                        $colors = ['primary', 'warning', 'info', 'success', 'danger'];
+                                        $color_index = 0;
+                                        while ($row_mobile = $result_mobile->fetch_assoc()) {
+                                            $current_color = $colors[$color_index % count($colors)]; // Mengambil warna bergantian
+                                            $color_index++;
+                                    ?>
+                                            <div class="card mb-4 shadow-lg border-start border-4 border-<?= $current_color ?> rounded-3 animate__animated animate__fadeInUp">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                                        <div>
+                                                            <h6 class="mb-1 text-<?= $current_color ?>"><i class="bx bx-calendar-event me-1"></i> <strong><?= date('l, d F Y', strtotime($row_mobile['tanggal'])) ?></strong></h6>
+                                                            <span class="badge bg-label-<?= $current_color ?>"><i class="bx bx-file me-1"></i> Laporan #<?= $row_mobile['id_jurnal_harian'] ?></span>
+                                                        </div>
+                                                        <div class="dropdown">
+                                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown" aria-expanded="false">
+                                                                <i class="bx bx-dots-vertical-rounded"></i>
+                                                            </button>
+                                                            <div class="dropdown-menu dropdown-menu-end">
+                                                                <a class="dropdown-item" href="master_kegiatan_harian_edit.php?id=<?= $row_mobile['id_jurnal_harian'] ?>">
+                                                                    <i class="bx bx-edit-alt me-1"></i> Edit Laporan
+                                                                </a>
+                                                                <div class="dropdown-divider"></div>
+                                                                <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                                    onclick="confirmDeleteKegiatanHarian('<?= $row_mobile['id_jurnal_harian'] ?>', '<?= date('l, d F Y', strtotime($row_mobile['tanggal'])) ?>')">
+                                                                    <i class="bx bx-trash me-1"></i> Hapus
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="mb-2">
+                                                        <strong class="text-dark"><i class="bx bx-task me-1"></i> Pekerjaan:</strong><br>
+                                                        <?= nl2br(htmlspecialchars($row_mobile['pekerjaan'])) ?>
+                                                    </div>
+                                                    <div class="mb-0 text-wrap">
+                                                        <strong class="text-dark"><i class="bx bx-info-circle me-1"></i> Catatan:</strong><br>
+                                                        <?= nl2br(htmlspecialchars($row_mobile['catatan'])) ?>
+                                                    </div>
+                                                    <div class="d-flex justify-content-end mt-3">
+                                                        <small class="text-muted"><i class="bx bx-calendar-check me-1"></i> Dilaporkan: <?= date('d F Y, H:i', strtotime($row_mobile['tanggal'])) ?> WIB</small>
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            <div class="mb-2">
-                                                <strong class="text-dark"><i class="bx bx-task me-1"></i>
-                                                    Pekerjaan:</strong><br>
-                                                Membantu setup jaringan kantor dan instalasi sistem operasi pada 3 unit
-                                                komputer baru.
-                                            </div>
-                                            <div class="mb-0 text-wrap">
-                                                <strong class="text-dark"><i class="bx bx-info-circle me-1"></i>
-                                                    Catatan:</strong><br>
-                                                Progres sudah mencapai 80%, perlu dilanjutkan esok hari. Terdapat
-                                                sedikit kendala teknis saat menginstalasi driver printer, namun berhasil
-                                                diatasi setelah berkonsultasi dengan instruktur lapangan.
-                                            </div>
-                                            <div class="d-flex justify-content-end mt-3">
-                                                <small class="text-muted"><i class="bx bx-calendar-check me-1"></i>
-                                                    Dilaporkan: 23 Juni 2025, 16:30 WIB</small>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        class="card mb-4 shadow-lg border-start border-4 border-warning rounded-3 animate__animated animate__fadeInUp animate__delay-0-1s">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                                <div>
-                                                    <h6 class="mb-1 text-warning"><i
-                                                            class="bx bx-calendar-event me-1"></i> <strong>Selasa, 24
-                                                            Juni 2025</strong></h6>
-                                                    <span class="badge bg-label-warning"><i class="bx bx-file me-1"></i>
-                                                        Laporan #2</span>
-                                                </div>
-                                                <div class="dropdown">
-                                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                        data-bs-toggle="dropdown">
-                                                        <i class="bx bx-dots-vertical-rounded"></i>
-                                                    </button>
-                                                    <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item"
-                                                            href="master_kegiatan_harian_edit.php?id=2">
-                                                            <i class="bx bx-edit-alt me-1"></i> Edit Laporan
-                                                        </a>
-                                                        <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
-                                                            onclick="confirmDeleteKegiatanHarian('2', 'Selasa, 24 Juni 2025')">
-                                                            <i class="bx bx-trash me-1"></i> Hapus
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="mb-2">
-                                                <strong class="text-dark"><i class="bx bx-task me-1"></i>
-                                                    Pekerjaan:</strong><br>
-                                                Menganalisis kebutuhan sistem inventaris baru bersama tim pengembangan
-                                                IT perusahaan.
-                                            </div>
-                                            <div class="mb-0 text-wrap">
-                                                <strong class="text-dark"><i class="bx bx-info-circle me-1"></i>
-                                                    Catatan:</strong><br>
-                                                Diskusi berjalan sangat produktif, berhasil memahami alur kerja dan
-                                                mendapatkan banyak masukan berharga untuk pengembangan fitur-fitur baru.
-                                            </div>
-                                            <div class="d-flex justify-content-end mt-3">
-                                                <small class="text-muted"><i class="bx bx-calendar-check me-1"></i>
-                                                    Dilaporkan: 24 Juni 2025, 17:00 WIB</small>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        class="card mb-4 shadow-lg border-start border-4 border-info rounded-3 animate__animated animate__fadeInUp animate__delay-0-2s">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                                <div>
-                                                    <h6 class="mb-1 text-info"><i class="bx bx-calendar-event me-1"></i>
-                                                        <strong>Rabu, 25 Juni 2025</strong>
-                                                    </h6>
-                                                    <span class="badge bg-label-info"><i class="bx bx-file me-1"></i>
-                                                        Laporan #3</span>
-                                                </div>
-                                                <div class="dropdown">
-                                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                        data-bs-toggle="dropdown">
-                                                        <i class="bx bx-dots-vertical-rounded"></i>
-                                                    </button>
-                                                    <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item"
-                                                            href="master_kegiatan_harian_edit.php?id=3">
-                                                            <i class="bx bx-edit-alt me-1"></i> Edit Laporan
-                                                        </a>
-                                                        <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
-                                                            onclick="confirmDeleteKegiatanHarian('3', 'Rabu, 25 Juni 2025')">
-                                                            <i class="bx bx-trash me-1"></i> Hapus
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="mb-2">
-                                                <strong class="text-dark"><i class="bx bx-task me-1"></i>
-                                                    Pekerjaan:</strong><br>
-                                                Membuat desain antarmuka pengguna (UI) untuk modul laporan menggunakan
-                                                Figma.
-                                            </div>
-                                            <div class="mb-2 text-wrap">
-                                                <strong class="text-dark"><i class="bx bx-info-circle me-1"></i>
-                                                    Catatan:</strong><br>
-                                                Berhasil menyelesaikan 3 mock-up awal yang sesuai dengan kebutuhan, siap
-                                                untuk dipresentasikan dan mendapatkan *feedback* besok pagi.
-                                            </div>
-                                            <div class="d-flex justify-content-end mt-3">
-                                                <small class="text-muted"><i class="bx bx-calendar-check me-1"></i>
-                                                    Dilaporkan: 25 Juni 2025, 16:45 WIB</small>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp animate__delay-0-3s"
-                                        role="alert" style="border-radius: 8px;">
-                                        <h5 class="alert-heading mb-3"><i class="bx bx-list-plus bx-lg text-info"></i>
-                                        </h5>
-                                        <p class="mb-3">Belum ada laporan kegiatan yang tercatat di sini.</p>
-                                        <p class="mb-0">
-                                            Ayo, <a href="master_kegiatan_harian_add.php"
-                                                class="alert-link fw-bold">tambahkan
-                                                laporan pertama Anda</a> sekarang!
-                                        </p>
-                                    </div>
+                                    <?php
+                                        }
+                                    } else {
+                                        // Pesan jika tidak ada data untuk mobile
+                                        echo '<div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp animate__delay-0-3s" role="alert" style="border-radius: 8px;">';
+                                        echo '<h5 class="alert-heading mb-3"><i class="bx bx-list-plus bx-lg text-info"></i></h5>';
+                                        echo '<p class="mb-3">Belum ada laporan kegiatan yang tercatat di sini.</p>';
+                                        echo '<p class="mb-0">';
+                                        echo 'Ayo, <a href="master_kegiatan_harian_add.php" class="alert-link fw-bold">tambahkan laporan pertama Anda</a> sekarang!';
+                                        echo '</p>';
+                                        echo '</div>';
+                                    }
+                                    $stmt_mobile->close();
+                                    $koneksi->close(); // Tutup koneksi database setelah semua query selesai
+                                    ?>
                                 </div>
                             </div>
                         </div>
@@ -368,6 +261,7 @@
             </div>
         </div>
     </div>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -387,17 +281,14 @@
             reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
-                // Jika dikonfirmasi, arahkan ke skrip PHP untuk delete
-                // Pastikan Anda membuat file 'master_kegiatan_harian_delete.php'
+                // Redirect ke script delete jika dikonfirmasi
                 window.location.href = 'master_kegiatan_harian_delete.php?id=' + id;
             }
         });
     }
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <?php include './partials/script.php'; ?>
+    <?php include './partials/script.php'; // Memasukkan semua script JS lainnya, termasuk BOOTSTRAP JS ?>
 </body>
 
 </html>
