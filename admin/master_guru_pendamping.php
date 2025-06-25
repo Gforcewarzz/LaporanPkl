@@ -10,115 +10,118 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default">
 
 <body>
-<div class="layout-wrapper layout-content-navbar">
-    <div class="layout-container">
-        <?php include './partials/sidebar.php'; ?>
-        <div class="layout-page">
-            <?php include './partials/navbar.php'; ?>
-            <div class="content-wrapper">
-                <div class="container-xxl flex-grow-1 container-p-y">
+    <div class="layout-wrapper layout-content-navbar">
+        <div class="layout-container">
+            <?php include './partials/sidebar.php'; ?>
+            <div class="layout-page">
+                <?php include './partials/navbar.php'; ?>
+                <div class="content-wrapper">
+                    <div class="container-xxl flex-grow-1 container-p-y">
 
-                    <!-- Header -->
-                    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-                        <h4 class="fw-bold mb-0 text-primary">
-                            <span class="text-muted fw-light">Master /</span> Data Guru Pendamping
-                        </h4>
-                        <i class="fas fa-chalkboard-teacher fa-2x text-info" style="opacity: 0.6;"></i>
-                    </div>
+                        <!-- Header -->
+                        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                            <h4 class="fw-bold mb-0 text-primary">
+                                <span class="text-muted fw-light">Master /</span> Data Guru Pendamping
+                            </h4>
+                            <i class="fas fa-chalkboard-teacher fa-2x text-info" style="opacity: 0.6;"></i>
+                        </div>
 
-                    <!-- Banner -->
-                    <div class="card bg-gradient-primary-to-secondary text-white mb-4 shadow-lg"
-                         style="border-radius: 12px; overflow: hidden;">
-                        <div class="card-body p-4 d-flex flex-column flex-sm-row justify-content-between align-items-center">
-                            <div class="text-center text-sm-start mb-3 mb-sm-0">
-                                <h5 class="card-title text-white mb-1">Manajemen Data Guru Pendamping</h5>
-                                <p class="card-text text-white-75 small">Kelola informasi pembimbing PKL siswa.</p>
-                            </div>
-                            <div class="text-center text-sm-end">
-                                <div class="rounded-circle bg-white d-flex justify-content-center align-items-center"
-                                     style="width: 80px; height: 80px; opacity: 0.2;">
-                                    <i class="bx bx-user-voice bx-lg text-primary"></i>
+                        <!-- Banner -->
+                        <div class="card bg-gradient-primary-to-secondary text-white mb-4 shadow-lg"
+                            style="border-radius: 12px; overflow: hidden;">
+                            <div
+                                class="card-body p-4 d-flex flex-column flex-sm-row justify-content-between align-items-center">
+                                <div class="text-center text-sm-start mb-3 mb-sm-0">
+                                    <h5 class="card-title text-white mb-1">Manajemen Data Guru Pendamping</h5>
+                                    <p class="card-text text-white-75 small">Kelola informasi pembimbing PKL siswa.</p>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="card mb-4 shadow-lg">
-                        <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 p-4">
-                            <div class="d-flex gap-2 w-100 w-md-auto">
-                                <a href="index.php" class="btn btn-outline-secondary w-100">
-                                    <i class="bx bx-arrow-back me-1"></i> Kembali
-                                </a>
-                                <a href="master_guru_pendamping_add.php" class="btn btn-primary w-100">
-                                    <i class="bx bx-plus me-1"></i> Tambah Guru
-                                </a>
-                            </div>
-                            <div class="d-flex gap-2 w-100 w-md-auto">
-                                <button type="button" class="btn btn-outline-danger w-100">
-                                    <i class="bx bxs-file-pdf me-1"></i> Cetak PDF
-                                </button>
-                                <button type="button" class="btn btn-outline-success w-100">
-                                    <i class="bx bxs-file-excel me-1"></i> Ekspor Excel
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Filter -->
-                        <div class="card-footer bg-light border-top p-3">
-                            <form method="GET" action="">
-                                <div class="row align-items-center">
-                                    <div class="col-md-8 mb-2 mb-md-0">
-                                        <input type="text" name="keyword" class="form-control" placeholder="Cari guru berdasarkan nama atau NIP..." value="<?= htmlspecialchars($keyword) ?>">
-                                    </div>
-                                    <div class="col-md-4 text-md-end">
-                                        <button type="submit" class="btn btn-outline-dark w-100 w-md-auto">
-                                            <i class="bx bx-filter-alt me-1"></i> Filter Guru
-                                        </button>
+                                <div class="text-center text-sm-end">
+                                    <div class="rounded-circle bg-white d-flex justify-content-center align-items-center"
+                                        style="width: 80px; height: 80px; opacity: 0.2;">
+                                        <i class="bx bx-user-voice bx-lg text-primary"></i>
                                     </div>
                                 </div>
-                            </form>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Table -->
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">Daftar Lengkap Guru Pendamping</h5>
-                            <small class="text-muted">Informasi dari database</small>
+                        <!-- Actions -->
+                        <div class="card mb-4 shadow-lg">
+                            <div
+                                class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 p-4">
+                                <div class="d-flex gap-2 w-100 w-md-auto">
+                                    <a href="index.php" class="btn btn-outline-secondary w-100">
+                                        <i class="bx bx-arrow-back me-1"></i> Kembali
+                                    </a>
+                                    <a href="master_guru_pendamping_add.php" class="btn btn-primary w-100">
+                                        <i class="bx bx-plus me-1"></i> Tambah Guru
+                                    </a>
+                                </div>
+                                <div class="d-flex gap-2 w-100 w-md-auto">
+                                    <a href="generate_guru_pendamping.php<?= !empty($keyword) ? '?keyword=' . htmlspecialchars($keyword) : '' ?>"
+                                        class="btn btn-outline-danger w-100" target="_blank"> <i
+                                            class="bx bxs-file-pdf me-1"></i> Cetak PDF
+                                    </a>
+                                    <button type="button" class="btn btn-outline-success w-100">
+                                        <i class="bx bxs-file-excel me-1"></i> Ekspor Excel
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Filter -->
+                            <div class="card-footer bg-light border-top p-3">
+                                <form method="GET" action="">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-8 mb-2 mb-md-0">
+                                            <input type="text" name="keyword" class="form-control"
+                                                placeholder="Cari guru berdasarkan nama atau NIP..."
+                                                value="<?= htmlspecialchars($keyword) ?>">
+                                        </div>
+                                        <div class="col-md-4 text-md-end">
+                                            <button type="submit" class="btn btn-outline-dark w-100 w-md-auto">
+                                                <i class="bx bx-filter-alt me-1"></i> Filter Guru
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive" style="overflow-x: auto;">
-                                <table class="table table-hover" style="min-width: 800px;">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>No</th>
-                                            <th>Nama Guru</th>
-                                            <th>NIP</th>
-                                            <th>Password</th>
-                                            <th>Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        $no = 1;
-                                        // SQL dengan filter jika keyword diisi
-                                        $sql = "SELECT * FROM guru_pembimbing";
-                                        if (!empty($keyword)) {
-                                            $keyword_safe = mysqli_real_escape_string($koneksi, $keyword);
-                                            $sql .= " WHERE nama_pembimbing LIKE '%$keyword_safe%' OR nip LIKE '%$keyword_safe%'";
-                                        }
-                                        $sql .= " ORDER BY id_pembimbing ASC";
 
-                                        $result = mysqli_query($koneksi, $sql);
+                        <!-- Table -->
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Daftar Lengkap Guru Pendamping</h5>
+                                <small class="text-muted">Informasi dari database</small>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive" style="overflow-x: auto;">
+                                    <table class="table table-hover" style="min-width: 800px;">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>No</th>
+                                                <th>Nama Guru</th>
+                                                <th>NIP</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php
+                                            $no = 1;
+                                            // SQL dengan filter jika keyword diisi
+                                            $sql = "SELECT * FROM guru_pembimbing";
+                                            if (!empty($keyword)) {
+                                                $keyword_safe = mysqli_real_escape_string($koneksi, $keyword);
+                                                $sql .= " WHERE nama_pembimbing LIKE '%$keyword_safe%' OR nip LIKE '%$keyword_safe%'";
+                                            }
+                                            $sql .= " ORDER BY id_pembimbing ASC";
 
-                                        if (mysqli_num_rows($result) > 0) {
-                                            while ($row = mysqli_fetch_assoc($result)) {
-                                                echo "<tr>
+                                            $result = mysqli_query($koneksi, $sql);
+
+                                            if (mysqli_num_rows($result) > 0) {
+                                                while ($row = mysqli_fetch_assoc($result)) {
+                                                    echo "<tr>
                                                     <td>{$no}</td>
                                                     <td>{$row['nama_pembimbing']}</td>
                                                     <td>{$row['nip']}</td>
-                                                    <td>{$row['password']}</td>
                                                     <td>
                                                         <div class='dropdown'>
                                                             <button class='btn p-0 dropdown-toggle' data-bs-toggle='dropdown'>
@@ -135,46 +138,47 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
                                                         </div>
                                                     </td>
                                                 </tr>";
-                                                $no++;
+                                                    $no++;
+                                                }
+                                            } else {
+                                                echo "<tr><td colspan='5' class='text-center text-muted'>Tidak ada data ditemukan.</td></tr>";
                                             }
-                                        } else {
-                                            echo "<tr><td colspan='5' class='text-center text-muted'>Tidak ada data ditemukan.</td></tr>";
-                                        }
-                                        ?>
-                                    </tbody>
-                                </table>
+                                            ?>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
+                    </div>
                 </div>
+                <div class="layout-overlay layout-menu-toggle"></div>
             </div>
-            <div class="layout-overlay layout-menu-toggle"></div>
         </div>
     </div>
-</div>
 
-<!-- SweetAlert -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-function confirmDeleteGuru(id, nama) {
-    Swal.fire({
-        title: 'Konfirmasi Hapus Data Guru',
-        html: `Apakah Anda yakin ingin menghapus <strong>${nama}</strong>?`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#dc3545',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Ya, Hapus!',
-        cancelButtonText: 'Batal'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href = 'master_guru_pendamping_delete.php?id=' + id;
-        }
-    });
-}
-</script>
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    function confirmDeleteGuru(id, nama) {
+        Swal.fire({
+            title: 'Konfirmasi Hapus Data Guru',
+            html: `Apakah Anda yakin ingin menghapus <strong>${nama}</strong>?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = 'master_guru_pendamping_delete.php?id=' + id;
+            }
+        });
+    }
+    </script>
 
-<?php include './partials/script.php'; ?>
+    <?php include './partials/script.php'; ?>
 </body>
+
 </html>

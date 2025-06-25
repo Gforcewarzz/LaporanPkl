@@ -65,7 +65,7 @@
                                         class="btn btn-outline-secondary w-100 animate__animated animate__fadeInUp animate__delay-0-2s">
                                         <i class="bx bx-arrow-back me-1"></i> Kembali
                                     </a>
-                                    <a href="kegiatan_harian_add.php"
+                                    <a href="master_kegiatan_harian_add.php"
                                         class="btn btn-primary w-100 animate__animated animate__fadeInUp animate__delay-0-3s">
                                         <i class="bx bx-plus me-1"></i> Tambah Laporan
                                     </a>
@@ -126,11 +126,13 @@
                                                         </button>
                                                         <div class="dropdown-menu">
                                                             <a class="dropdown-item"
-                                                                href="kegiatan_harian_edit.php?id=1">
-                                                                <i class="bx bx-edit-alt me-1"></i> Edit
+                                                                href="master_kegiatan_harian_edit.php?id=1">
+                                                                <i class="bx bx-edit-alt me-1"></i> Edit Laporan
                                                             </a>
-                                                            <a class="dropdown-item"
-                                                                href="kegiatan_harian_delete.php?id=1">
+                                                            <div class="dropdown-divider"></div>
+                                                            <a class="dropdown-item text-danger"
+                                                                href="javascript:void(0);"
+                                                                onclick="confirmDeleteKegiatanHarian('1', 'Senin, 23 Juni 2025')">
                                                                 <i class="bx bx-trash me-1"></i> Hapus
                                                             </a>
                                                         </div>
@@ -150,11 +152,13 @@
                                                         </button>
                                                         <div class="dropdown-menu">
                                                             <a class="dropdown-item"
-                                                                href="kegiatan_harian_edit.php?id=2">
-                                                                <i class="bx bx-edit-alt me-1"></i> Edit
+                                                                href="master_kegiatan_harian_edit.php?id=2">
+                                                                <i class="bx bx-edit-alt me-1"></i> Edit Laporan
                                                             </a>
-                                                            <a class="dropdown-item"
-                                                                href="kegiatan_harian_delete.php?id=2">
+                                                            <div class="dropdown-divider"></div>
+                                                            <a class="dropdown-item text-danger"
+                                                                href="javascript:void(0);"
+                                                                onclick="confirmDeleteKegiatanHarian('2', 'Selasa, 24 Juni 2025')">
                                                                 <i class="bx bx-trash me-1"></i> Hapus
                                                             </a>
                                                         </div>
@@ -174,11 +178,13 @@
                                                         </button>
                                                         <div class="dropdown-menu">
                                                             <a class="dropdown-item"
-                                                                href="kegiatan_harian_edit.php?id=3">
-                                                                <i class="bx bx-edit-alt me-1"></i> Edit
+                                                                href="master_kegiatan_harian_edit.php?id=3">
+                                                                <i class="bx bx-edit-alt me-1"></i> Edit Laporan
                                                             </a>
-                                                            <a class="dropdown-item"
-                                                                href="kegiatan_harian_delete.php?id=3">
+                                                            <div class="dropdown-divider"></div>
+                                                            <a class="dropdown-item text-danger"
+                                                                href="javascript:void(0);"
+                                                                onclick="confirmDeleteKegiatanHarian('3', 'Rabu, 25 Juni 2025')">
                                                                 <i class="bx bx-trash me-1"></i> Hapus
                                                             </a>
                                                         </div>
@@ -211,12 +217,13 @@
                                                         <i class="bx bx-dots-vertical-rounded"></i>
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item" href="kegiatan_harian_edit.php?id=1">
+                                                        <a class="dropdown-item"
+                                                            href="master_kegiatan_harian_edit.php?id=1">
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Laporan
                                                         </a>
                                                         <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger"
-                                                            href="kegiatan_harian_delete.php?id=1">
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="confirmDeleteKegiatanHarian('1', 'Senin, 23 Juni 2025')">
                                                             <i class="bx bx-trash me-1"></i> Hapus
                                                         </a>
                                                     </div>
@@ -260,12 +267,13 @@
                                                         <i class="bx bx-dots-vertical-rounded"></i>
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item" href="kegiatan_harian_edit.php?id=2">
+                                                        <a class="dropdown-item"
+                                                            href="master_kegiatan_harian_edit.php?id=2">
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Laporan
                                                         </a>
                                                         <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger"
-                                                            href="kegiatan_harian_delete.php?id=2">
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="confirmDeleteKegiatanHarian('2', 'Selasa, 24 Juni 2025')">
                                                             <i class="bx bx-trash me-1"></i> Hapus
                                                         </a>
                                                     </div>
@@ -308,12 +316,13 @@
                                                         <i class="bx bx-dots-vertical-rounded"></i>
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item" href="kegiatan_harian_edit.php?id=3">
+                                                        <a class="dropdown-item"
+                                                            href="master_kegiatan_harian_edit.php?id=3">
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Laporan
                                                         </a>
                                                         <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger"
-                                                            href="kegiatan_harian_delete.php?id=3">
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="confirmDeleteKegiatanHarian('3', 'Rabu, 25 Juni 2025')">
                                                             <i class="bx bx-trash me-1"></i> Hapus
                                                         </a>
                                                     </div>
@@ -338,16 +347,16 @@
                                             </div>
                                         </div>
                                     </div>
+
                                     <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp animate__delay-0-3s"
                                         role="alert" style="border-radius: 8px;">
                                         <h5 class="alert-heading mb-3"><i class="bx bx-list-plus bx-lg text-info"></i>
                                         </h5>
-                                        <p class="mb-3">Sepertinya belum ada laporan kegiatan yang tercatat untuk
-                                            periode ini.</p>
+                                        <p class="mb-3">Belum ada laporan kegiatan yang tercatat di sini.</p>
                                         <p class="mb-0">
-                                            Yuk, <a href="kegiatan_harian_add.php" class="alert-link fw-bold">mulai
-                                                tambahkan laporan pertama Anda sekarang</a> agar progres PKL Anda selalu
-                                            terupdate!
+                                            Ayo, <a href="master_kegiatan_harian_add.php"
+                                                class="alert-link fw-bold">tambahkan
+                                                laporan pertama Anda</a> sekarang!
                                         </p>
                                     </div>
                                 </div>
@@ -360,6 +369,31 @@
         </div>
     </div>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+    function confirmDeleteKegiatanHarian(id, tanggal) {
+        Swal.fire({
+            title: 'Konfirmasi Hapus Laporan Harian',
+            html: "Apakah Anda yakin ingin menghapus laporan kegiatan pada tanggal <strong>" + tanggal +
+                "</strong>?<br>Tindakan ini tidak dapat dibatalkan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Hapus Sekarang!',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Jika dikonfirmasi, arahkan ke skrip PHP untuk delete
+                // Pastikan Anda membuat file 'master_kegiatan_harian_delete.php'
+                window.location.href = 'master_kegiatan_harian_delete.php?id=' + id;
+            }
+        });
+    }
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
