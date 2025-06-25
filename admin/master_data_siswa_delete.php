@@ -1,39 +1,77 @@
 <?php
 include 'partials/db.php';
-
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Hapus Data Siswa</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+<?php
 if (isset($_GET['id'])) {
     $id_siswa = mysqli_real_escape_string($koneksi, $_GET['id']);
 
-    // Cek apakah siswa ada
+    // Cek apakah data siswa ada
     $check = mysqli_query($koneksi, "SELECT * FROM siswa WHERE id_siswa = '$id_siswa'");
     if (mysqli_num_rows($check) === 0) {
-        echo "<script>
-            alert('Data siswa tidak ditemukan.');
+        echo "
+        <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal!',
+            text: 'Data siswa tidak ditemukan.',
+            confirmButtonText: 'OK'
+        }).then(() => {
             window.location.href = 'master_data_siswa.php';
+        });
         </script>";
         exit;
     }
 
-    // Lakukan penghapusan
+    // Hapus data siswa
     $delete = mysqli_query($koneksi, "DELETE FROM siswa WHERE id_siswa = '$id_siswa'");
 
     if ($delete) {
-        echo "<script>
-            alert('Data siswa berhasil dihapus.');
+        echo "
+        <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: 'Data siswa berhasil dihapus.',
+            confirmButtonText: 'OK'
+        }).then(() => {
             window.location.href = 'master_data_siswa.php';
+        });
         </script>";
     } else {
-        echo "<script>
-            alert('Gagal menghapus data siswa.');
+        echo "
+        <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal!',
+            text: 'Gagal menghapus data siswa.',
+            confirmButtonText: 'Kembali'
+        }).then(() => {
             window.history.back();
+        });
         </script>";
     }
 
 } else {
-    // Jika tidak ada parameter id
-    echo "<script>
-        alert('Permintaan tidak valid.');
+    // Tidak ada parameter id
+    echo "
+    <script>
+    Swal.fire({
+        icon: 'warning',
+        title: 'Permintaan Tidak Valid',
+        text: 'ID siswa tidak ditemukan dalam permintaan.',
+        confirmButtonText: 'OK'
+    }).then(() => {
         window.location.href = 'master_data_siswa.php';
+    });
     </script>";
 }
 ?>
+</body>
+</html>

@@ -1,6 +1,7 @@
 <?php
 include 'partials/head.php';
-include 'partials/db.php'; // Asumsi file ini berisi koneksi ke database ($koneksi)
+include 'partials/db.php'; $keyword = ""; // <-- tambahkan ini di awal sebelum blok filter
+$filter = "";; // Asumsi file ini berisi koneksi ke database ($koneksi)
 ?>
 
 <!DOCTYPE html>
@@ -50,11 +51,11 @@ include 'partials/db.php'; // Asumsi file ini berisi koneksi ke database ($konek
                                         <i class="bx bx-arrow-back me-1"></i> Kembali
                                     </a>
                                     <a href="master_data_siswa_add.php" class="btn btn-primary w-100">
-                                        <i class="bx bx-plus me-1"></i> Tambah Guru
+                                        <i class="bx bx-plus me-1"></i> Tambah Siswa
                                     </a>
                                 </div>
                                 <div class="d-flex gap-2 w-100 w-md-auto">
-                                    <a href="generate_siswa.php<?= !empty($keyword) ? '?keyword=' . htmlspecialchars($keyword) : '' ?>"
+                                    <a href="generate_siswa_pdf.php<?= !empty($keyword) ? '?keyword=' . htmlspecialchars($keyword) : '' ?>"
                                         class="btn btn-outline-danger w-100" target="_blank"> <i
                                             class="bx bxs-file-pdf me-1"></i> Cetak PDF
                                     </a>
@@ -70,12 +71,12 @@ include 'partials/db.php'; // Asumsi file ini berisi koneksi ke database ($konek
                                     <div class="row align-items-center">
                                         <div class="col-md-8 mb-2 mb-md-0">
                                             <input type="text" name="keyword" class="form-control"
-                                                placeholder="Cari guru berdasarkan nama atau NIP..."
+                                                placeholder="Cari Siswa berdasarkan nama atau no induk jenis kelamin kelas..."
                                                 value="<?= htmlspecialchars($keyword) ?>">
                                         </div>
                                         <div class="col-md-4 text-md-end">
                                             <button type="submit" class="btn btn-outline-dark w-100 w-md-auto">
-                                                <i class="bx bx-filter-alt me-1"></i> Filter Guru
+                                                <i class="bx bx-filter-alt me-1"></i> Filter Siswa
                                             </button>
                                         </div>
                                     </div>
@@ -306,7 +307,7 @@ include 'partials/db.php'; // Asumsi file ini berisi koneksi ke database ($konek
                 reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.location.href = 'proses_delete_data_siswa.php?id=' + id;
+                    window.location.href = 'master_data_siswa_delete.php?id=' + id;
                 }
             });
         }

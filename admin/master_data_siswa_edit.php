@@ -93,7 +93,6 @@ $tempat_pkl_options = mysqli_query($koneksi, "SELECT nama_tempat_pkl FROM tempat
                 <input type="text" name="kelas" class="form-control" required value="<?= htmlspecialchars($data['kelas']) ?>">
             </div>
 
-            <!-- Jurusan -->
             <div class="mb-3">
                 <label class="form-label fw-bold">Jurusan</label>
                 <input type="text" name="jurusan_nama" class="form-control" list="datalistJurusan" required value="<?= htmlspecialchars($data['nama_jurusan']) ?>">
@@ -104,7 +103,6 @@ $tempat_pkl_options = mysqli_query($koneksi, "SELECT nama_tempat_pkl FROM tempat
                 </datalist>
             </div>
 
-            <!-- Guru Pendamping -->
             <div class="mb-3">
                 <label class="form-label fw-bold">Guru Pendamping</label>
                 <input type="text" name="guru_nama" class="form-control" list="datalistGuru" required value="<?= htmlspecialchars($data['nama_pembimbing']) ?>">
@@ -115,7 +113,6 @@ $tempat_pkl_options = mysqli_query($koneksi, "SELECT nama_tempat_pkl FROM tempat
                 </datalist>
             </div>
 
-            <!-- Tempat PKL -->
             <div class="mb-3">
                 <label class="form-label fw-bold">Tempat PKL</label>
                 <input type="text" name="tempat_pkl_nama" class="form-control" list="datalistTempatPKL" required value="<?= htmlspecialchars($data['nama_tempat_pkl']) ?>">
@@ -126,7 +123,6 @@ $tempat_pkl_options = mysqli_query($koneksi, "SELECT nama_tempat_pkl FROM tempat
                 </datalist>
             </div>
 
-            <!-- Status -->
             <div class="mb-3">
                 <label class="form-label fw-bold">Status</label>
                 <select name="status" class="form-select" required>
@@ -136,7 +132,12 @@ $tempat_pkl_options = mysqli_query($koneksi, "SELECT nama_tempat_pkl FROM tempat
                 </select>
             </div>
 
-            <!-- Tombol -->
+            <!-- ✅ Tambahkan bagian untuk ubah password -->
+            <div class="mb-3">
+                <label class="form-label fw-bold">Password (Kosongkan jika tidak ingin mengganti)</label>
+                <input type="password" name="password" class="form-control" placeholder="Masukkan password baru jika ingin mengganti">
+            </div>
+
             <div class="d-flex justify-content-between mt-4">
                 <a href="master_data_siswa.php" class="btn btn-outline-secondary"><i class="bx bx-arrow-back me-1"></i> Kembali</a>
                 <button type="submit" class="btn btn-primary"><i class="bx bx-save me-1"></i> Simpan Perubahan</button>

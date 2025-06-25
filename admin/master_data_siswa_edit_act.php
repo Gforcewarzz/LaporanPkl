@@ -1,77 +1,95 @@
 <?php
 include 'partials/db.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Ambil data utama
-    $id_siswa      = mysqli_real_escape_string($koneksi, $_POST['id_siswa']);
-    $nama_siswa    = mysqli_real_escape_string($koneksi, $_POST['nama_siswa']);
-    $jenis_kelamin = mysqli_real_escape_string($koneksi, $_POST['jenis_kelamin']);
-    $nisn          = mysqli_real_escape_string($koneksi, $_POST['nisn']);
-    $no_induk      = mysqli_real_escape_string($koneksi, $_POST['no_induk']);
-    $kelas         = mysqli_real_escape_string($koneksi, $_POST['kelas']);
-    $status        = mysqli_real_escape_string($koneksi, $_POST['status']);
+$id_siswa       = $_POST['id_siswa'];
+$nama_siswa     = htmlspecialchars($_POST['nama_siswa']);
+$jenis_kelamin  = $_POST['jenis_kelamin'];
+$nisn           = htmlspecialchars($_POST['nisn']);
+$no_induk       = htmlspecialchars($_POST['no_induk']);
+$kelas          = htmlspecialchars($_POST['kelas']);
+$status         = $_POST['status'];
 
-    // Ambil nama dari datalist
-    $jurusan_nama     = mysqli_real_escape_string($koneksi, $_POST['jurusan_nama']);
-    $guru_nama        = mysqli_real_escape_string($koneksi, $_POST['guru_nama']);
-    $tempat_pkl_nama  = mysqli_real_escape_string($koneksi, $_POST['tempat_pkl_nama']);
+// Ambil nama relasi dari input
+$jurusan_nama   = $_POST['jurusan_nama'];
+$guru_nama      = $_POST['guru_nama'];
+$tempat_nama    = $_POST['tempat_pkl_nama'];
 
-    // Cari ID berdasarkan nama
-    $jurusan_id = null;
-    $q_jurusan = mysqli_query($koneksi, "SELECT id_jurusan FROM jurusan WHERE nama_jurusan = '$jurusan_nama' LIMIT 1");
-    if ($row = mysqli_fetch_assoc($q_jurusan)) {
-        $jurusan_id = $row['id_jurusan'];
-    }
+// Cari ID jurusan berdasarkan nama
+$jurusan_q = mysqli_query($koneksi, "SELECT id_jurusan FROM jurusan WHERE nama_jurusan = '$jurusan_nama'");
+$jurusan_id = mysqli_fetch_assoc($jurusan_q)['id_jurusan'] ?? null;
 
-    $pembimbing_id = null;
-    $q_guru = mysqli_query($koneksi, "SELECT id_pembimbing FROM guru_pembimbing WHERE nama_pembimbing = '$guru_nama' LIMIT 1");
-    if ($row = mysqli_fetch_assoc($q_guru)) {
-        $pembimbing_id = $row['id_pembimbing'];
-    }
+// Cari ID pembimbing berdasarkan nama
+$guru_q = mysqli_query($koneksi, "SELECT id_pembimbing FROM guru_pembimbing WHERE nama_pembimbing = '$guru_nama'");
+$pembimbing_id = mysqli_fetch_assoc($guru_q)['id_pembimbing'] ?? null;
 
-    $tempat_pkl_id = null;
-    $q_tempat = mysqli_query($koneksi, "SELECT id_tempat_pkl FROM tempat_pkl WHERE nama_tempat_pkl = '$tempat_pkl_nama' LIMIT 1");
-    if ($row = mysqli_fetch_assoc($q_tempat)) {
-        $tempat_pkl_id = $row['id_tempat_pkl'];
-    }
+// Cari ID tempat PKL berdasarkan nama
+$tempat_q = mysqli_query($koneksi, "SELECT id_tempat_pkl FROM tempat_pkl WHERE nama_tempat_pkl = '$tempat_nama'");
+$tempat_pkl_id = mysqli_fetch_assoc($tempat_q)['id_tempat_pkl'] ?? null;
 
-    // Validasi: apakah semua ID ditemukan?
-    if (!$jurusan_id || !$pembimbing_id || !$tempat_pkl_id) {
-        echo "<script>
-            alert('Data Jurusan, Guru Pendamping, atau Tempat PKL tidak valid. Silakan pilih dari saran yang tersedia.');
-            window.history.back();
-        </script>";
-        exit;
-    }
+// Cek jika password diisi
+$password_input = $_POST['password'] ?? null;
+$password_query = "";
 
-    // Jalankan update
-    $update = mysqli_query($koneksi, "UPDATE siswa SET
-        nama_siswa     = '$nama_siswa',
-        jenis_kelamin  = '$jenis_kelamin',
-        nisn           = '$nisn',
-        no_induk       = '$no_induk',
-        kelas          = '$kelas',
-        status         = '$status',
-        jurusan_id     = '$jurusan_id',
-        pembimbing_id  = '$pembimbing_id',
-        tempat_pkl_id  = '$tempat_pkl_id'
-        WHERE id_siswa = '$id_siswa'
-    ");
+if (!empty($password_input)) {
+    // Hash password baru
+    $password_hashed = password_hash($password_input, PASSWORD_BCRYPT);
+    $password_query = ", password = '$password_hashed'";
+}
 
-    if ($update) {
-        echo "<script>
-            alert('Data siswa berhasil diperbarui.');
-            window.location.href = 'master_data_siswa.php';
-        </script>";
-    } else {
-        echo "<script>
-            alert('Terjadi kesalahan saat memperbarui data.');
-            window.history.back();
-        </script>";
-    }
+// Update data siswa
+$query = "UPDATE siswa SET 
+            nama_siswa = '$nama_siswa',
+            jenis_kelamin = '$jenis_kelamin',
+            nisn = '$nisn',
+            no_induk = '$no_induk',
+            kelas = '$kelas',
+            status = '$status',
+            jurusan_id = '$jurusan_id',
+            pembimbing_id = '$pembimbing_id',
+            tempat_pkl_id = '$tempat_pkl_id'
+            $password_query
+          WHERE id_siswa = '$id_siswa'";
+
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Update Siswa</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+<?php
+if (mysqli_query($koneksi, $query)) {
+    echo "
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: 'Data siswa berhasil diperbarui!',
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'OK'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = 'master_data_siswa.php';
+            }
+        });
+    </script>
+    ";
 } else {
-    // Akses langsung tanpa POST
-    header('Location: master_data_siswa.php');
-    exit;
+    echo "
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal!',
+            text: 'Data gagal diperbarui: " . mysqli_error($koneksi) . "',
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Coba Lagi'
+        }).then(() => {
+            window.history.back();
+        });
+    </script>
+    ";
 }
 ?>
+</body>
+</html>
