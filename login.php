@@ -1,258 +1,173 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Siswa</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Form</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        /* Variabel CSS untuk palet warna yang bersih dan modern */
-        :root {
-            --primary-blue: #007bff;
-            /* Biru standar yang cerah */
-            --primary-hover-blue: #0056b3;
-            /* Biru lebih gelap untuk hover */
-            --text-dark: #343a40;
-            /* Teks gelap */
-            --text-light: #6c757d;
-            /* Teks abu-abu terang */
-            --background-light: #f8f9fa;
-            /* Latar belakang sangat terang */
-            --card-background: #ffffff;
-            /* Latar belakang kartu putih bersih */
-            --border-color: #dee2e6;
-            /* Warna border halus */
-            --shadow-light: rgba(0, 0, 0, 0.08);
-            /* Bayangan sangat tipis */
-            --focus-outline: rgba(0, 123, 255, 0.25);
-            /* Outline fokus */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+        height: 100vh;
+        background: linear-gradient(135deg, #6e73fe, #ffffff);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem;
+    }
+
+    .login-container {
+        background: #ffffff;
+        padding: 2rem;
+        border-radius: 25px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        width: 100%;
+        max-width: 400px;
+        animation: fadeIn 0.8s ease forwards;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            /* Font Inter yang bersih dan modern */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            background-color: var(--background-light);
-            /* Latar belakang terang yang clean */
-            color: var(--text-dark);
-            overflow: hidden;
-            line-height: 1.6;
-        }
-
-        .login-container {
-            background-color: var(--card-background);
-            padding: 45px 40px;
-            border-radius: 12px;
-            /* Sudut membulat yang nyaman */
-            box-shadow: 0 8px 20px var(--shadow-light);
-            /* Bayangan lembut */
-            width: 100%;
-            max-width: 420px;
-            /* Ukuran yang pas */
-            text-align: center;
-            position: relative;
-            animation: fadeInScale 0.6s ease-out forwards;
-            /* Animasi muncul */
-        }
-
-        /* Animasi muncul lebih halus */
-        @keyframes fadeInScale {
-            from {
-                opacity: 0;
-                transform: translateY(20px) scale(0.98);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        .login-container h2 {
-            margin-bottom: 30px;
-            color: var(--text-dark);
-            font-weight: 700;
-            /* Lebih tebal untuk judul */
-            font-size: 28px;
-            position: relative;
-        }
-
-        /* Tidak ada underline berlebihan, tetap clean */
-        /* .login-container h2::after { ... } */
-
-        .input-group {
-            margin-bottom: 25px;
-            text-align: left;
-            position: relative;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--text-light);
-            font-weight: 500;
-            /* Sedikit lebih tebal dari sebelumnya */
-            font-size: 15px;
-        }
-
-        .input-group input {
-            width: calc(100% - 24px);
-            /* Sesuaikan dengan padding */
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 16px;
-            color: var(--text-dark);
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            /* Transisi lebih cepat */
-            background-color: #fff;
-            /* Latar belakang input putih */
-        }
-
-        .input-group input:focus {
-            border-color: var(--primary-blue);
-            box-shadow: 0 0 0 3px var(--focus-outline);
-            /* Ring fokus yang clean */
-            outline: none;
-        }
-
-        .input-group input::placeholder {
-            color: #b0b0b0;
-            font-size: 14px;
-        }
-
-        .input-group .icon {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            /* Sesuaikan posisi ikon agar di tengah */
-            transform: translateY(calc(-50% + 14px));
-            /* Mengkompensasi label */
-            color: var(--text-light);
-            font-size: 17px;
-            pointer-events: none;
-            transition: color 0.2s ease;
-        }
-
-        .input-group input:focus+.icon {
-            color: var(--primary-blue);
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            background-color: var(--primary-blue);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 17px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.1s ease;
-            /* Transisi lebih responsif */
-            letter-spacing: 0.3px;
-            margin-top: 25px;
-            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
-            /* Bayangan tombol yang halus */
-        }
-
-        button:hover {
-            background-color: var(--primary-hover-blue);
-            transform: translateY(-1px);
-            /* Efek angkat minimal */
-        }
-
-        button:active {
+        to {
+            opacity: 1;
             transform: translateY(0);
-            box-shadow: 0 2px 5px rgba(0, 123, 255, 0.2);
+        }
+    }
+
+    .login-container h2 {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: #333;
+        font-weight: 600;
+    }
+
+    .form-group {
+        margin-bottom: 1.3rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #444;
+        font-weight: 500;
+    }
+
+    .form-group .input-icon {
+        position: relative;
+    }
+
+    .form-group .input-icon i {
+        position: absolute;
+        top: 50%;
+        left: 15px;
+        transform: translateY(-50%);
+        color: #6e73fe;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 0.9rem 0.9rem 0.9rem 2.5rem;
+        border: 1.5px solid #ddd;
+        border-radius: 12px;
+        outline: none;
+        transition: border-color 0.3s;
+        font-size: 1rem;
+        background-color: #f9f9f9;
+    }
+
+    .form-group input:focus {
+        border-color: #6e73fe;
+        background-color: #fff;
+    }
+
+    .login-btn {
+        width: 100%;
+        padding: 1rem;
+        background: #6e73fe;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: background 0.3s ease-in-out;
+    }
+
+    .login-btn:hover {
+        background: #5a61e0;
+    }
+
+    .extra-links {
+        margin-top: 1.5rem;
+        text-align: center;
+        font-size: 0.9rem;
+        color: #555;
+    }
+
+    .extra-links i {
+        margin-right: 6px;
+        color: #6e73fe;
+    }
+
+    .extra-links a {
+        color: #6e73fe;
+        text-decoration: none;
+        transition: color 0.2s;
+        font-weight: 500;
+    }
+
+    .extra-links a:hover {
+        text-decoration: underline;
+        color: #444;
+    }
+
+    @media (max-width: 480px) {
+        .login-container {
+            padding: 1.5rem 1rem;
+            border-radius: 20px;
         }
 
-        .forgot-password {
-            margin-top: 20px;
-            font-size: 14px;
+        .form-group input {
+            padding-left: 2.3rem;
         }
-
-        .forgot-password a {
-            color: var(--primary-blue);
-            text-decoration: none;
-            transition: color 0.2s ease;
-            font-weight: 500;
-        }
-
-        .forgot-password a:hover {
-            color: var(--primary-hover-blue);
-            text-decoration: underline;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 500px) {
-            .login-container {
-                padding: 35px 25px;
-                margin: 20px;
-                border-radius: 10px;
-            }
-
-            .login-container h2 {
-                font-size: 24px;
-                margin-bottom: 25px;
-            }
-
-            .input-group {
-                margin-bottom: 20px;
-            }
-
-            .input-group label {
-                font-size: 14px;
-            }
-
-            .input-group input {
-                padding: 10px;
-                font-size: 15px;
-            }
-
-            .input-group .icon {
-                font-size: 15px;
-                transform: translateY(calc(-50% + 12px));
-            }
-
-            button {
-                padding: 12px;
-                font-size: 16px;
-                margin-top: 20px;
-            }
-
-            .forgot-password {
-                font-size: 13px;
-                margin-top: 18px;
-            }
-        }
+    }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 
 <body>
     <div class="login-container">
-        <h2>Login Siswa</h2>
-        <form action="#" method="POST">
-            <div class="input-group">
+        <h2><i class="fas fa-user-graduate"></i> Login Siswa</h2>
+        <form action="login.php" method="POST">
+            <div class="form-group">
                 <label for="nisn">NISN</label>
-                <input type="text" id="nisn" name="nisn" placeholder="Masukkan NISN Anda" required>
-                <i class="fas fa-id-card icon"></i>
+                <div class="input-icon">
+                    <i class="fas fa-id-card"></i>
+                    <input type="text" name="nisn" id="nisn" required placeholder="Masukkan NISN Anda" />
+                </div>
             </div>
-            <div class="input-group">
+            <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Masukkan Password Anda" required>
-                <i class="fas fa-lock icon"></i>
+                <div class="input-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="password" id="password" required placeholder="Masukkan Password" />
+                </div>
             </div>
-            <button type="submit">Masuk</button>
+            <button type="submit" class="login-btn"><i class="fas fa-sign-in-alt"></i> Masuk</button>
         </form>
-        <div class="forgot-password">
-            <a href="#">Lupa Password?</a>
+        <div class="extra-links">
+            <p><i class="fas fa-info-circle"></i> Ada kendala? Hubungi admin</p>
         </div>
     </div>
 </body>
