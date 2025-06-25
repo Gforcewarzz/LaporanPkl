@@ -1,12 +1,23 @@
+<?php
+session_start();
+
+if (isset($_SESSION['siswa']) && $_SESSION['siswa'] === 'login') {
+    // Jika sudah login, arahkan langsung ke dashboard atau halaman lain
+    header("Location: admin/master_kegiatan_harian.php");
+    exit;
+}
+?>
+
+<?php include 'admin/partials/db.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login Form</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login Form</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <style>
     * {
         margin: 0;
@@ -147,29 +158,63 @@
 </head>
 
 <body>
-    <div class="login-container">
+        <div class="login-container">
         <h2><i class="fas fa-user-graduate"></i> Login Siswa</h2>
-        <form action="login.php" method="POST">
+        <form action="login_act.php" method="POST" autocomplete="off">
             <div class="form-group">
-                <label for="nisn">NISN</label>
-                <div class="input-icon">
-                    <i class="fas fa-id-card"></i>
-                    <input type="text" name="nisn" id="nisn" required placeholder="Masukkan NISN Anda" />
-                </div>
+            <label for="nisn">NISN</label>
+            <div class="input-icon">
+                <i class="fas fa-id-card"></i>
+                <input type="text" name="nisn" id="nisn" required placeholder="Masukkan NISN Anda" />
+                <div id="nisnList" style="position: absolute; background: white; border: 1px solid #ccc; z-index: 1000;"></div>
+            </div>
             </div>
             <div class="form-group">
-                <label for="password">Password</label>
-                <div class="input-icon">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" name="password" id="password" required placeholder="Masukkan Password" />
-                </div>
+            <label for="password">Password</label>
+            <div class="input-icon">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="password" id="password" required placeholder="Masukkan Password" />
+            </div>
             </div>
             <button type="submit" class="login-btn"><i class="fas fa-sign-in-alt"></i> Masuk</button>
         </form>
         <div class="extra-links">
             <p><i class="fas fa-info-circle"></i> Ada kendala? Hubungi admin</p>
         </div>
-    </div>
+        </div>
+
+                <script>
+        $(document).ready(function() {
+        $('#nisn').keyup(function() {
+            let query = $(this).val();
+            if (query.length > 2) {
+            $.ajax({
+                url: "cari_nisn.php",
+                method: "POST",
+                data: { query: query },
+                success: function(data) {
+                $('#nisnList').fadeIn().html(data);
+                }
+            });
+            } else {
+            $('#nisnList').fadeOut();
+            }
+        });
+
+        // Set nilai input ketika salah satu item diklik
+        $(document).on('click', '.nisn-item', function() {
+            $('#nisn').val($(this).text());
+            $('#nisnList').fadeOut();
+        });
+
+        // Tutup list jika klik di luar
+        $(document).click(function(e) {
+            if (!$(e.target).closest('#nisn').length) {
+            $('#nisnList').fadeOut();
+            }
+        });
+        });
+        </script>
 </body>
 
 </html>
