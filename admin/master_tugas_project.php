@@ -1,3 +1,17 @@
+<?php
+// 1. Mulai sesi di baris paling atas untuk mengakses ID siswa yang login
+session_start();
+
+// 2. Keamanan: Periksa apakah siswa sudah login.
+// Jika tidak ada sesi 'id_siswa', redirect (arahkan) ke halaman login.
+if (!isset($_SESSION['id_siswa'])) {
+    header("Location: login.php");
+    exit(); // Hentikan eksekusi skrip lebih lanjut
+}
+
+// 3. Ambil ID siswa yang sedang login dari sesi
+$id_siswa_login = $_SESSION['id_siswa'];
+?>
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="./assets/"
     data-template="vertical-menu-template-free">
@@ -15,463 +29,214 @@
 
                         <div
                             class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom position-relative">
-                            <h4 class="fw-bold mb-0 text-primary animate__animated animate__fadeInLeft">
+                            <h4 class="fw-bold mb-0 text-primary">
                                 <span class="text-muted fw-light">Laporan /</span> Tugas Proyek
                             </h4>
-                            <i class="fas fa-tasks fa-2x text-info animate__animated animate__fadeInRight"
-                                style="opacity: 0.6;"></i>
+                            <i class="fas fa-tasks fa-2x text-info" style="opacity: 0.6;"></i>
                         </div>
-                        <div class="card bg-gradient-primary-to-secondary text-white mb-4 shadow-lg animate__animated animate__fadeInDown"
-                            style="border-radius: 12px; overflow: hidden; background: linear-gradient(135deg, #696cff 0%, #a4bdfa 100%);">
+                        
+                        <div class="card mb-4 shadow-lg">
                             <div
-                                class="card-body p-4 d-flex flex-column flex-sm-row justify-content-between align-items-center">
-                                <div class="text-center text-sm-start mb-3 mb-sm-0">
-                                    <h5 class="card-title text-white mb-1">Jelajahi Detail Tugas & Proyek Anda</h5>
-                                    <p class="card-text text-white-75 small">Pantau setiap progres dari perencanaan
-                                        hingga hasil akhir.</p>
-                                </div>
-                                <div class="text-center text-sm-end position-relative">
-                                    <div class="rounded-circle bg-white d-flex justify-content-center align-items-center animate__animated animate__zoomIn animate__delay-0-5s"
-                                        style="width: 80px; height: 80px; opacity: 0.2; position: relative; overflow: hidden; z-index: 1;">
-                                        <i class="bx bx-briefcase bx-lg text-primary"
-                                            style="font-size: 3rem; opacity: 1;"></i>
-                                    </div>
-                                    <div class="position-absolute rounded-circle bg-white"
-                                        style="width: 50px; height: 50px; opacity: 0.1; top: -10px; left: -10px; transform: scale(0.6); z-index: 0;">
-                                    </div>
-                                    <div class="position-absolute rounded-circle bg-white"
-                                        style="width: 60px; height: 60px; opacity: 0.15; bottom: -10px; right: -10px; transform: scale(0.8); z-index: 0;">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card mb-4 shadow-lg position-relative" style="border-radius: 10px;">
-                            <div class="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
-                                style="pointer-events: none; z-index: 0; opacity: 0.05;">
-                                <svg width="100%" height="100%" viewBox="0 0 200 100" fill="none"
-                                    xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M0 20 C 50 0, 150 0, 200 20 L 200 80 C 150 100, 50 100, 0 80 Z"
-                                        fill="currentColor" opacity="0.1"
-                                        class="text-primary animate__animated animate__fadeIn animate__delay-0-1s" />
-                                    <path d="M0 30 C 50 10, 150 10, 200 30 L 200 70 C 150 90, 50 90, 0 70 Z"
-                                        fill="currentColor" opacity="0.15"
-                                        class="text-info animate__animated animate__fadeIn animate__delay-0-2s" />
-                                </svg>
-                            </div>
-                            <div
-                                class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 position-relative z-1 p-4">
-                                <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-2 order-md-1">
-                                    <a href="index.php"
-                                        class="btn btn-outline-secondary w-100 animate__animated animate__fadeInUp animate__delay-0-2s">
+                                class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 p-4">
+                                <div class="d-flex gap-2 w-100 w-md-auto">
+                                    <a href="index.php" class="btn btn-outline-secondary w-100">
                                         <i class="bx bx-arrow-back me-1"></i> Kembali
                                     </a>
-                                    <a href="laporan_tugas_add.php"
-                                        class="btn btn-primary w-100 animate__animated animate__fadeInUp animate__delay-0-3s">
-                                        <i class="bx bx-plus me-1"></i> Tambah Laporan Tugas
+                                    <a href="master_tugas_project_add.php" class="btn btn-primary w-100">
+                                        <i class="bx bx-plus me-1"></i> Tambah Laporan
                                     </a>
                                 </div>
-                                <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-1 order-md-2">
-                                    <button type="button"
-                                        class="btn btn-outline-danger w-100 animate__animated animate__fadeInDown animate__delay-0-3s">
+                                <div class="d-flex gap-2 w-100 w-md-auto">
+                                    <?php
+                                        // Ambil keyword dari URL untuk link PDF
+                                        $keyword_for_pdf = $_GET['keyword'] ?? '';
+                                    ?>
+                                    <a href="generate_tugas_pdf.php?siswa_id=<?php echo $id_siswa_login; ?><?= !empty($keyword_for_pdf) ? '&keyword=' . urlencode($keyword_for_pdf) : '' ?>"
+                                        class="btn btn-outline-danger w-100" target="_blank">
                                         <i class="bx bxs-file-pdf me-1"></i> Cetak PDF
-                                    </button>
-                                    <button type="button"
-                                        class="btn btn-outline-success w-100 animate__animated animate__fadeInDown animate__delay-0-2s">
+                                    </a>
+                                    <button type="button" class="btn btn-outline-success w-100">
                                         <i class="bx bxs-file-excel me-1"></i> Ekspor Excel
                                     </button>
                                 </div>
                             </div>
-                            <div class="card-footer bg-light border-top p-3 pt-md-2 pb-md-2 position-relative z-1">
-                                <div
-                                    class="row align-items-center animate__animated animate__fadeInUp animate__delay-0-4s">
-                                    <div class="col-12 col-md-8 mb-2 mb-md-0">
-                                        <input type="text" class="form-control"
-                                            placeholder="Cari laporan berdasarkan nama proyek atau tanggal..."
-                                            aria-label="Search" />
+                        </div>
+
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-body">
+                                <form method="GET" action="">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="keyword"
+                                            placeholder="Cari laporan berdasarkan nama proyek..."
+                                            value="<?php echo isset($_GET['keyword']) ? htmlspecialchars($_GET['keyword']) : ''; ?>">
+                                        <button class="btn btn-primary" type="submit">
+                                            <i class="bx bx-search"></i> Cari
+                                        </button>
                                     </div>
-                                    <div class="col-12 col-md-4 text-md-end">
-                                        <button class="btn btn-outline-dark w-100 w-md-auto"><i
-                                                class="bx bx-filter-alt me-1"></i> Filter Laporan</button>
-                                    </div>
-                                </div>
+                                </form>
                             </div>
                         </div>
+
+
+                        <?php
+                        // 4. Sertakan file koneksi database
+                        include 'partials/db.php'; 
+
+                        // 5. Logika Pencarian
+                        $keyword = $_GET['keyword'] ?? ''; // Ambil kata kunci dengan aman
+                        $laporan_tugas = []; // Buat array kosong sebagai default
+
+                        // Siapkan query dasar
+                        $sql = "SELECT * FROM jurnal_kegiatan WHERE siswa_id = ?";
+                        $params = [$id_siswa_login];
+                        $types = "i"; // 'i' untuk integer
+
+                        // Jika ada kata kunci pencarian, tambahkan kondisi LIKE
+                        if (!empty($keyword)) {
+                            $sql .= " AND nama_pekerjaan LIKE ?";
+                            $params[] = "%" . $keyword . "%"; // Tambahkan parameter keyword
+                            $types .= "s"; // 's' untuk string
+                        }
+
+                        $sql .= " ORDER BY id_jurnal_kegiatan DESC";
+                        
+                        // 6. Menggunakan prepared statement untuk keamanan
+                        $stmt = $koneksi->prepare($sql);
+                        
+                        if ($stmt) {
+                            $stmt->bind_param($types, ...$params);
+                            $stmt->execute();
+                            $result = $stmt->get_result();
+                            $laporan_tugas = $result->fetch_all(MYSQLI_ASSOC);
+                            $stmt->close();
+                        }
+                        
+                        $koneksi->close();
+                        ?>
+
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">Daftar Laporan Tugas Proyek</h5>
-                                <small class="text-muted">Riwayat detail setiap proyek/kegiatan</small>
+                                <h5 class="mb-0">Daftar Laporan Tugas Proyek Saya</h5>
+                                <small class="text-muted">Total: <?php echo count($laporan_tugas); ?> Laporan</small>
                             </div>
                             <div class="card-body p-0">
+                                <?php if (!empty($laporan_tugas)): ?>
                                 <div class="table-responsive text-nowrap d-none d-md-block">
                                     <table class="table table-hover">
                                         <thead>
                                             <tr>
                                                 <th>No</th>
                                                 <th>Nama Pekerjaan / Proyek</th>
-                                                <th>Perencanaan Kegiatan</th>
-                                                <th>Pelaksanaan Kegiatan</th>
+                                                <th>Perencanaan</th>
+                                                <th>Pelaksanaan</th>
                                                 <th>Catatan Instruktur</th>
                                                 <th>Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody class="table-border-bottom-0">
+                                            <?php $no = 1; ?>
+                                            <?php foreach ($laporan_tugas as $laporan): ?>
                                             <tr>
-                                                <td>1</td>
-                                                <td><strong>Pengembangan Website E-Commerce</strong></td>
-                                                <td>Analisis kebutuhan, desain UI/UX, database schema.</td>
-                                                <td>Frontend: Halaman produk & keranjang. Backend: API autentikasi.</td>
-                                                <td>Progres sangat baik, memahami alur kerja MVC. Tingkatkan efisiensi
-                                                    query database.</td>
+                                                <td><?php echo $no++; ?></td>
+                                                <td><strong><?php echo htmlspecialchars($laporan['nama_pekerjaan']); ?></strong></td>
+                                                <td><?php echo htmlspecialchars(substr($laporan['perencanaan_kegiatan'], 0, 50)) . '...'; ?></td>
+                                                <td><?php echo htmlspecialchars(substr($laporan['pelaksanaan_kegiatan'], 0, 50)) . '...'; ?></td>
+                                                <td><?php echo htmlspecialchars(substr($laporan['catatan_instruktur'], 0, 50)) . '...'; ?></td>
                                                 <td>
                                                     <div class="dropdown">
-                                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                            data-bs-toggle="dropdown">
+                                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
                                                             <i class="bx bx-dots-vertical-rounded"></i>
                                                         </button>
                                                         <div class="dropdown-menu">
-                                                            <a class="dropdown-item" href="laporan_tugas_edit.php?id=1">
+                                                            <a class="dropdown-item" href="master_tugas_project_edit.php?id=<?php echo $laporan['id_jurnal_kegiatan']; ?>">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
-                                                            <a class="dropdown-item text-danger"
-                                                                href="javascript:void(0);"
-                                                                onclick="confirmDeleteLaporanTugas('1', 'Pengembangan Website E-Commerce')">
+                                                            <a class="dropdown-item text-danger" href="javascript:void(0);" 
+                                                                onclick="confirmDeleteLaporanTugas('<?php echo $laporan['id_jurnal_kegiatan']; ?>', '<?php echo htmlspecialchars(addslashes($laporan['nama_pekerjaan'])); ?>')">
                                                                 <i class="bx bx-trash me-1"></i> Hapus
                                                             </a>
                                                             <div class="dropdown-divider"></div>
-                                                            <a class="dropdown-item"
-                                                                href="master_tugas_project_print.php?id=1"
-                                                                target="_blank">
-                                                                <i class="bx bx-printer me-1"></i> Print
-                                                            </a>
-                                                            <a class="dropdown-item" href="generate_tugas_pdf.php?id=1"
-                                                                target="_blank">
-                                                                <i class="bx bxs-download me-1"></i> Download PDF
+                                                            <a class="dropdown-item" href="master_tugas_project_print.php?id=<?php echo $laporan['id_jurnal_kegiatan']; ?>" target="_blank">
+                                                                <i class="bx bx-printer me-1"></i> Lihat & Print
                                                             </a>
                                                         </div>
                                                     </div>
                                                 </td>
                                             </tr>
-                                            <tr>
-                                                <td>2</td>
-                                                <td><strong>Instalasi & Konfigurasi Server Jaringan</strong></td>
-                                                <td>Survei lokasi, daftar perangkat, IP addressing plan.</td>
-                                                <td>Pemasangan rack server, konfigurasi DHCP & DNS, testing
-                                                    konektivitas.</td>
-                                                <td>Pemahaman dasar jaringan cukup kuat, namun perlu pendalaman lebih
-                                                    lanjut pada subnetting.</td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                            data-bs-toggle="dropdown">
-                                                            <i class="bx bx-dots-vertical-rounded"></i>
-                                                        </button>
-                                                        <div class="dropdown-menu">
-                                                            <a class="dropdown-item" href="laporan_tugas_edit.php?id=2">
-                                                                <i class="bx bx-edit-alt me-1"></i> Edit
-                                                            </a>
-                                                            <a class="dropdown-item text-danger"
-                                                                href="javascript:void(0);"
-                                                                onclick="confirmDeleteLaporanTugas('2', 'Instalasi & Konfigurasi Server Jaringan')">
-                                                                <i class="bx bx-trash me-1"></i> Hapus
-                                                            </a>
-                                                            <div class="dropdown-divider"></div>
-                                                            <a class="dropdown-item"
-                                                                href="master_tugas_project_print.php?id=2"
-                                                                target="_blank">
-                                                                <i class="bx bx-printer me-1"></i> Print
-                                                            </a>
-                                                            <a class="dropdown-item" href="generate_tugas_pdf.php?id=2"
-                                                                target="_blank">
-                                                                <i class="bx bxs-download me-1"></i> Download PDF
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>3</td>
-                                                <td><strong>Desain Materi Promosi Digital</strong></td>
-                                                <td>Brainstorming ide, riset target audiens, pemilihan warna & font.
-                                                </td>
-                                                <td>Pembuatan banner iklan untuk sosial media (3 desain), revisi minor.
-                                                </td>
-                                                <td>Kreativitas sangat baik, perlu lebih fokus pada optimasi ukuran file
-                                                    untuk web.</td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                            data-bs-toggle="dropdown">
-                                                            <i class="bx bx-dots-vertical-rounded"></i>
-                                                        </button>
-                                                        <div class="dropdown-menu">
-                                                            <a class="dropdown-item" href="laporan_tugas_edit.php?id=3">
-                                                                <i class="bx bx-edit-alt me-1"></i> Edit
-                                                            </a>
-                                                            <a class="dropdown-item text-danger"
-                                                                href="javascript:void(0);"
-                                                                onclick="confirmDeleteLaporanTugas('3', 'Desain Materi Promosi Digital')">
-                                                                <i class="bx bx-trash me-1"></i> Hapus
-                                                            </a>
-                                                            <div class="dropdown-divider"></div>
-                                                            <a class="dropdown-item"
-                                                                href="master_tugas_project_print.php?id=3"
-                                                                target="_blank">
-                                                                <i class="bx bx-printer me-1"></i> Print
-                                                            </a>
-                                                            <a class="dropdown-item" href="generate_tugas_pdf.php?id=3"
-                                                                target="_blank">
-                                                                <i class="bx bxs-download me-1"></i> Download PDF
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
+                                            <?php endforeach; ?>
                                         </tbody>
                                     </table>
                                 </div>
+
                                 <div class="d-md-none p-3">
-                                    <div class="text-center text-muted mb-4 animate__animated animate__fadeInUp">
-                                        <small><i class="bx bx-mobile me-1"></i> Geser ke bawah untuk melihat laporan
-                                            proyek</small>
-                                    </div>
-
-                                    <div
-                                        class="card mb-4 shadow-lg border-start border-4 border-primary rounded-3 animate__animated animate__fadeInUp">
+                                    <?php foreach ($laporan_tugas as $laporan): ?>
+                                    <div class="card mb-3 shadow-sm border-start border-4 border-primary">
                                         <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                                <div>
-                                                    <h6 class="mb-1 text-primary"><i class="bx bx-folder me-1"></i>
-                                                        <strong>Pengembangan Website E-Commerce</strong>
-                                                    </h6>
-                                                    <span class="badge bg-label-primary"><i class="bx bx-hash me-1"></i>
-                                                        Proyek #1</span>
-                                                </div>
+                                             <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h6 class="text-primary mb-0"><strong><?php echo htmlspecialchars($laporan['nama_pekerjaan']); ?></strong></h6>
                                                 <div class="dropdown">
-                                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                        data-bs-toggle="dropdown">
-                                                        <i class="bx bx-dots-vertical-rounded"></i>
-                                                    </button>
-                                                    <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item" href="laporan_tugas_edit.php?id=1">
-                                                            <i class="bx bx-edit-alt me-1"></i> Edit Laporan
-                                                        </a>
-                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
-                                                            onclick="confirmDeleteLaporanTugas('1', 'Pengembangan Website E-Commerce')">
-                                                            <i class="bx bx-trash me-1"></i> Hapus
-                                                        </a>
-                                                        <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item"
-                                                            href="master_tugas_project_print.php?id=1" target="_blank">
-                                                            <i class="bx bx-printer me-1"></i> Print
-                                                        </a>
-                                                        <a class="dropdown-item" href="generate_tugas_pdf.php?id=1"
-                                                            target="_blank">
-                                                            <i class="bx bxs-download me-1"></i> Download PDF
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="mb-2">
-                                                <strong class="text-dark"><i class="bx bx-list-check me-1"></i>
-                                                    Perencanaan Kegiatan:</strong><br>
-                                                Analisis kebutuhan, desain UI/UX, penentuan struktur database.
-                                            </div>
-                                            <div class="mb-2">
-                                                <strong class="text-dark"><i class="bx bx-code-alt me-1"></i>
-                                                    Pelaksanaan Kegiatan:</strong><br>
-                                                Pengembangan frontend: halaman produk dan keranjang belanja.
-                                                Pengembangan backend: API autentikasi pengguna.
-                                            </div>
-                                            <div class="mb-2 text-wrap">
-                                                <strong class="text-dark"><i class="bx bx-message-square-dots me-1"></i>
-                                                    Catatan Instruktur:</strong><br>
-                                                Progres sangat baik, menunjukkan pemahaman kuat pada alur kerja MVC.
-                                                Disarankan untuk lebih fokus pada efisiensi query database di tahap
-                                                selanjutnya.
-                                            </div>
-                                            <div class="d-flex justify-content-end mt-3">
-                                                <small class="text-muted"><i class="bx bx-time me-1"></i> Terakhir
-                                                    Diperbarui: 23 Juni 2025</small>
-                                            </div>
+                                                     <button type="button" class="btn btn-sm btn-icon-only p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                                         <i class="bx bx-dots-vertical-rounded"></i>
+                                                     </button>
+                                                     <div class="dropdown-menu dropdown-menu-end">
+                                                         <a class="dropdown-item" href="master_tugas_project_edit.php?id=<?php echo $laporan['id_jurnal_kegiatan']; ?>"><i class="bx bx-edit-alt me-1"></i> Edit</a>
+                                                         <a class="dropdown-item text-danger" href="javascript:void(0);" onclick="confirmDeleteLaporanTugas('<?php echo $laporan['id_jurnal_kegiatan']; ?>', '<?php echo htmlspecialchars(addslashes($laporan['nama_pekerjaan'])); ?>')"><i class="bx bx-trash me-1"></i> Hapus</a>
+                                                         <div class="dropdown-divider"></div>
+                                                         <a class="dropdown-item" href="master_tugas_project_print.php?id=<?php echo $laporan['id_jurnal_kegiatan']; ?>" target="_blank"><i class="bx bx-printer me-1"></i> Lihat & Print</a>
+                                                     </div>
+                                                 </div>
+                                             </div>
+                                            <p class="mb-2"><strong>Perencanaan:</strong><br><?php echo nl2br(htmlspecialchars($laporan['perencanaan_kegiatan'])); ?></p>
+                                            <p class="mb-0"><strong>Catatan Instruktur:</strong><br><?php echo nl2br(htmlspecialchars($laporan['catatan_instruktur'])); ?></p>
                                         </div>
                                     </div>
-
-                                    <div
-                                        class="card mb-4 shadow-lg border-start border-4 border-warning rounded-3 animate__animated animate__fadeInUp animate__delay-0-1s">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                                <div>
-                                                    <h6 class="mb-1 text-warning"><i class="bx bx-folder me-1"></i>
-                                                        <strong>Instalasi & Konfigurasi Server Jaringan</strong>
-                                                    </h6>
-                                                    <span class="badge bg-label-warning"><i class="bx bx-hash me-1"></i>
-                                                        Proyek #2</span>
-                                                </div>
-                                                <div class="dropdown">
-                                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                        data-bs-toggle="dropdown">
-                                                        <i class="bx bx-dots-vertical-rounded"></i>
-                                                    </button>
-                                                    <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item" href="laporan_tugas_edit.php?id=2">
-                                                            <i class="bx bx-edit-alt me-1"></i> Edit Laporan
-                                                        </a>
-                                                        <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
-                                                            onclick="confirmDeleteLaporanTugas('2', 'Instalasi & Konfigurasi Server Jaringan')">
-                                                            <i class="bx bx-trash me-1"></i> Hapus
-                                                        </a>
-                                                        <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item"
-                                                            href="master_tugas_project_print.php?id=2" target="_blank">
-                                                            <i class="bx bx-printer me-1"></i> Print
-                                                        </a>
-                                                        <a class="dropdown-item" href="generate_tugas_pdf.php?id=2"
-                                                            target="_blank">
-                                                            <i class="bx bxs-download me-1"></i> Download PDF
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="mb-2">
-                                                <strong class="text-dark"><i class="bx bx-list-check me-1"></i>
-                                                    Perencanaan Kegiatan:</strong><br>
-                                                Survei lokasi server, inventarisasi perangkat keras, pembuatan IP
-                                                addressing plan.
-                                            </div>
-                                            <div class="mb-2">
-                                                <strong class="text-dark"><i class="bx bx-code-alt me-1"></i>
-                                                    Pelaksanaan Kegiatan:</strong><br>
-                                                Pemasangan rack server, konfigurasi layanan DHCP dan DNS, pengujian
-                                                konektivitas jaringan.
-                                            </div>
-                                            <div class="mb-2 text-wrap">
-                                                <strong class="text-dark"><i class="bx bx-message-square-dots me-1"></i>
-                                                    Catatan Instruktur:</strong><br>
-                                                Pemahaman dasar jaringan cukup kuat. Namun, perlu pendalaman lebih
-                                                lanjut pada konsep subnetting dan routing untuk tugas yang lebih
-                                                kompleks.
-                                            </div>
-                                            <div class="d-flex justify-content-end mt-3">
-                                                <small class="text-muted"><i class="bx bx-time me-1"></i> Terakhir
-                                                    Diperbarui: 20 Juni 2025</small>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        class="card mb-4 shadow-lg border-start border-4 border-info rounded-3 animate__animated animate__fadeInUp animate__delay-0-2s">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                                <div>
-                                                    <h6 class="mb-1 text-info"><i class="bx bx-folder me-1"></i>
-                                                        <strong>Desain Materi Promosi Digital</strong>
-                                                    </h6>
-                                                    <span class="badge bg-label-info"><i class="bx bx-hash me-1"></i>
-                                                        Proyek #3</span>
-                                                </div>
-                                                <div class="dropdown">
-                                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                        data-bs-toggle="dropdown">
-                                                        <i class="bx bx-dots-vertical-rounded"></i>
-                                                    </button>
-                                                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-atas"> <a
-                                                            class="dropdown-item" href="laporan_tugas_edit.php?id=3">
-                                                            <i class="bx bx-edit-alt me-1"></i> Edit Laporan
-                                                        </a>
-                                                        <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
-                                                            onclick="confirmDeleteLaporanTugas('3', 'Desain Materi Promosi Digital')">
-                                                            <i class="bx bx-trash me-1"></i> Hapus
-                                                        </a>
-                                                        <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item"
-                                                            href="master_tugas_project_print.php?id=3" target="_blank">
-                                                            <i class="bx bx-printer me-1"></i> Print
-                                                        </a>
-                                                        <a class="dropdown-item" href="generate_tugas_pdf.php?id=3"
-                                                            target="_blank">
-                                                            <i class="bx bxs-download me-1"></i> Download PDF
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="mb-2">
-                                                <strong class="text-dark"><i class="bx bx-list-check me-1"></i>
-                                                    Perencanaan Kegiatan:</strong><br>
-                                                Brainstorming ide konsep visual, riset target audiens, pemilihan palet
-                                                warna dan tipografi.
-                                            </div>
-                                            <div class="mb-2">
-                                                <strong class="text-dark"><i class="bx bx-code-alt me-1"></i>
-                                                    Pelaksanaan Kegiatan:</strong><br>
-                                                Pembuatan 3 variasi desain banner iklan untuk platform sosial media.
-                                                Dilakukan revisi minor berdasarkan feedback awal.
-                                            </div>
-                                            <div class="mb-2 text-wrap">
-                                                <strong class="text-dark"><i class="bx bx-message-square-dots me-1"></i>
-                                                    Catatan Instruktur:</strong><br>
-                                                Kreativitas sangat baik, perlu perhatian lebih pada optimasi ukuran file
-                                                gambar untuk web agar tidak memberatkan loading halaman.
-                                            </div>
-                                            <div class="d-flex justify-content-end mt-3">
-                                                <small class="text-muted"><i class="bx bx-time me-1"></i> Terakhir
-                                                    Diperbarui: 18 Juni 2025</small>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp animate__delay-0-3s"
-                                        role="alert" style="border-radius: 8px;">
-                                        <h5 class="alert-heading mb-3"><i class="bx bx-task-x bx-lg text-info"></i></h5>
-                                        <p class="mb-3">Belum ada laporan tugas proyek yang tercatat di sini.</p>
-                                        <p class="mb-0">
-                                            Ayo, <a href="laporan_tugas_add.php" class="alert-link fw-bold">tambahkan
-                                                laporan proyek pertama Anda</a> sekarang!
-                                        </p>
-                                    </div>
+                                    <?php endforeach; ?>
                                 </div>
+                                
+                                <?php else: ?>
+                                <div class="alert alert-warning text-center mt-4 mx-3" role="alert">
+                                    <h5 class="alert-heading"><i class="bx bx-info-circle"></i> Data Tidak Ditemukan</h5>
+                                    <p class="mb-0">
+                                        <?php if (!empty($keyword)): ?>
+                                            Tidak ada laporan yang cocok dengan kata kunci "<strong><?php echo htmlspecialchars($keyword); ?></strong>".
+                                        <?php else: ?>
+                                            Anda belum memiliki laporan tugas proyek yang tercatat. Silakan tambahkan laporan pertama Anda.
+                                        <?php endif; ?>
+                                    </p>
+                                </div>
+                                <?php endif; ?>
                             </div>
                         </div>
+
                     </div>
+                    <div class="content-backdrop fade"></div>
                 </div>
-                <div class="layout-overlay layout-menu-toggle"></div>
             </div>
         </div>
+        <div class="layout-overlay layout-menu-toggle"></div>
     </div>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
-        function confirmDeleteLaporanTugas(id, namaProyek) {
-            Swal.fire({
-                title: 'Konfirmasi Hapus Laporan Proyek',
-                html: "Apakah Anda yakin ingin menghapus laporan proyek <strong>" + namaProyek +
-                    "</strong>?<br>Tindakan ini tidak dapat dibatalkan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc3545', // Warna merah untuk konfirmasi hapus
-                cancelButtonColor: '#6c757d', // Warna abu-abu untuk batal
-                confirmButtonText: 'Ya, Hapus Sekarang!',
-                cancelButtonText: 'Batal',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Jika dikonfirmasi, arahkan ke skrip PHP untuk delete
-                    // Pastikan Anda membuat file 'proses_delete_laporan_tugas.php'
-                    window.location.href = 'proses_delete_laporan_tugas.php?id=' + id;
-                }
-            });
-        }
+    function confirmDeleteLaporanTugas(id, namaProyek) {
+        Swal.fire({
+            title: 'Konfirmasi Hapus',
+            html: "Yakin ingin menghapus laporan <strong>" + namaProyek + "</strong>?<br><small>Tindakan ini tidak dapat dibatalkan!</small>",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = 'master_tugas_project_delete.php?id=' + id;
+            }
+        });
+    }
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    
     <?php include './partials/script.php'; ?>
 </body>
-
 </html>
