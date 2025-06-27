@@ -27,12 +27,6 @@ if (!$is_siswa && !$is_admin) {
     }
 }
 
-if(!isset($_SESSION['id_siswa'])){
-    $siswa_id = "";
-}else{
-
-    $siswa_id = $_SESSION['id_siswa'];
-}
 
 if(!isset($_SESSION['id_siswa'])){
     $id_siswa_login = "";
@@ -40,9 +34,6 @@ if(!isset($_SESSION['id_siswa'])){
 
     $id_siswa_login = $_SESSION['id_siswa'];
 }
-// 3. Ambil ID siswa yang sedang login dari sesi
-$id_siswa_login = $_SESSION['id_siswa'];
-
 // Sertakan file koneksi database
 include 'partials/db.php'; // Sesuaikan path ini jika db.php ada di lokasi lain
 
