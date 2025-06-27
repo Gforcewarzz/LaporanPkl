@@ -1,17 +1,32 @@
 <?php
-// Baris session_start() sudah dijamin ada di partials/head.php
+// Asumsi session_start() sudah dipanggil di partials/head.php atau file induk utama
 
-// Ambil data dari sesi, atau gunakan nilai default jika sesi belum aktif atau data tidak ada
-if (isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in') {
-    $userName = $_SESSION['siswa_nama'] ?? 'Siswa Tidak Dikenal';
-    $userRole = 'Siswa PKL';
-    $userAvatar = 'assets/img/avatars/1.png'; // Path avatar default siswa
-} else {
-    // Ini adalah kondisi jika belum login atau login sebagai Admin/Guru
-    // Anda bisa menyesuaikannya dengan sistem role/user Anda yang sebenarnya
-    $userName = 'Guest';
-    $userRole = 'Pengunjung';
-    $userAvatar = 'assets/img/avatars/1.png'; // Path avatar default guest/admin
+$userName = 'Guest';
+$userRole = 'Pengunjung';
+$userAvatar = 'assets/img/avatars/1.png'; // Menggunakan avatar default dari aset
+
+// Cek jika ada pengguna yang login menggunakan sesi universal
+if (isset($_SESSION['user_id']) && isset($_SESSION['user_role'])) {
+    $userName = $_SESSION['user_name'] ?? 'Pengguna Tidak Dikenal';
+
+    switch ($_SESSION['user_role']) {
+        case 'siswa':
+            $userRole = 'Siswa PKL';
+            $userAvatar = 'assets/img/avatars/1.png'; // Avatar default untuk siswa
+            break;
+        case 'guru_pendamping':
+            $userRole = 'Guru Pembimbing';
+            $userAvatar = 'assets/img/avatars/1.png'; // Avatar default untuk guru
+            break;
+        case 'admin':
+            $userRole = 'Administrator';
+            $userAvatar = 'assets/img/avatars/1.png'; // Avatar default untuk admin
+            break;
+        default:
+            $userRole = 'Pengguna'; // Fallback jika peran tidak dikenali
+            $userAvatar = 'assets/img/avatars/1.png'; // Avatar default
+            break;
+    }
 }
 ?>
 
@@ -28,8 +43,9 @@ if (isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] ==
             <li class="nav-item navbar-dropdown dropdown-user dropdown">
                 <a class="nav-link dropdown-toggle hide-arrow d-flex align-items-center" href="javascript:void(0);"
                     data-bs-toggle="dropdown">
-                    <div class="avatar avatar-online me-2"> <img src="<?= htmlspecialchars($userAvatar); ?>"
-                            alt="User Avatar" class="w-px-40 h-auto rounded-circle">
+                    <div class="avatar avatar-online me-2">
+                        <img src="<?= htmlspecialchars($userAvatar); ?>" alt="User Avatar"
+                            class="w-px-40 h-auto rounded-circle">
                     </div>
                     <div class="user-info d-none d-md-block">
                         <span class="user-name fw-semibold d-block"><?= htmlspecialchars($userName); ?></span>
@@ -57,7 +73,12 @@ if (isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] ==
                         <div class="dropdown-divider"></div>
                     </li>
                     <li>
-                        <a class="dropdown-item" href="javascript:void(0);" id="logoutBtn">
+                        <a class="dropdown-item" href="../ganti_password_dispatcher.php">
+                            <i class="bx bx-cog me-2"></i> <span class="align-middle">Ganti Password</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="javascript:void(0);" id="logoutButton">
                             <i class="bx bx-power-off me-2"></i>
                             <span class="align-middle">Log Out</span>
                         </a>
@@ -70,24 +91,31 @@ if (isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] ==
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-document.getElementById("logoutBtn").addEventListener("click", function(e) {
-    e.preventDefault();
+document.addEventListener('DOMContentLoaded', function() {
+    const logoutBtn = document.getElementById("logoutButton");
 
-    Swal.fire({
-        title: 'Konfirmasi Logout',
-        text: "Apakah Anda yakin ingin keluar dari sesi ini?",
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#007bff',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Ya, Logout',
-        cancelButtonText: 'Batal',
-        reverseButtons: true
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Pastikan path ke logout.php benar
-            window.location.href = "../logout.php";
-        }
-    });
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", function(e) {
+            e.preventDefault();
+
+            Swal.fire({
+                title: 'Konfirmasi Logout',
+                text: "Apakah Anda yakin ingin keluar dari sesi ini?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#007bff',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Logout',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "../logout.php";
+                }
+            });
+        });
+    } else {
+        console.error("Elemen dengan ID 'logoutButton' tidak ditemukan.");
+    }
 });
 </script>

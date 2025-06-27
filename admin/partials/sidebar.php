@@ -76,6 +76,11 @@ $userRole = 'Super Admin'; // Gunakan role statis untuk menguji kondisi Super Ad
                         <div data-i18n="Data Tempat PKL">Data Tempat PKL</div>
                     </a>
                 </li>
+                <li class="menu-item">
+                    <a href="master_data_admin.php" class="menu-link">
+                        <div data-i18n="Data Tempat PKL">Data Admin</div>
+                    </a>
+                </li>
             </ul>
         </li>
 
