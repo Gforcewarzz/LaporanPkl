@@ -9,7 +9,7 @@ if (!isset($_SESSION['id_siswa'])) {
 }
 
 // Sertakan file koneksi database
-include 'partials/db.php';
+include 'partials/db.php'; // Sesuaikan path ini
 
 // 3. Ambil ID siswa dari sesi dan ID laporan dari URL
 $id_siswa_login = $_SESSION['id_siswa'];
@@ -19,15 +19,16 @@ $laporan_data = null;
 
 // 4. Ambil data laporan HANYA JIKA ID laporan ada DAN milik siswa yang login
 if ($id_jurnal_kegiatan > 0) {
-    // Query yang aman: Cek id_jurnal_kegiatan DAN siswa_id
-    $sql = "SELECT * FROM jurnal_kegiatan WHERE id_jurnal_kegiatan = ? AND siswa_id = ?";
-    
+    // Query yang aman: Cek id_jurnal_kegiatan DAN siswa_id, ambil juga kolom 'gambar' dan 'tanggal_laporan'
+    $sql = "SELECT id_jurnal_kegiatan, nama_pekerjaan, perencanaan_kegiatan, pelaksanaan_kegiatan, catatan_instruktur, gambar, tanggal_laporan 
+            FROM jurnal_kegiatan WHERE id_jurnal_kegiatan = ? AND siswa_id = ?";
+
     $stmt = $koneksi->prepare($sql);
     if ($stmt) {
         $stmt->bind_param("ii", $id_jurnal_kegiatan, $id_siswa_login);
         $stmt->execute();
         $result = $stmt->get_result();
-        
+
         if ($result->num_rows > 0) {
             $laporan_data = $result->fetch_assoc();
         }
@@ -35,77 +36,143 @@ if ($id_jurnal_kegiatan > 0) {
     }
 }
 
+// Ambil pesan notifikasi dari session (misal dari edit_act)
+$message = $_SESSION['laporan_message'] ?? '';
+$message_type = $_SESSION['laporan_message_type'] ?? '';
+$message_title_swal = $_SESSION['laporan_message_title'] ?? '';
+
+// Hapus pesan dari session agar tidak muncul lagi setelah refresh
+unset($_SESSION['laporan_message']);
+unset($_SESSION['laporan_message_type']);
+unset($_SESSION['laporan_message_title']);
+
 $koneksi->close();
 ?>
 
 <!DOCTYPE html>
-<html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="./assets/" data-template="vertical-menu-template-free">
+<html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="./assets/"
+    data-template="vertical-menu-template-free">
 
 <?php include 'partials/head.php'; ?>
 
 <body>
-<div class="layout-wrapper layout-content-navbar">
-    <div class="layout-container">
-        <?php include './partials/sidebar.php'; ?>
-        <div class="layout-page">
-            <?php include './partials/navbar.php'; ?>
-            <div class="content-wrapper">
-                <div class="container-xxl flex-grow-1 container-p-y">
+    <div class="layout-wrapper layout-content-navbar">
+        <div class="layout-container">
+            <?php include './partials/sidebar.php'; ?>
+            <div class="layout-page">
+                <?php include './partials/navbar.php'; ?>
+                <div class="content-wrapper">
+                    <div class="container-xxl flex-grow-1 container-p-y">
 
-                    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom position-relative">
-                        <h4 class="fw-bold mb-0 text-primary animate__animated animate__fadeInLeft">
-                            <span class="text-muted fw-light">Laporan /</span> Edit Tugas Proyek
-                        </h4>
-                        <i class="fas fa-pencil-alt fa-2x text-info animate__animated animate__fadeInRight" style="opacity: 0.6;"></i>
-                    </div>
+                        <?php if ($message): // Tampilkan SweetAlert2 jika ada pesan 
+                        ?>
+                        <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            Swal.fire({
+                                icon: '<?= htmlspecialchars($message_type); ?>',
+                                title: '<?= htmlspecialchars($message_title_swal); ?>',
+                                text: '<?= htmlspecialchars($message); ?>',
+                                confirmButtonColor: '<?= ($message_type == "success") ? "#3085d6" : "#d33"; ?>',
+                                confirmButtonText: 'OK'
+                            });
+                        });
+                        </script>
+                        <?php endif; ?>
 
-                    <?php if ($laporan_data): ?>
-                    <form action="master_tugas_project_edit_act.php" method="POST" class="card p-4 shadow-lg">
-                        
-                        <input type="hidden" name="id_jurnal_kegiatan" value="<?php echo htmlspecialchars($laporan_data['id_jurnal_kegiatan']); ?>">
-
-                        <div class="mb-3">
-                            <label for="nama_pekerjaan" class="form-label fw-bold">Nama Pekerjaan / Proyek</label>
-                            <input type="text" class="form-control" id="nama_pekerjaan" name="nama_pekerjaan"
-                                   value="<?php echo htmlspecialchars($laporan_data['nama_pekerjaan']); ?>" required>
+                        <div
+                            class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom position-relative">
+                            <h4 class="fw-bold mb-0 text-primary animate__animated animate__fadeInLeft">
+                                <span class="text-muted fw-light">Laporan /</span> Edit Laporan Harian
+                            </h4>
+                            <i class="fas fa-pencil-alt fa-2x text-info animate__animated animate__fadeInRight"
+                                style="opacity: 0.6;"></i>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="perencanaan_kegiatan" class="form-label fw-bold">Perencanaan Kegiatan</label>
-                            <textarea class="form-control" id="perencanaan_kegiatan" name="perencanaan_kegiatan" rows="5" required><?php echo htmlspecialchars($laporan_data['perencanaan_kegiatan']); ?></textarea>
-                        </div>
+                        <?php if ($laporan_data): ?>
+                        <form action="master_tugas_project_edit_act.php" method="POST" class="card p-4 shadow-lg"
+                            enctype="multipart/form-data">
 
-                        <div class="mb-3">
-                            <label for="pelaksanaan_kegiatan" class="form-label fw-bold">Pelaksanaan Kegiatan / Hasil</label>
-                            <textarea class="form-control" id="pelaksanaan_kegiatan" name="pelaksanaan_kegiatan" rows="7" required><?php echo htmlspecialchars($laporan_data['pelaksanaan_kegiatan']); ?></textarea>
-                        </div>
+                            <input type="hidden" name="id_jurnal_kegiatan"
+                                value="<?php echo htmlspecialchars($laporan_data['id_jurnal_kegiatan']); ?>">
+                            <input type="hidden" name="gambar_lama"
+                                value="<?php echo htmlspecialchars($laporan_data['gambar'] ?? ''); ?>">
 
-                        <div class="mb-3">
-                            <label for="catatan_instruktur" class="form-label fw-bold">Catatan Instruktur</label>
-                            <textarea class="form-control" id="catatan_instruktur" name="catatan_instruktur" rows="4"><?php echo htmlspecialchars($laporan_data['catatan_instruktur']); ?></textarea>
-                             <div class="form-text text-muted">Catatan atau umpan balik dari instruktur Anda (opsional).</div>
-                        </div>
+                            <div class="mb-3">
+                                <label for="nama_pekerjaan" class="form-label fw-bold">Nama Tugas / Aktivitas
+                                    Utama:</label>
+                                <input type="text" class="form-control" id="nama_pekerjaan" name="nama_pekerjaan"
+                                    value="<?php echo htmlspecialchars($laporan_data['nama_pekerjaan']); ?>" required>
+                            </div>
 
-                        <div class="d-flex justify-content-end mt-4">
-                            <a href="master_tugas_project.php" class="btn btn-secondary me-2">Batal</a>
-                            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                        </div>
-                    </form>
-                    <?php else: ?>
+                            <div class="mb-3">
+                                <label for="perencanaan_kegiatan" class="form-label fw-bold">Perencanaan Kegiatan
+                                    (sebelumnya):</label>
+                                <textarea class="form-control" id="perencanaan_kegiatan" name="perencanaan_kegiatan"
+                                    rows="5"
+                                    required><?php echo htmlspecialchars($laporan_data['perencanaan_kegiatan']); ?></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="pelaksanaan_kegiatan" class="form-label fw-bold">Pelaksanaan Kegiatan &
+                                    Hasil yang Dicapai:</label>
+                                <textarea class="form-control" id="pelaksanaan_kegiatan" name="pelaksanaan_kegiatan"
+                                    rows="7"
+                                    required><?php echo htmlspecialchars($laporan_data['pelaksanaan_kegiatan']); ?></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Gambar Bukti Kegiatan Saat Ini:</label>
+                                <?php if (!empty($laporan_data['gambar'])): ?>
+                                <div class="mb-2">
+                                    <a href="../images/<?php echo htmlspecialchars($laporan_data['gambar']); ?>"
+                                        target="_blank">
+                                        <img src="../images/<?php echo htmlspecialchars($laporan_data['gambar']); ?>"
+                                            alt="Gambar Proyek Saat Ini" class="img-fluid rounded shadow-sm"
+                                            style="max-width: 250px; height: auto; display: block;">
+                                    </a>
+                                </div>
+                                <?php else: ?>
+                                <div class="alert alert-info py-2" role="alert">Tidak ada gambar yang diunggah untuk
+                                    laporan ini.</div>
+                                <?php endif; ?>
+
+                                <label for="gambar_proyek" class="form-label fw-bold mt-3"><i
+                                        class="bx bx-image me-1"></i> Ganti Gambar Bukti Kegiatan (Opsional):</label>
+                                <input class="form-control" type="file" id="gambar_proyek" name="gambar_proyek"
+                                    accept="image/*">
+                                <div class="form-text text-muted">Unggah foto atau screenshot baru jika ingin mengganti
+                                    gambar yang sudah ada. Format: JPG, PNG, GIF. Maks. ukuran 2MB.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="catatan_instruktur" class="form-label fw-bold">Catatan Instruktur:</label>
+                                <textarea class="form-control" id="catatan_instruktur" name="catatan_instruktur"
+                                    rows="4"><?php echo htmlspecialchars($laporan_data['catatan_instruktur'] ?? ''); ?></textarea>
+                                <div class="form-text text-muted">Kolom ini akan diisi oleh instruktur pembimbing Anda
+                                    (opsional).</div>
+                            </div>
+
+                            <div class="d-flex justify-content-end mt-4">
+                                <a href="master_tugas_project.php" class="btn btn-secondary me-2">Batal</a>
+                                <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                            </div>
+                        </form>
+                        <?php else: ?>
                         <div class="alert alert-danger mt-4">
                             <h5 class="alert-heading">Akses Ditolak!</h5>
-                            <p class="mb-0">Laporan tugas tidak ditemukan atau Anda tidak memiliki izin untuk mengeditnya.</p>
+                            <p class="mb-0">Laporan tugas tidak ditemukan atau Anda tidak memiliki izin untuk
+                                mengeditnya.</p>
                         </div>
-                    <?php endif; ?>
+                        <?php endif; ?>
 
+                    </div>
+                    <div class="content-backdrop fade"></div>
                 </div>
-                 <div class="content-backdrop fade"></div>
             </div>
         </div>
+        <div class="layout-overlay layout-menu-toggle"></div>
     </div>
-    <div class="layout-overlay layout-menu-toggle"></div>
-</div>
 
-<?php include 'partials/script.php'; ?>
+    <?php include 'partials/script.php'; ?>
 </body>
+
 </html>

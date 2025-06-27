@@ -3,24 +3,26 @@
 session_start();
 
 // 2. Sertakan file koneksi database
-include 'partials/db.php';
+include 'partials/db.php'; // Pastikan path ini benar
 
 /**
  * Fungsi untuk menampilkan SweetAlert dan melakukan redirect via JavaScript.
  *
- * @param string $icon    Ikon alert ('success', 'error', 'warning', 'info')
- * @param string $title   Judul alert
- * @param string $text    Teks atau pesan dalam alert
+ * @param string $icon        Ikon alert ('success', 'error', 'warning', 'info')
+ * @param string $title       Judul alert
+ * @param string $text        Teks atau pesan dalam alert
  * @param string $redirectUrl URL tujuan setelah alert ditutup
  */
-function showAlertAndRedirect($icon, $title, $text, $redirectUrl) {
+function showAlertAndRedirect($icon, $title, $text, $redirectUrl)
+{
     ob_clean(); // Hapus output buffer sebelumnya
     echo <<<HTML
     <!DOCTYPE html>
     <html lang="id">
     <head>
         <meta charset="UTF-8">
-        <title>Menghapus Laporan...</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Notifikasi Hapus</title>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     </head>
     <body>
@@ -55,28 +57,66 @@ if (!isset($_SESSION['id_siswa'])) {
 
 // 4. Keamanan: Pastikan ID laporan dikirim melalui GET dan tidak kosong
 if (isset($_GET['id']) && !empty($_GET['id'])) {
-    
+
     // Ambil ID dari URL dan pastikan itu adalah integer
     $id_jurnal_to_delete = intval($_GET['id']);
-    
+
     // Ambil ID siswa yang sedang login dari sesi
     $id_siswa_login = $_SESSION['id_siswa'];
 
+    // Direktori tempat gambar disimpan (relatif dari file ini di folder admin/)
+    // Jika master_tugas_project_delete.php ada di admin/, dan images/ ada di root, maka pathnya images/
+    $upload_dir = 'images/';
+
+    // --- LANGKAH BARU: Ambil nama file gambar sebelum menghapus data laporan ---
+    $gambar_nama_file = null;
+    $sql_get_gambar = "SELECT gambar FROM jurnal_kegiatan WHERE id_jurnal_kegiatan = ? AND siswa_id = ?";
+    $stmt_get_gambar = $koneksi->prepare($sql_get_gambar);
+    if ($stmt_get_gambar) {
+        $stmt_get_gambar->bind_param("ii", $id_jurnal_to_delete, $id_siswa_login);
+        $stmt_get_gambar->execute();
+        $result_get_gambar = $stmt_get_gambar->get_result();
+        if ($result_get_gambar->num_rows > 0) {
+            $row_gambar = $result_get_gambar->fetch_assoc();
+            $gambar_nama_file = $row_gambar['gambar'];
+        }
+        $stmt_get_gambar->close();
+    } else {
+        // Log error jika prepared statement gagal
+        error_log("Failed to prepare get_gambar statement: " . $koneksi->error);
+        // Lanjutkan tanpa menghapus file jika tidak dapat mengambil namanya
+    }
+
     // 5. Siapkan query DELETE dengan DUA kondisi WHERE untuk keamanan
     //    Hanya hapus jika 'id_jurnal_kegiatan' DAN 'siswa_id' cocok.
-    $sql = "DELETE FROM jurnal_kegiatan WHERE id_jurnal_kegiatan = ? AND siswa_id = ?";
+    $sql_delete_record = "DELETE FROM jurnal_kegiatan WHERE id_jurnal_kegiatan = ? AND siswa_id = ?";
+    $stmt_delete_record = $koneksi->prepare($sql_delete_record);
 
-    $stmt = $koneksi->prepare($sql);
-
-    if ($stmt) {
+    if ($stmt_delete_record) {
         // Bind parameter ke statement ('ii' berarti dua-duanya integer)
-        $stmt->bind_param("ii", $id_jurnal_to_delete, $id_siswa_login);
+        $stmt_delete_record->bind_param("ii", $id_jurnal_to_delete, $id_siswa_login);
 
-        // Eksekusi statement
-        if ($stmt->execute()) {
+        // Eksekusi statement DELETE
+        if ($stmt_delete_record->execute()) {
             // Periksa apakah ada baris yang benar-benar terhapus
-            if ($stmt->affected_rows > 0) {
-                // Jika berhasil, tampilkan notifikasi sukses
+            if ($stmt_delete_record->affected_rows > 0) {
+                // --- LANGKAH BARU: Hapus file gambar dari server jika ada ---
+                if (!empty($gambar_nama_file)) {
+                    $file_path_to_delete = $upload_dir . $gambar_nama_file;
+                    if (file_exists($file_path_to_delete)) {
+                        if (unlink($file_path_to_delete)) {
+                            // File berhasil dihapus
+                            error_log("Gambar berhasil dihapus dari server: " . $file_path_to_delete);
+                        } else {
+                            // Gagal menghapus file (mungkin karena izin)
+                            error_log("Gagal menghapus gambar dari server: " . $file_path_to_delete . ". Periksa izin.");
+                        }
+                    } else {
+                        // File tidak ditemukan di direktori, tetapi tercatat di DB
+                        error_log("Gambar tidak ditemukan di direktori tetapi ada di DB: " . $file_path_to_delete);
+                    }
+                }
+
                 showAlertAndRedirect(
                     'success',
                     'Berhasil!',
@@ -93,7 +133,8 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
                 );
             }
         } else {
-            // Jika terjadi error saat eksekusi
+            // Jika terjadi error saat eksekusi DELETE
+            error_log("Error executing delete statement: " . $stmt_delete_record->error);
             showAlertAndRedirect(
                 'error',
                 'Gagal',
@@ -101,9 +142,10 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
                 'master_tugas_project.php'
             );
         }
-        $stmt->close();
+        $stmt_delete_record->close(); // Tutup statement DELETE
     } else {
-        // Jika statement gagal dipersiapkan
+        // Jika statement DELETE gagal dipersiapkan
+        error_log("Failed to prepare delete statement: " . $koneksi->error);
         showAlertAndRedirect(
             'error',
             'Gagal',
@@ -111,9 +153,8 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
             'master_tugas_project.php'
         );
     }
-    
-    $koneksi->close();
 
+    $koneksi->close();
 } else {
     // Jika tidak ada ID yang dikirim di URL
     showAlertAndRedirect(
@@ -123,4 +164,3 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
         'master_tugas_project.php'
     );
 }
-?>
