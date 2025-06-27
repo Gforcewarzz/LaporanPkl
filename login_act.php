@@ -1,11 +1,17 @@
 <?php
-session_start(); // Biarkan session_start() di sini untuk login_act.php
+session_start(); // Biarkan session_start() di sini
 
-include 'admin/partials/db.php'; // Pastikan path ini benar dari lokasi login_act.php
+include 'admin/partials/db.php'; // Pastikan path ini benar relatif dari lokasi login_act.php
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nisn = trim($_POST['nisn']);
     $password = trim($_POST['password']);
+
+    // --- PENTING: Jika form login universal, Anda perlu tahu role yang dipilih ---
+    // Di sini, karena ini aksi login siswa, kita asumsikan role-nya adalah 'siswa'.
+    // Jika form login Anda satu untuk semua (siswa, admin, guru), maka 'role' harus diambil dari $_POST.
+    // Untuk saat ini, kita asumsikan ini hanya untuk login siswa.
+    $role_selected = 'siswa'; // Set role secara eksplisit karena ini aksi login siswa
 
     if (empty($nisn) || empty($password)) {
         mysqli_close($koneksi);
@@ -33,6 +39,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if (password_verify($password, $hash_dari_database)) {
             // Login berhasil, simpan data ke session
+
+            // --- PERBAIKAN DI SINI: Atur sesi universal yang dibaca navbar ---
+            $_SESSION['user_id'] = $data_siswa['id_siswa'];
+            $_SESSION['user_role'] = $role_selected; // Akan menjadi 'siswa'
+            $_SESSION['user_name'] = $data_siswa['nama_siswa'];
+
+            // --- Sesi spesifik lama (pertahankan jika masih digunakan di tempat lain) ---
             $_SESSION['id_siswa'] = $data_siswa['id_siswa'];
             $_SESSION['siswa_nama'] = $data_siswa['nama_siswa'];
             $_SESSION['siswa_status_login'] = 'logged_in';
@@ -57,4 +70,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     header("Location: login.php");
     exit;
 }
-// Tidak ada kode lain di sini setelah blok 'else' terakhir. HAPUS SEMUA YANG ADA DI BAWAH INI
