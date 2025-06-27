@@ -1,19 +1,34 @@
 <?php
+// Selalu mulai sesi di baris paling awal
 session_start();
 
-// Cek apakah salah satu sesi login admin, guru, atau siswa sudah ada
-// Jika sudah login sebagai salah satu role, arahkan ke dashboard yang sesuai
-if (isset($_SESSION['admin']) && $_SESSION['admin'] === 'login') {
-    header("Location: admin/dashboard_admin.php"); // Contoh dashboard admin
-    exit;
-} elseif (isset($_SESSION['guru_pendamping']) && $_SESSION['guru_pendamping'] === 'login') {
-    header("Location: guru/dashboard_guru.php"); // Contoh dashboard guru pendamping
-    exit;
-} elseif (isset($_SESSION['siswa']) && $_SESSION['siswa'] === 'login') {
-    header("Location: admin/master_kegiatan_harian.php"); // Dashboard siswa
-    exit;
+// --- PENGECEKAN PENGGUNA YANG SUDAH LOGIN ---
+
+// 1. Cek apakah ini sesi ADMIN
+if (isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in') {
+    // Jika ya, alihkan ke dashboard admin
+    header('Location: admin/index.php');
+    exit();
 }
+
+// 2. Jika bukan admin, cek apakah ini sesi GURU PENDAMPING
+elseif (isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in') {
+    // Jika ya, alihkan ke halaman guru
+    header('Location: admin/index.php');
+    exit();
+}
+
+// 3. Jika bukan keduanya, cek apakah ini sesi SISWA
+elseif (isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in') {
+    // Jika ya, alihkan ke profil siswa
+    header('Location: admin/master_kegiatan_harian.php');
+    exit();
+}
+
+// --- JIKA TIDAK ADA SESI, TAMPILKAN HALAMAN LOGIN SEPERTI BIASA ---
 ?>
+
+
 
 <?php include 'admin/partials/db.php'; ?>
 <!DOCTYPE html>

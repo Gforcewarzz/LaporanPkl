@@ -1,3 +1,36 @@
+<?php
+// 1. Selalu mulai sesi di baris paling awal sebelum output lainnya
+session_start();
+
+// 2. Periksa apakah session admin TIDAK ada atau nilainya BUKAN 'logged_in'
+// 1. Aturan utama: Cek apakah pengguna yang mengakses BUKAN seorang ADMIN.
+if (!isset($_SESSION['admin_status_login']) || $_SESSION['admin_status_login'] !== 'logged_in') {
+
+    // 2. Jika bukan admin, cek apakah dia adalah SISWA.
+    if (isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in') {
+        // Jika benar siswa, kembalikan ke halaman siswa.
+        header('Location: master_kegiatan_harian.php');
+        exit();
+    }
+    // 3. TAMBAHAN: Jika bukan siswa, cek apakah dia adalah GURU.
+    elseif (isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in') {
+        // Jika benar guru, kembalikan ke halaman guru.
+        header('Location: ../../halaman_guru.php'); //belum di atur
+        exit();
+    }
+    // 4. Jika bukan salah satu dari role di atas (admin, siswa, guru),
+    // artinya pengguna belum login sama sekali. Arahkan ke halaman login.
+    else {
+        header('Location: ../../login.php');
+        exit();
+    }
+}
+
+// 5. Jika lolos semua pemeriksaan di atas, maka dia adalah ADMIN yang sah.
+// Tampilkan semua konten halaman ini.
+
+// --> Kode HTML atau PHP selanjutnya hanya akan dieksekusi jika pengguna adalah admin <--
+?>
 <?php include 'partials/db.php';
 $jurusanQuery = mysqli_query($koneksi, "SELECT id_jurusan, nama_jurusan FROM jurusan");
 ?>
