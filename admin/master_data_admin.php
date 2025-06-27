@@ -28,7 +28,7 @@ if (!isset($_SESSION['admin_status_login']) || $_SESSION['admin_status_login'] !
 // 5. Jika lolos semua pemeriksaan di atas, maka dia adalah ADMIN yang sah.
 // Tampilkan semua konten halaman ini.
 include 'partials/db.php'; // Pastikan path ini benar
-session_start(); // Pastikan session sudah dimulai
+
 
 // Cek apakah admin sudah login
 // Menggunakan sesi universal 'user_role' yang kita tetapkan di login_petugas_act.php
