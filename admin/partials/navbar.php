@@ -73,7 +73,7 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['user_role'])) {
                         <div class="dropdown-divider"></div>
                     </li>
                     <li>
-                        <a class="dropdown-item" href="../ganti_password_dispatcher.php">
+                        <a class="dropdown-item" href="ganti_password.php">
                             <i class="bx bx-cog me-2"></i> <span class="align-middle">Ganti Password</span>
                         </a>
                     </li>

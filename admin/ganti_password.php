@@ -1,38 +1,63 @@
 <?php
-include 'partials/db.php'; // Koneksi database
+// Pastikan path ke db.php benar relatif dari lokasi file ini
+// Jika db.php ada di partials/
+include 'partials/db.php';
 session_start(); // Pastikan session sudah dimulai
 
-// Ambil ID siswa dan nama siswa dari sesi sesuai format Anda
-$loggedInUserId = $_SESSION['id_siswa'] ?? null;
-$loggedInUserName = $_SESSION['siswa_nama'] ?? 'Siswa'; // Menggunakan siswa_nama
+// Ambil data sesi universal (user_id, user_role, user_name)
+$loggedInUserId = $_SESSION['user_id'] ?? null;
+$loggedInUserRole = $_SESSION['user_role'] ?? null;
+$loggedInUserName = $_SESSION['user_name'] ?? 'Pengguna'; // Default nama jika tidak ada
 
-// Verifikasi status login
-if (!isset($_SESSION['siswa_status_login']) || $_SESSION['siswa_status_login'] !== 'logged_in' || !$loggedInUserId) {
-    header('Location: login.php'); // Redirect ke halaman login jika belum login atau status tidak sesuai
+// Verifikasi apakah ada user yang login dengan sesi universal
+if (!$loggedInUserId || !$loggedInUserRole) {
+    header('Location: login.php'); // Redirect ke halaman login jika belum login
     exit();
 }
 
-// Ambil pesan notifikasi dari session jika ada
+// Tentukan judul form berdasarkan role yang sedang login
+$formTitle = "Formulir Ganti Password";
+switch ($loggedInUserRole) {
+    case 'siswa':
+        $formTitle .= " Siswa";
+        break;
+    case 'guru_pendamping':
+        $formTitle .= " Guru Pendamping";
+        break;
+    case 'admin':
+        $formTitle .= " Admin";
+        break;
+    default:
+        $formTitle .= " Pengguna"; // Fallback jika peran tidak dikenali
+        break;
+}
+
+// Ambil pesan notifikasi (misal dari ganti_password_act.php) dari session
 $message = $_SESSION['ganti_password_message'] ?? '';
 $message_type = $_SESSION['ganti_password_message_type'] ?? '';
+$message_title_swal = $_SESSION['ganti_password_message_title'] ?? ''; // Ambil juga judul SweetAlert
 
-// Hapus pesan dari session agar tidak muncul lagi setelah refresh
+// Hapus pesan dari session agar tidak muncul lagi setelah refresh halaman
 unset($_SESSION['ganti_password_message']);
 unset($_SESSION['ganti_password_message_type']);
+unset($_SESSION['ganti_password_message_title']);
 
 ?>
 
 <!DOCTYPE html>
-<html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="./assets/"
+<html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="assets/"
     data-template="vertical-menu-template-free">
-<?php include 'partials/head.php'; ?>
+<?php include 'partials/head.php'; // Sesuaikan path ke head.php 
+?>
 
 <body>
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
-            <?php include './partials/sidebar.php'; ?>
+            <?php include 'partials/sidebar.php'; // Sesuaikan path ke sidebar.php 
+            ?>
             <div class="layout-page">
-                <?php include './partials/navbar.php'; ?>
+                <?php include 'partials/navbar.php'; // Sesuaikan path ke navbar.php 
+                ?>
                 <div class="content-wrapper">
                     <div class="container-xxl flex-grow-1 container-p-y">
 
@@ -42,7 +67,7 @@ unset($_SESSION['ganti_password_message_type']);
                         document.addEventListener('DOMContentLoaded', function() {
                             Swal.fire({
                                 icon: '<?= htmlspecialchars($message_type); ?>',
-                                title: '<?= ($message_type == "success") ? "Berhasil!" : "Gagal!"; ?>',
+                                title: '<?= htmlspecialchars($message_title_swal); ?>',
                                 text: '<?= htmlspecialchars($message); ?>',
                                 confirmButtonColor: '<?= ($message_type == "success") ? "#3085d6" : "#d33"; ?>',
                                 confirmButtonText: 'OK'
@@ -61,13 +86,16 @@ unset($_SESSION['ganti_password_message_type']);
 
                         <div class="card shadow-lg">
                             <div class="card-header border-bottom">
-                                <h5 class="mb-0">Formulir Ganti Password Siswa</h5>
+                                <h5 class="mb-0"><?= htmlspecialchars($formTitle); ?></h5>
                                 <small class="text-muted">Pastikan password baru Anda kuat dan mudah diingat.</small>
                             </div>
                             <div class="card-body p-4">
                                 <form action="ganti_password_act.php" method="POST">
-                                    <input type="hidden" name="id_siswa"
+                                    <input type="hidden" name="user_id"
                                         value="<?= htmlspecialchars($loggedInUserId); ?>">
+                                    <input type="hidden" name="user_role"
+                                        value="<?= htmlspecialchars($loggedInUserRole); ?>">
+
                                     <div class="mb-3">
                                         <label class="form-label fw-bold" for="current_password">Password Saat
                                             Ini</label>
@@ -108,7 +136,8 @@ unset($_SESSION['ganti_password_message_type']);
         </div>
     </div>
 
-    <?php include 'partials/script.php'; ?>
+    <?php include 'partials/script.php'; // Sesuaikan path ke script.php 
+    ?>
 </body>
 
 </html>
