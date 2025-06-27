@@ -28,6 +28,13 @@ if (!$is_siswa && !$is_admin) {
 }
 
 if(!isset($_SESSION['id_siswa'])){
+    $siswa_id = "";
+}else{
+
+    $siswa_id = $_SESSION['id_siswa'];
+}
+
+if(!isset($_SESSION['id_siswa'])){
     $id_siswa_login = "";
 }else{
 
