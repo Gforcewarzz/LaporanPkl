@@ -65,16 +65,17 @@
                                         class="btn btn-outline-secondary w-100 animate__animated animate__fadeInUp animate__delay-0-2s">
                                         <i class="bx bx-arrow-back me-1"></i> Kembali
                                     </a>
-                                    <a href="laporan_tugas_add.php"
+                                    <a href="master_tugas_project_add.php"
                                         class="btn btn-primary w-100 animate__animated animate__fadeInUp animate__delay-0-3s">
                                         <i class="bx bx-plus me-1"></i> Tambah Laporan Tugas
                                     </a>
                                 </div>
                                 <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-1 order-md-2">
-                                    <button type="button"
-                                        class="btn btn-outline-danger w-100 animate__animated animate__fadeInDown animate__delay-0-3s">
+                                    <a href="generate_laporan_project_pdf.php<?= !empty($keyword) ? '?keyword=' . htmlspecialchars($keyword) : '' ?>"
+                                        class="btn btn-outline-danger w-100 animate__animated animate__fadeInDown animate__delay-0-3s"
+                                        target="_blank">
                                         <i class="bx bxs-file-pdf me-1"></i> Cetak PDF
-                                    </button>
+                                    </a>
                                     <button type="button"
                                         class="btn btn-outline-success w-100 animate__animated animate__fadeInDown animate__delay-0-2s">
                                         <i class="bx bxs-file-excel me-1"></i> Ekspor Excel
@@ -129,7 +130,8 @@
                                                             <i class="bx bx-dots-vertical-rounded"></i>
                                                         </button>
                                                         <div class="dropdown-menu">
-                                                            <a class="dropdown-item" href="laporan_tugas_edit.php?id=1">
+                                                            <a class="dropdown-item"
+                                                                href="master_tugas_project_edit.php?id=1">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
                                                             <a class="dropdown-item text-danger"
@@ -166,7 +168,8 @@
                                                             <i class="bx bx-dots-vertical-rounded"></i>
                                                         </button>
                                                         <div class="dropdown-menu">
-                                                            <a class="dropdown-item" href="laporan_tugas_edit.php?id=2">
+                                                            <a class="dropdown-item"
+                                                                href="master_tugas_project_edit.php?id=2">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
                                                             <a class="dropdown-item text-danger"
@@ -204,7 +207,8 @@
                                                             <i class="bx bx-dots-vertical-rounded"></i>
                                                         </button>
                                                         <div class="dropdown-menu">
-                                                            <a class="dropdown-item" href="laporan_tugas_edit.php?id=3">
+                                                            <a class="dropdown-item"
+                                                                href="master_tugas_project_edit.php?id=3">
                                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                                             </a>
                                                             <a class="dropdown-item text-danger"
@@ -252,7 +256,8 @@
                                                         <i class="bx bx-dots-vertical-rounded"></i>
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item" href="laporan_tugas_edit.php?id=1">
+                                                        <a class="dropdown-item"
+                                                            href="master_tugas_project_edit.php?id=1">
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Laporan
                                                         </a>
                                                         <a class="dropdown-item text-danger" href="javascript:void(0);"
@@ -314,7 +319,8 @@
                                                         <i class="bx bx-dots-vertical-rounded"></i>
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item" href="laporan_tugas_edit.php?id=2">
+                                                        <a class="dropdown-item"
+                                                            href="master_tugas_project_edit.php?id=2">
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Laporan
                                                         </a>
                                                         <div class="dropdown-divider"></div>
@@ -378,7 +384,8 @@
                                                         <i class="bx bx-dots-vertical-rounded"></i>
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end dropdown-menu-atas"> <a
-                                                            class="dropdown-item" href="laporan_tugas_edit.php?id=3">
+                                                            class="dropdown-item"
+                                                            href="master_tugas_project_edit.php?id=3">
                                                             <i class="bx bx-edit-alt me-1"></i> Edit Laporan
                                                         </a>
                                                         <div class="dropdown-divider"></div>
@@ -429,7 +436,8 @@
                                         <h5 class="alert-heading mb-3"><i class="bx bx-task-x bx-lg text-info"></i></h5>
                                         <p class="mb-3">Belum ada laporan tugas proyek yang tercatat di sini.</p>
                                         <p class="mb-0">
-                                            Ayo, <a href="laporan_tugas_add.php" class="alert-link fw-bold">tambahkan
+                                            Ayo, <a href="master_tugas_project_add.php"
+                                                class="alert-link fw-bold">tambahkan
                                                 laporan proyek pertama Anda</a> sekarang!
                                         </p>
                                     </div>
@@ -462,8 +470,8 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Jika dikonfirmasi, arahkan ke skrip PHP untuk delete
-                    // Pastikan Anda membuat file 'proses_delete_laporan_tugas.php'
-                    window.location.href = 'proses_delete_laporan_tugas.php?id=' + id;
+                    // Pastikan Anda membuat file 'proses_delete_master_tugas_project.php'
+                    window.location.href = 'proses_delete_master_tugas_project.php?id=' + id;
                 }
             });
         }

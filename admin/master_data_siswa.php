@@ -1,12 +1,13 @@
 <?php
-include 'partials/head.php';
-include 'partials/db.php'; $keyword = ""; // <-- tambahkan ini di awal sebelum blok filter
-$filter = "";; // Asumsi file ini berisi koneksi ke database ($koneksi)
+include 'partials/db.php';
+$keyword = "";
+$filter = "";;
 ?>
 
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="./assets/"
     data-template="vertical-menu-template-free">
+<?php include 'partials/head.php'; ?>
 
 <body>
     <div class="layout-wrapper layout-content-navbar">

@@ -12,7 +12,6 @@ $siswa_id = $_SESSION['id_siswa'];
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="./assets/"
     data-template="vertical-menu-template-free">
-
 <?php include 'partials/head.php' ?>
 
 <body>
@@ -24,7 +23,8 @@ $siswa_id = $_SESSION['id_siswa'];
                 <div class="content-wrapper">
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <!-- HEADER -->
-                        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom position-relative">
+                        <div
+                            class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom position-relative">
                             <h4 class="fw-bold mb-0 text-primary animate__animated animate__fadeInLeft">
                                 <span class="text-muted fw-light">Laporan Harian /</span> Tambah Kegiatan
                             </h4>
@@ -35,7 +35,8 @@ $siswa_id = $_SESSION['id_siswa'];
                         <!-- KARTU AJAKAN -->
                         <div class="card bg-gradient-primary-to-secondary text-white mb-4 shadow-lg animate__animated animate__fadeInDown"
                             style="border-radius: 12px; overflow: hidden; background: linear-gradient(135deg, #696cff 0%, #a4bdfa 100%);">
-                            <div class="card-body p-4 d-flex flex-column flex-sm-row justify-content-between align-items-center">
+                            <div
+                                class="card-body p-4 d-flex flex-column flex-sm-row justify-content-between align-items-center">
                                 <div class="text-center text-sm-start mb-3 mb-sm-0">
                                     <h5 class="card-title text-white mb-1">Yuk, Tambahkan Laporan Harianmu!</h5>
                                     <p class="card-text text-white-75 small">Pastikan datanya akurat ya!</p>
@@ -43,10 +44,15 @@ $siswa_id = $_SESSION['id_siswa'];
                                 <div class="text-center text-sm-end position-relative">
                                     <div class="rounded-circle bg-white d-flex justify-content-center align-items-center animate__animated animate__zoomIn animate__delay-0-5s"
                                         style="width: 80px; height: 80px; opacity: 0.2; position: relative; overflow: hidden; z-index: 1;">
-                                        <i class="bx bx-receipt bx-lg text-primary" style="font-size: 3rem; opacity: 1;"></i>
+                                        <i class="bx bx-receipt bx-lg text-primary"
+                                            style="font-size: 3rem; opacity: 1;"></i>
                                     </div>
-                                    <div class="position-absolute rounded-circle bg-white" style="width: 50px; height: 50px; opacity: 0.1; top: -10px; left: -10px; transform: scale(0.6); z-index: 0;"></div>
-                                    <div class="position-absolute rounded-circle bg-white" style="width: 60px; height: 60px; opacity: 0.15; bottom: -10px; right: -10px; transform: scale(0.8); z-index: 0;"></div>
+                                    <div class="position-absolute rounded-circle bg-white"
+                                        style="width: 50px; height: 50px; opacity: 0.1; top: -10px; left: -10px; transform: scale(0.6); z-index: 0;">
+                                    </div>
+                                    <div class="position-absolute rounded-circle bg-white"
+                                        style="width: 60px; height: 60px; opacity: 0.15; bottom: -10px; right: -10px; transform: scale(0.8); z-index: 0;">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -64,7 +70,8 @@ $siswa_id = $_SESSION['id_siswa'];
                                         <label for="tanggal_kegiatan" class="form-label fw-bold">
                                             <i class="bx bx-calendar me-1"></i> Hari/Tanggal Kegiatan:
                                         </label>
-                                        <input type="date" class="form-control" id="tanggal_kegiatan" name="tanggal" required value="<?php echo date('Y-m-d'); ?>">
+                                        <input type="date" class="form-control" id="tanggal_kegiatan" name="tanggal"
+                                            required value="<?php echo date('Y-m-d'); ?>">
                                     </div>
 
                                     <!-- Input Pekerjaan -->
@@ -92,7 +99,8 @@ $siswa_id = $_SESSION['id_siswa'];
                                     <hr class="my-4">
 
                                     <!-- Tombol -->
-                                    <div class="d-flex flex-column flex-sm-row justify-content-end gap-2 animate__animated animate__fadeInUp animate__delay-0-5s">
+                                    <div
+                                        class="d-flex flex-column flex-sm-row justify-content-end gap-2 animate__animated animate__fadeInUp animate__delay-0-5s">
                                         <button type="reset" class="btn btn-outline-secondary w-100 w-sm-auto">
                                             <i class="bx bx-refresh me-1"></i> Reset Form
                                         </button>

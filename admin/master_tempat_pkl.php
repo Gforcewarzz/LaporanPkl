@@ -1,12 +1,10 @@
-<?php include 'partials/head.php'; ?>
 <?php include 'partials/db.php';
-
-// Ambil keyword pencarian (jika ada)
 $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
 ?>
 
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default">
+<?php include 'partials/head.php'; ?>
 
 <body>
     <div class="layout-wrapper layout-content-navbar">
@@ -154,23 +152,23 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
     <!-- SweetAlert -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-    function confirmDeleteTempatPKL(id, namaPerusahaan) {
-        Swal.fire({
-            title: 'Konfirmasi Hapus Data Tempat PKL',
-            html: "Apakah Anda yakin ingin menghapus <strong>" + namaPerusahaan + "</strong>?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = 'master_tempat_pkl_delete.php?id=' + id;
-            }
-        });
-    }
+        function confirmDeleteTempatPKL(id, namaPerusahaan) {
+            Swal.fire({
+                title: 'Konfirmasi Hapus Data Tempat PKL',
+                html: "Apakah Anda yakin ingin menghapus <strong>" + namaPerusahaan + "</strong>?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'master_tempat_pkl_delete.php?id=' + id;
+                }
+            });
+        }
     </script>
 
     <?php include './partials/script.php'; ?>

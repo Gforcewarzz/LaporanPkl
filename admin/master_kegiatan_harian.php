@@ -1,5 +1,4 @@
 <?php
-include 'partials/head.php';
 include 'partials/db.php';
 
 $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
@@ -29,6 +28,8 @@ $stmt_laporan->close();
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="./assets/"
     data-template="vertical-menu-template-free">
+<?php include 'partials/head.php'; ?>
+
 
 <body>
     <div class="layout-wrapper layout-content-navbar">
@@ -162,43 +163,43 @@ $stmt_laporan->close();
                                                     $nama_hari_inggris = date('l', strtotime($row['tanggal']));
                                                     $formatted_date_display = $hari_indonesia[$nama_hari_inggris] . ', ' . date('d F Y', strtotime($row['tanggal']));
                                             ?>
-                                            <tr>
-                                                <td><?= $no++ ?></td>
-                                                <td><strong><?= htmlspecialchars($formatted_date_display) ?></strong>
-                                                </td>
-                                                <td><?= nl2br(htmlspecialchars($row['pekerjaan'])) ?></td>
-                                                <td><?= nl2br(htmlspecialchars($row['catatan'])) ?></td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                            data-bs-toggle="dropdown" aria-expanded="false">
-                                                            <i class="bx bx-dots-vertical-rounded"></i>
-                                                        </button>
-                                                        <div class="dropdown-menu" style='z-index: 1050;'> <a
-                                                                class="dropdown-item"
-                                                                href="master_kegiatan_harian_edit.php?id=<?= htmlspecialchars($row['id_jurnal_harian']) ?>">
-                                                                <i class="bx bx-edit-alt me-1"></i> Edit
-                                                            </a>
-                                                            <div class="dropdown-divider"></div>
-                                                            <a class="dropdown-item text-danger"
-                                                                href="javascript:void(0);"
-                                                                onclick="confirmDeleteKegiatanHarian('<?= htmlspecialchars($row['id_jurnal_harian']) ?>', '<?= htmlspecialchars($formatted_date_display) ?>')">
-                                                                <i class="bx bx-trash me-1"></i> Hapus
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            <?php
+                                                    <tr>
+                                                        <td><?= $no++ ?></td>
+                                                        <td><strong><?= htmlspecialchars($formatted_date_display) ?></strong>
+                                                        </td>
+                                                        <td><?= nl2br(htmlspecialchars($row['pekerjaan'])) ?></td>
+                                                        <td><?= nl2br(htmlspecialchars($row['catatan'])) ?></td>
+                                                        <td>
+                                                            <div class="dropdown">
+                                                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                                                    <i class="bx bx-dots-vertical-rounded"></i>
+                                                                </button>
+                                                                <div class="dropdown-menu" style='z-index: 1050;'> <a
+                                                                        class="dropdown-item"
+                                                                        href="master_kegiatan_harian_edit.php?id=<?= htmlspecialchars($row['id_jurnal_harian']) ?>">
+                                                                        <i class="bx bx-edit-alt me-1"></i> Edit
+                                                                    </a>
+                                                                    <div class="dropdown-divider"></div>
+                                                                    <a class="dropdown-item text-danger"
+                                                                        href="javascript:void(0);"
+                                                                        onclick="confirmDeleteKegiatanHarian('<?= htmlspecialchars($row['id_jurnal_harian']) ?>', '<?= htmlspecialchars($formatted_date_display) ?>')">
+                                                                        <i class="bx bx-trash me-1"></i> Hapus
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                <?php
                                                 }
                                             } else {
                                                 ?>
-                                            <tr>
-                                                <td colspan="5" class="text-center py-4 text-muted">
-                                                    <i class="bx bx-info-circle me-1"></i> Belum ada laporan kegiatan
-                                                    yang tercatat.
-                                                </td>
-                                            </tr>
+                                                <tr>
+                                                    <td colspan="5" class="text-center py-4 text-muted">
+                                                        <i class="bx bx-info-circle me-1"></i> Belum ada laporan kegiatan
+                                                        yang tercatat.
+                                                    </td>
+                                                </tr>
                                             <?php
                                             }
                                             ?>
@@ -231,70 +232,70 @@ $stmt_laporan->close();
                                             $nama_hari_inggris_mobile = date('l', strtotime($row_mobile['tanggal']));
                                             $formatted_date_mobile = $hari_indonesia[$nama_hari_inggris_mobile] . ', ' . date('d F Y', strtotime($row_mobile['tanggal']));
                                     ?>
-                                    <div
-                                        class="card mb-4 shadow-lg border-start border-4 border-<?= $current_color ?> rounded-3 animate__animated animate__fadeInUp">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                                <div>
-                                                    <h6 class="mb-1 text-<?= $current_color ?>"><i
-                                                            class="bx bx-calendar-event me-1"></i>
-                                                        <strong><?= htmlspecialchars($formatted_date_mobile) ?></strong>
-                                                    </h6>
-                                                    <span class="badge bg-label-<?= $current_color ?>"><i
-                                                            class="bx bx-file me-1"></i> Laporan
-                                                        #<?= htmlspecialchars($row_mobile['id_jurnal_harian']) ?></span>
-                                                </div>
-                                                <div class="dropdown">
-                                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                        data-bs-toggle="dropdown" aria-expanded="false">
-                                                        <i class="bx bx-dots-vertical-rounded"></i>
-                                                    </button>
-                                                    <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item"
-                                                            href="master_kegiatan_harian_edit.php?id=<?= htmlspecialchars($row_mobile['id_jurnal_harian']) ?>">
-                                                            <i class="bx bx-edit-alt me-1"></i> Edit Laporan
-                                                        </a>
-                                                        <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
-                                                            onclick="confirmDeleteKegiatanHarian('<?= htmlspecialchars($row_mobile['id_jurnal_harian']) ?>', '<?= htmlspecialchars($formatted_date_mobile) ?>')">
-                                                            <i class="bx bx-trash me-1"></i> Hapus
-                                                        </a>
+                                            <div
+                                                class="card mb-4 shadow-lg border-start border-4 border-<?= $current_color ?> rounded-3 animate__animated animate__fadeInUp">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                                        <div>
+                                                            <h6 class="mb-1 text-<?= $current_color ?>"><i
+                                                                    class="bx bx-calendar-event me-1"></i>
+                                                                <strong><?= htmlspecialchars($formatted_date_mobile) ?></strong>
+                                                            </h6>
+                                                            <span class="badge bg-label-<?= $current_color ?>"><i
+                                                                    class="bx bx-file me-1"></i> Laporan
+                                                                #<?= htmlspecialchars($row_mobile['id_jurnal_harian']) ?></span>
+                                                        </div>
+                                                        <div class="dropdown">
+                                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                                                <i class="bx bx-dots-vertical-rounded"></i>
+                                                            </button>
+                                                            <div class="dropdown-menu dropdown-menu-end">
+                                                                <a class="dropdown-item"
+                                                                    href="master_kegiatan_harian_edit.php?id=<?= htmlspecialchars($row_mobile['id_jurnal_harian']) ?>">
+                                                                    <i class="bx bx-edit-alt me-1"></i> Edit Laporan
+                                                                </a>
+                                                                <div class="dropdown-divider"></div>
+                                                                <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                                    onclick="confirmDeleteKegiatanHarian('<?= htmlspecialchars($row_mobile['id_jurnal_harian']) ?>', '<?= htmlspecialchars($formatted_date_mobile) ?>')">
+                                                                    <i class="bx bx-trash me-1"></i> Hapus
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="mb-2">
+                                                        <strong class="text-dark"><i class="bx bx-task me-1"></i>
+                                                            Pekerjaan:</strong><br>
+                                                        <?= nl2br(htmlspecialchars($row_mobile['pekerjaan'])) ?>
+                                                    </div>
+                                                    <div class="mb-0 text-wrap">
+                                                        <strong class="text-dark"><i class="bx bx-info-circle me-1"></i>
+                                                            Catatan:</strong><br>
+                                                        <?= nl2br(htmlspecialchars($row_mobile['catatan'])) ?>
+                                                    </div>
+                                                    <div class="d-flex justify-content-end mt-3">
+                                                        <small class="text-muted"><i class="bx bx-calendar-check me-1"></i>
+                                                            Dilaporkan:
+                                                            <?= date('d F Y, H:i', strtotime($row_mobile['tanggal'])) ?>
+                                                            WIB</small>
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            <div class="mb-2">
-                                                <strong class="text-dark"><i class="bx bx-task me-1"></i>
-                                                    Pekerjaan:</strong><br>
-                                                <?= nl2br(htmlspecialchars($row_mobile['pekerjaan'])) ?>
-                                            </div>
-                                            <div class="mb-0 text-wrap">
-                                                <strong class="text-dark"><i class="bx bx-info-circle me-1"></i>
-                                                    Catatan:</strong><br>
-                                                <?= nl2br(htmlspecialchars($row_mobile['catatan'])) ?>
-                                            </div>
-                                            <div class="d-flex justify-content-end mt-3">
-                                                <small class="text-muted"><i class="bx bx-calendar-check me-1"></i>
-                                                    Dilaporkan:
-                                                    <?= date('d F Y, H:i', strtotime($row_mobile['tanggal'])) ?>
-                                                    WIB</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <?php
+                                        <?php
                                         }
                                     } else {
                                         ?>
-                                    <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp animate__delay-0-3s"
-                                        role="alert" style="border-radius: 8px;">
-                                        <h5 class="alert-heading mb-3"><i class="bx bx-list-plus bx-lg text-info"></i>
-                                        </h5>
-                                        <p class="mb-3">Belum ada laporan kegiatan yang tercatat di sini.</p>
-                                        <p class="mb-0">
-                                            Ayo, <a href="master_kegiatan_harian_add.php"
-                                                class="alert-link fw-bold">tambahkan laporan pertama Anda</a> sekarang!
-                                        </p>
-                                    </div>
+                                        <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp animate__delay-0-3s"
+                                            role="alert" style="border-radius: 8px;">
+                                            <h5 class="alert-heading mb-3"><i class="bx bx-list-plus bx-lg text-info"></i>
+                                            </h5>
+                                            <p class="mb-3">Belum ada laporan kegiatan yang tercatat di sini.</p>
+                                            <p class="mb-0">
+                                                Ayo, <a href="master_kegiatan_harian_add.php"
+                                                    class="alert-link fw-bold">tambahkan laporan pertama Anda</a> sekarang!
+                                            </p>
+                                        </div>
                                     <?php
                                     }
                                     $koneksi->close();
@@ -312,24 +313,24 @@ $stmt_laporan->close();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-    function confirmDeleteKegiatanHarian(id, tanggal) {
-        Swal.fire({
-            title: 'Konfirmasi Hapus Laporan Harian',
-            html: "Apakah Anda yakin ingin menghapus laporan kegiatan pada tanggal <strong>" + tanggal +
-                "</strong>?<br>Tindakan ini tidak dapat dibatalkan!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Ya, Hapus Sekarang!',
-            cancelButtonText: 'Batal',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = 'master_kegiatan_harian_delete.php?id=' + id;
-            }
-        });
-    }
+        function confirmDeleteKegiatanHarian(id, tanggal) {
+            Swal.fire({
+                title: 'Konfirmasi Hapus Laporan Harian',
+                html: "Apakah Anda yakin ingin menghapus laporan kegiatan pada tanggal <strong>" + tanggal +
+                    "</strong>?<br>Tindakan ini tidak dapat dibatalkan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Hapus Sekarang!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'master_kegiatan_harian_delete.php?id=' + id;
+                }
+            });
+        }
     </script>
     <?php include './partials/script.php'; ?>
 </body>

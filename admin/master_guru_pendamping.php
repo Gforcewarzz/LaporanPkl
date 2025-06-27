@@ -1,13 +1,11 @@
 <?php
-include 'partials/head.php';
 include 'partials/db.php';
-
-// Ambil keyword dari input pencarian (jika ada)
 $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
 ?>
 
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default">
+<?php include 'partials/head.php'; ?>
 
 <body>
     <div class="layout-wrapper layout-content-navbar">

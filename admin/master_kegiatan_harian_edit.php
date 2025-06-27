@@ -35,7 +35,6 @@ $catatan_options = [
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="./assets/"
     data-template="vertical-menu-template-free">
-
 <?php include 'partials/head.php'; ?>
 
 <body>
@@ -47,70 +46,75 @@ $catatan_options = [
                 <div class="content-wrapper">
                     <div class="container-xxl flex-grow-1 container-p-y">
 
-                        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom position-relative">
+                        <div
+                            class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom position-relative">
                             <h4 class="fw-bold mb-0 text-primary animate__animated animate__fadeInLeft">
                                 <span class="text-muted fw-light">Laporan Harian /</span> Edit Laporan
                             </h4>
-                            <i class="fas fa-edit fa-2x text-info animate__animated animate__fadeInRight" style="opacity: 0.6;"></i>
+                            <i class="fas fa-edit fa-2x text-info animate__animated animate__fadeInRight"
+                                style="opacity: 0.6;"></i>
                         </div>
 
                         <?php if ($activityData): ?>
-                        <div class="card shadow-lg animate__animated animate__fadeInUp" style="border-radius: 10px;">
-                            <div class="card-header border-bottom">
-                                <h5 class="card-title mb-0">Formulir Edit Laporan Kegiatan</h5>
-                                <small class="text-muted">Isi kolom yang ingin diubah, sisanya biarkan.</small>
+                            <div class="card shadow-lg animate__animated animate__fadeInUp" style="border-radius: 10px;">
+                                <div class="card-header border-bottom">
+                                    <h5 class="card-title mb-0">Formulir Edit Laporan Kegiatan</h5>
+                                    <small class="text-muted">Isi kolom yang ingin diubah, sisanya biarkan.</small>
+                                </div>
+                                <div class="card-body p-4">
+                                    <form action="master_kegiatan_harian_edit_act.php" method="POST">
+                                        <input type="hidden" name="id_jurnal_harian"
+                                            value="<?php echo $activityData['id_jurnal_harian']; ?>">
+
+                                        <div class="mb-3">
+                                            <label for="tanggal" class="form-label fw-bold">
+                                                <i class="bx bx-calendar me-1"></i> Hari/Tanggal Kegiatan:
+                                            </label>
+                                            <input type="date" class="form-control" id="tanggal" name="tanggal"
+                                                value="<?php echo $activityData['tanggal']; ?>" required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="pekerjaan" class="form-label fw-bold">
+                                                <i class="bx bx-briefcase-alt me-1"></i> Deskripsi Pekerjaan:
+                                            </label>
+                                            <textarea class="form-control" id="pekerjaan" name="pekerjaan" rows="5"
+                                                required><?php echo htmlspecialchars($activityData['pekerjaan']); ?></textarea>
+                                            <datalist id="datalistPekerjaan">
+                                                <?php foreach ($pekerjaan_options as $p): ?>
+                                                    <option value="<?php echo htmlspecialchars($p); ?>">
+                                                    <?php endforeach; ?>
+                                            </datalist>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="catatan" class="form-label fw-bold">
+                                                <i class="bx bx-notepad me-1"></i> Catatan Tambahan (Opsional):
+                                            </label>
+                                            <textarea class="form-control" id="catatan" name="catatan"
+                                                rows="3"><?php echo htmlspecialchars($activityData['catatan']); ?></textarea>
+                                            <datalist id="datalistCatatan">
+                                                <?php foreach ($catatan_options as $c): ?>
+                                                    <option value="<?php echo htmlspecialchars($c); ?>">
+                                                    <?php endforeach; ?>
+                                            </datalist>
+                                        </div>
+
+                                        <hr class="my-4">
+
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <a href="master_kegiatan_harian.php" class="btn btn-outline-secondary">
+                                                <i class="bx bx-arrow-back me-1"></i> Batal
+                                            </a>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bx bx-save me-1"></i> Simpan Perubahan
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
-                            <div class="card-body p-4">
-                                <form action="master_kegiatan_harian_edit_act.php" method="POST">
-                                    <input type="hidden" name="id_jurnal_harian" value="<?php echo $activityData['id_jurnal_harian']; ?>">
-
-                                    <div class="mb-3">
-                                        <label for="tanggal" class="form-label fw-bold">
-                                            <i class="bx bx-calendar me-1"></i> Hari/Tanggal Kegiatan:
-                                        </label>
-                                        <input type="date" class="form-control" id="tanggal" name="tanggal"
-                                            value="<?php echo $activityData['tanggal']; ?>" required>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label for="pekerjaan" class="form-label fw-bold">
-                                            <i class="bx bx-briefcase-alt me-1"></i> Deskripsi Pekerjaan:
-                                        </label>
-                                        <textarea class="form-control" id="pekerjaan" name="pekerjaan" rows="5" required><?php echo htmlspecialchars($activityData['pekerjaan']); ?></textarea>
-                                        <datalist id="datalistPekerjaan">
-                                            <?php foreach ($pekerjaan_options as $p): ?>
-                                            <option value="<?php echo htmlspecialchars($p); ?>">
-                                            <?php endforeach; ?>
-                                        </datalist>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label for="catatan" class="form-label fw-bold">
-                                            <i class="bx bx-notepad me-1"></i> Catatan Tambahan (Opsional):
-                                        </label>
-                                        <textarea class="form-control" id="catatan" name="catatan" rows="3"><?php echo htmlspecialchars($activityData['catatan']); ?></textarea>
-                                        <datalist id="datalistCatatan">
-                                            <?php foreach ($catatan_options as $c): ?>
-                                            <option value="<?php echo htmlspecialchars($c); ?>">
-                                            <?php endforeach; ?>
-                                        </datalist>
-                                    </div>
-
-                                    <hr class="my-4">
-
-                                    <div class="d-flex justify-content-end gap-2">
-                                        <a href="master_kegiatan_harian.php" class="btn btn-outline-secondary">
-                                            <i class="bx bx-arrow-back me-1"></i> Batal
-                                        </a>
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="bx bx-save me-1"></i> Simpan Perubahan
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
                         <?php else: ?>
-                        <div class="alert alert-danger">Data tidak ditemukan atau tidak valid.</div>
+                            <div class="alert alert-danger">Data tidak ditemukan atau tidak valid.</div>
                         <?php endif; ?>
                     </div>
                 </div>
