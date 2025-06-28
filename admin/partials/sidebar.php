@@ -1,20 +1,21 @@
 <?php
-// Pastikan sesi sudah dimulai di awal file
+// Pastikan sesi sudah dimulai di halaman yang memuat sidebar ini,
+// dan variabel $is_admin, $is_siswa, $is_guru sudah didefinisikan.
+
+// Contoh inisialisasi default jika sidebar diakses langsung (TIDAK disarankan untuk produksi)
 // if (session_status() == PHP_SESSION_NONE) {
 //     session_start();
 // }
-// Ambil role dari sesi (dikomentari)
-// $userRole = $_SESSION['role'] ?? 'Guest';
-
-// --- DATA STATIS UNTUK PENGUJIAN TAMPILAN ---
-$userRole = 'Super Admin'; // Gunakan role statis untuk menguji kondisi Super Admin
-// --- AKHIR DATA STATIS ---
+// $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
+// $is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
+// $is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
 
 ?>
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
     <div class="app-brand demo">
-        <a href="index.php" class="app-brand-link">
+        <a href="<?php echo ($is_siswa ? 'dashboard_siswa.php' : ($is_admin ? 'index.php' : ($is_guru ? '../halaman_guru.php' : '../login.php'))); ?>"
+            class="app-brand-link">
             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
                 style="color: #696cff;">
                 <path
@@ -41,12 +42,14 @@ $userRole = 'Super Admin'; // Gunakan role statis untuk menguji kondisi Super Ad
 
     <ul class="menu-inner py-1">
         <li class="menu-item active">
-            <a href="index.php" class="menu-link">
+            <a href="<?php echo ($is_siswa ? 'dashboard_siswa.php' : ($is_admin ? 'index.php' : ($is_guru ? '../halaman_guru.php' : '../login.php'))); ?>"
+                class="menu-link">
                 <i class="menu-icon tf-icons bx bx-home-circle"></i>
                 <div data-i18n="Dashboard">Dashboard</div>
             </a>
         </li>
 
+        <?php if ($is_admin): ?>
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text">Data Utama</span>
         </li>
@@ -56,11 +59,6 @@ $userRole = 'Super Admin'; // Gunakan role statis untuk menguji kondisi Super Ad
                 <div data-i18n="Master Data">Master Data</div>
             </a>
             <ul class="menu-sub">
-                <?php // if ($userRole == 'Super Admin'): 
-                ?>
-
-                <?php // endif; 
-                ?>
                 <li class="menu-item">
                     <a href="master_data_siswa.php" class="menu-link">
                         <div data-i18n="Data Siswa PKL">Data Siswa PKL</div>
@@ -78,15 +76,22 @@ $userRole = 'Super Admin'; // Gunakan role statis untuk menguji kondisi Super Ad
                 </li>
                 <li class="menu-item">
                     <a href="master_data_admin.php" class="menu-link">
-                        <div data-i18n="Data Tempat PKL">Data Admin</div>
+                        <div data-i18n="Data Admin">Data Admin</div>
                     </a>
                 </li>
             </ul>
         </li>
+        <?php endif; ?>
 
+        <?php if ($is_admin || $is_siswa || $is_guru): // Tampilkan section ini jika salah satu role login 
+        ?>
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text">Transaksi & Laporan</span>
         </li>
+        <?php endif; ?>
+
+        <?php if ($is_admin || $is_siswa): // Admin dan Siswa bisa lihat ini 
+        ?>
         <li class="menu-item">
             <a href="master_kegiatan_harian.php" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-book-content"></i>
@@ -96,26 +101,50 @@ $userRole = 'Super Admin'; // Gunakan role statis untuk menguji kondisi Super Ad
         <li class="menu-item">
             <a href="master_tugas_project.php" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-book-content"></i>
-                <div data-i18n="Kegiatan Harian">Kegiatan Project</div>
+                <div data-i18n="Kegiatan Project">Tugas Proyek</div>
             </a>
         </li>
+        <?php endif; ?>
+
+        <?php if ($is_admin || $is_guru): // Admin dan Guru bisa lihat ini 
+        ?>
         <li class="menu-item">
             <a href="penilaian_pkl.php" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-star"></i>
                 <div data-i18n="Penilaian PKL">Penilaian PKL</div>
             </a>
         </li>
+        <?php endif; ?>
+
+        <?php if ($is_admin || $is_guru): // Admin dan Guru bisa lihat ini 
+        ?>
         <li class="menu-item">
             <a href="absensi_pkl.php" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-calendar-check"></i>
-                <div data-i18n="Absensi PKL">Absensi PKL</div>
+                <div data-i18n="Absensi PKL">Observasi PKL</div>
             </a>
         </li>
+        <?php endif; ?>
+
+        <?php if ($is_admin || $is_guru): // Admin dan Guru bisa lihat ini 
+        ?>
         <li class="menu-item">
             <a href="laporan_pkl.php" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-file"></i>
-                <div data-i18n="Laporan PKL">Laporan PKL</div>
+                <div data-i18n="Laporan PKL">Laporan Akhir</div>
             </a>
         </li>
+        <?php endif; ?>
+
+        <?php if ($is_admin || $is_siswa || $is_guru): // Tambahan: Menu logout (jika belum ada di navbar) 
+        ?>
+        <li class="menu-item">
+            <a href="../logout.php" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-log-out"></i>
+                <div data-i18n="Logout">Logout</div>
+            </a>
+        </li>
+        <?php endif; ?>
+
     </ul>
 </aside>

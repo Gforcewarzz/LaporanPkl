@@ -16,7 +16,35 @@ if (!isset($_SESSION['admin_status_login']) || $_SESSION['admin_status_login'] !
 }
 
 include 'partials/db.php';
+
 $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
+
+// --- Start Pagination Variables ---
+$limit = 10; // Jumlah data per halaman
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $limit;
+// --- End Pagination Variables ---
+
+// Query untuk menghitung total data (tanpa LIMIT dan OFFSET)
+$count_query = "SELECT COUNT(id_pembimbing) AS total_data FROM guru_pembimbing";
+if (!empty($keyword)) {
+    $keyword_safe = mysqli_real_escape_string($koneksi, $keyword);
+    $count_query .= " WHERE nama_pembimbing LIKE '%$keyword_safe%' OR nip LIKE '%$keyword_safe%'";
+}
+$count_result = mysqli_query($koneksi, $count_query);
+$total_data = mysqli_fetch_assoc($count_result)['total_data'];
+$total_pages = ceil($total_data / $limit);
+
+// Query untuk mengambil data dengan LIMIT dan OFFSET
+$sql = "SELECT * FROM guru_pembimbing";
+if (!empty($keyword)) {
+    $keyword_safe = mysqli_real_escape_string($koneksi, $keyword);
+    $sql .= " WHERE nama_pembimbing LIKE '%$keyword_safe%' OR nip LIKE '%$keyword_safe%'";
+}
+$sql .= " ORDER BY nama_pembimbing ASC LIMIT $limit OFFSET $offset";
+
+$result = mysqli_query($koneksi, $sql);
+
 ?>
 
 <!DOCTYPE html>
@@ -32,15 +60,8 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
                 <div class="content-wrapper">
                     <div class="container-xxl flex-grow-1 container-p-y">
 
-                        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-                            <h4 class="fw-bold mb-0 text-primary">
-                                <span class="text-muted fw-light">Master /</span> Data Guru Pendamping
-                            </h4>
-                            <i class="fas fa-chalkboard-teacher fa-2x text-info" style="opacity: 0.6;"></i>
-                        </div>
-
-                        <div class="card bg-gradient-primary-to-secondary text-white mb-4 shadow-lg"
-                            style="border-radius: 12px; overflow: hidden;">
+                        <div class="card bg-gradient-primary-to-secondary text-white mb-4 shadow-lg animate__animated animate__fadeInDown"
+                            style="border-radius: 12px; overflow: hidden; background: linear-gradient(135deg, #696cff 0%, #a4bdfa 100%);">
                             <div
                                 class="card-body p-4 d-flex flex-column flex-sm-row justify-content-between align-items-center">
                                 <div class="text-center text-sm-start mb-3 mb-sm-0">
@@ -48,8 +69,8 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
                                     <p class="card-text text-white-75 small">Kelola informasi pembimbing PKL siswa.</p>
                                 </div>
                                 <div class="text-center text-sm-end">
-                                    <div class="rounded-circle bg-white d-flex justify-content-center align-items-center"
-                                        style="width: 80px; height: 80px; opacity: 0.2;">
+                                    <div class="rounded-circle bg-white d-flex justify-content-center align-items-center animate__animated animate__zoomIn animate__delay-0-5s"
+                                        style="width: 80px; height: 80px; opacity: 0.2; position: relative; z-index: 1;">
                                         <i class="bx bx-user-voice bx-lg text-primary"></i>
                                     </div>
                                 </div>
@@ -58,23 +79,27 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
 
                         <div class="card mb-4 shadow-lg">
                             <div
-                                class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 p-4">
-                                <div class="d-flex gap-2 w-100 w-md-auto">
-                                    <a href="index.php" class="btn btn-outline-secondary w-100">
-                                        <i class="bx bx-arrow-back me-1"></i> Kembali
-                                    </a>
+                                class="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
+                                <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-1">
                                     <a href="master_guru_pendamping_add.php" class="btn btn-primary w-100">
                                         <i class="bx bx-plus me-1"></i> Tambah Guru
                                     </a>
                                 </div>
-                                <div class="d-flex gap-2 w-100 w-md-auto">
+
+                                <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-2 order-md-2">
                                     <a href="generate_guru_pendamping.php<?= !empty($keyword) ? '?keyword=' . htmlspecialchars($keyword) : '' ?>"
-                                        class="btn btn-outline-danger w-100" target="_blank"> <i
-                                            class="bx bxs-file-pdf me-1"></i> Cetak PDF
+                                        class="btn btn-outline-danger w-100" target="_blank">
+                                        <i class="bx bxs-file-pdf me-1"></i> Cetak PDF
                                     </a>
                                     <a href="generate_guru_excel.php<?= !empty($keyword) ? '?keyword=' . htmlspecialchars($keyword) : '' ?>"
                                         class="btn btn-outline-success w-100" target="_blank">
                                         <i class="bx bxs-file-excel me-1"></i> Ekspor Excel
+                                    </a>
+                                </div>
+
+                                <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-3 order-md-3">
+                                    <a href="index.php" class="btn btn-outline-secondary w-100">
+                                        <i class="bx bx-arrow-back me-1"></i> Kembali
                                     </a>
                                 </div>
                             </div>
@@ -103,51 +128,48 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
                                 <small class="text-muted">Informasi dari database</small>
                             </div>
                             <div class="card-body p-0">
-                                <?php
-                                $no = 1;
-                                $sql = "SELECT * FROM guru_pembimbing";
-                                if (!empty($keyword)) {
-                                    $keyword_safe = mysqli_real_escape_string($koneksi, $keyword);
-                                    $sql .= " WHERE nama_pembimbing LIKE '%$keyword_safe%' OR nip LIKE '%$keyword_safe%'";
-                                }
-                                // Added this line for alphabetical order by nama_pembimbing
-                                $sql .= " ORDER BY nama_pembimbing ASC";
-
-                                $result = mysqli_query($koneksi, $sql);
-                                $total_rows = mysqli_num_rows($result);
-                                ?>
-
                                 <div class="table-responsive d-none d-md-block"
                                     style="overflow-x: auto; min-height: calc(100vh - 450px); overflow-y: auto;">
-                                    <?php if ($total_rows > 0): ?>
-                                        <table class="table table-hover" style="min-width: 800px;">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>Nama Guru</th>
-                                                    <th>NIP</th>
-                                                    <th>Aksi</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php
-                                                // Reset pointer if already fetched for count
-                                                mysqli_data_seek($result, 0);
-                                                while ($row = mysqli_fetch_assoc($result)) {
+                                    <?php
+                                    // Reset pointer to the correct offset for the current page
+                                    mysqli_data_seek($result, 0); // Reset to beginning
+                                    $current_page_data = [];
+                                    $i = 0;
+                                    while ($row = mysqli_fetch_assoc($result)) {
+                                        if ($i >= $offset && $i < ($offset + $limit)) {
+                                            $current_page_data[] = $row;
+                                        }
+                                        $i++;
+                                    }
+                                    ?>
+                                    <?php if (!empty($current_page_data)): ?>
+                                    <table class="table table-hover" style="min-width: 800px;">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>No</th>
+                                                <th>Nama Guru</th>
+                                                <th>NIP</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php
+                                                $no = $offset + 1; // Start numbering from the correct offset
+                                                foreach ($current_page_data as $row) {
                                                     echo "<tr>
                                                     <td>{$no}</td>
-                                                    <td>{$row['nama_pembimbing']}</td>
-                                                    <td>{$row['nip']}</td>
+                                                    <td>" . htmlspecialchars($row['nama_pembimbing']) . "</td>
+                                                    <td>" . htmlspecialchars($row['nip']) . "</td>
                                                     <td>
                                                         <div class='dropdown'>
-                                                            <button class='btn p-0 dropdown-toggle' data-bs-toggle='dropdown'>
+                                                            <button class='btn p-0 dropdown-toggle hide-arrow' data-bs-toggle='dropdown'>
                                                                 <i class='bx bx-dots-vertical-rounded'></i>
                                                             </button>
-                                                            <div class='dropdown-menu' style='z-index: 1050;'> 
-                                                                <a class='dropdown-item' href='master_guru_pendamping_edit.php?id={$row['id_pembimbing']}'>
+                                                            <div class='dropdown-menu' style='z-index: 1050;'>
+                                                                <a class='dropdown-item' href='master_guru_pendamping_edit.php?id=" . htmlspecialchars($row['id_pembimbing']) . "'>
                                                                     <i class='bx bx-edit-alt me-1'></i> Edit
                                                                 </a>
-                                                                <a class='dropdown-item text-danger' href='javascript:void(0);' onclick=\"confirmDeleteGuru('{$row['id_pembimbing']}', '{$row['nama_pembimbing']}')\">
+                                                                <a class='dropdown-item text-danger' href='javascript:void(0);' onclick=\"confirmDeleteGuru('" . htmlspecialchars($row['id_pembimbing']) . "', '" . htmlspecialchars($row['nama_pembimbing']) . "')\">
                                                                     <i class='bx bx-trash me-1'></i> Hapus
                                                                 </a>
                                                             </div>
@@ -157,84 +179,133 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
                                                     $no++;
                                                 }
                                                 ?>
-                                            </tbody>
-                                        </table>
+                                        </tbody>
+                                    </table>
                                     <?php else: ?>
-                                        <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp"
-                                            role="alert"
-                                            style="border-radius: 8px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                                            <h5 class="alert-heading mb-3"><i class="bx bx-info-circle bx-lg text-info"></i>
-                                            </h5>
-                                            <p class="mb-3">Tidak ada data guru ditemukan dengan kriteria tersebut.</p>
-                                            <p class="mb-0">
-                                                <a href="master_guru_pendamping_add.php"
-                                                    class="alert-link fw-bold">Tambahkan
-                                                    guru baru</a> atau coba filter lainnya!
-                                            </p>
-                                        </div>
+                                    <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp"
+                                        role="alert"
+                                        style="border-radius: 8px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                        <h5 class="alert-heading mb-3"><i class="bx bx-info-circle bx-lg text-info"></i>
+                                        </h5>
+                                        <p class="mb-3">Tidak ada data guru ditemukan dengan kriteria tersebut.</p>
+                                        <p class="mb-0">
+                                            <a href="master_guru_pendamping_add.php"
+                                                class="alert-link fw-bold">Tambahkan
+                                                guru baru</a> atau coba filter lainnya!
+                                        </p>
+                                    </div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="d-none d-md-block">
+                                    <?php if ($total_data > 0 && $total_pages > 1) : ?>
+                                    <nav aria-label="Page navigation" class="mt-3">
+                                        <ul class="pagination justify-content-center">
+                                            <li class="page-item <?= ($page <= 1) ? 'disabled' : ''; ?>">
+                                                <a class="page-link"
+                                                    href="<?= ($page <= 1) ? '#' : '?page=' . ($page - 1) . (!empty($keyword) ? '&keyword=' . htmlspecialchars($keyword) : ''); ?>">Previous</a>
+                                            </li>
+                                            <?php for ($i = 1; $i <= $total_pages; $i++) : ?>
+                                            <li class="page-item <?= ($page == $i) ? 'active' : ''; ?>">
+                                                <a class="page-link"
+                                                    href="?page=<?= $i ?><?= !empty($keyword) ? '&keyword=' . htmlspecialchars($keyword) : ''; ?>"><?= $i ?></a>
+                                            </li>
+                                            <?php endfor; ?>
+                                            <li class="page-item <?= ($page >= $total_pages) ? 'disabled' : ''; ?>">
+                                                <a class="page-link"
+                                                    href="<?= ($page >= $total_pages) ? '#' : '?page=' . ($page + 1) . (!empty($keyword) ? '&keyword=' . htmlspecialchars($keyword) : ''); ?>">Next</a>
+                                            </li>
+                                        </ul>
+                                    </nav>
                                     <?php endif; ?>
                                 </div>
 
                                 <div class="d-md-none p-3">
                                     <?php
-                                    // Reset result pointer for mobile display
-                                    mysqli_data_seek($result, 0);
-                                    if ($total_rows > 0) {
-                                        while ($row = mysqli_fetch_assoc($result)) {
+                                    // Reset result pointer for mobile display to the current page's data
+                                    mysqli_data_seek($result, 0); // Reset for re-fetching
+                                    $mobile_card_count = 0;
+                                    while ($row = mysqli_fetch_assoc($result)) {
+                                        if ($mobile_card_count >= $offset && $mobile_card_count < ($offset + $limit)) {
                                     ?>
-                                            <div
-                                                class="card mb-3 shadow-sm border-start border-4 border-primary rounded-3 animate__animated animate__fadeInUp">
-                                                <div class="card-body">
-                                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                                        <div>
-                                                            <h6 class="mb-1 text-primary"><i class="bx bx-user-voice me-1"></i>
-                                                                <strong><?= htmlspecialchars($row['nama_pembimbing']) ?></strong>
-                                                            </h6>
-                                                            <span class="badge bg-label-secondary"><i
-                                                                    class="bx bx-id-card me-1"></i>
-                                                                NIP: <?= htmlspecialchars($row['nip']) ?></span>
-                                                        </div>
-                                                        <div class="dropdown">
-                                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                                data-bs-toggle="dropdown">
-                                                                <i class="bx bx-dots-vertical-rounded"></i>
-                                                            </button>
-                                                            <div class="dropdown-menu dropdown-menu-end">
-                                                                <a class="dropdown-item"
-                                                                    href="master_guru_pendamping_edit.php?id=<?= htmlspecialchars($row['id_pembimbing']) ?>">
-                                                                    <i class="bx bx-edit-alt me-1"></i> Edit Data
-                                                                </a>
-                                                                <div class="dropdown-divider"></div>
-                                                                <a class="dropdown-item text-danger" href="javascript:void(0);"
-                                                                    onclick="confirmDeleteGuru('<?= htmlspecialchars($row['id_pembimbing']) ?>', '<?= htmlspecialchars($row['nama_pembimbing']) ?>')">
-                                                                    <i class="bx bx-trash me-1"></i> Hapus
-                                                                </a>
-                                                            </div>
-                                                        </div>
+                                    <div
+                                        class="card mb-3 shadow-sm border-start border-4 border-primary rounded-3 animate__animated animate__fadeInUp">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                <div>
+                                                    <h6 class="mb-1 text-primary"><i class="bx bx-user-voice me-1"></i>
+                                                        <strong><?= htmlspecialchars($row['nama_pembimbing']) ?></strong>
+                                                    </h6>
+                                                    <span class="badge bg-label-secondary"><i
+                                                            class="bx bx-id-card me-1"></i>
+                                                        NIP: <?= htmlspecialchars($row['nip']) ?></span>
+                                                </div>
+                                                <div class="dropdown">
+                                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                        data-bs-toggle="dropdown">
+                                                        <i class="bx bx-dots-vertical-rounded"></i>
+                                                    </button>
+                                                    <div class="dropdown-menu dropdown-menu-end">
+                                                        <a class="dropdown-item"
+                                                            href="master_guru_pendamping_edit.php?id=<?= htmlspecialchars($row['id_pembimbing']) ?>">
+                                                            <i class="bx bx-edit-alt me-1"></i> Edit Data
+                                                        </a>
+                                                        <div class="dropdown-divider"></div>
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="confirmDeleteGuru('<?= htmlspecialchars($row['id_pembimbing']) ?>', '<?= htmlspecialchars($row['nama_pembimbing']) ?>')">
+                                                            <i class="bx bx-trash me-1"></i> Hapus
+                                                        </a>
                                                     </div>
                                                 </div>
                                             </div>
-                                        <?php
-                                        }
-                                    } else {
-                                        // This alert will also be displayed if no data is found for mobile
-                                        ?>
-                                        <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp"
-                                            role="alert"
-                                            style="border-radius: 8px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                                            <h5 class="alert-heading mb-3"><i class="bx bx-info-circle bx-lg text-info"></i>
-                                            </h5>
-                                            <p class="mb-3">Tidak ada data guru ditemukan dengan kriteria tersebut.</p>
-                                            <p class="mb-0">
-                                                <a href="master_guru_pendamping_add.php"
-                                                    class="alert-link fw-bold">Tambahkan
-                                                    guru baru</a> atau coba filter lainnya!
-                                            </p>
                                         </div>
+                                    </div>
+                                    <?php
+                                        }
+                                        $mobile_card_count++;
+                                    }
+                                    if ($total_data == 0 || empty($current_page_data)) { // Display alert if no data found for current page in mobile
+                                        ?>
+                                    <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp"
+                                        role="alert"
+                                        style="border-radius: 8px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                        <h5 class="alert-heading mb-3"><i class="bx bx-info-circle bx-lg text-info"></i>
+                                        </h5>
+                                        <p class="mb-3">Tidak ada data guru ditemukan dengan kriteria tersebut.</p>
+                                        <p class="mb-0">
+                                            <a href="master_guru_pendamping_add.php"
+                                                class="alert-link fw-bold">Tambahkan
+                                                guru baru</a> atau coba filter lainnya!
+                                        </p>
+                                    </div>
                                     <?php
                                     }
                                     ?>
                                 </div>
+
+                                <div class="d-md-none">
+                                    <?php if ($total_data > 0 && $total_pages > 1) : ?>
+                                    <nav aria-label="Page navigation" class="mt-3">
+                                        <ul class="pagination justify-content-center">
+                                            <li class="page-item <?= ($page <= 1) ? 'disabled' : ''; ?>">
+                                                <a class="page-link"
+                                                    href="<?= ($page <= 1) ? '#' : '?page=' . ($page - 1) . (!empty($keyword) ? '&keyword=' . htmlspecialchars($keyword) : ''); ?>">Previous</a>
+                                            </li>
+                                            <?php for ($i = 1; $i <= $total_pages; $i++) : ?>
+                                            <li class="page-item <?= ($page == $i) ? 'active' : ''; ?>">
+                                                <a class="page-link"
+                                                    href="?page=<?= $i ?><?= !empty($keyword) ? '&keyword=' . htmlspecialchars($keyword) : ''; ?>"><?= $i ?></a>
+                                            </li>
+                                            <?php endfor; ?>
+                                            <li class="page-item <?= ($page >= $total_pages) ? 'disabled' : ''; ?>">
+                                                <a class="page-link"
+                                                    href="<?= ($page >= $total_pages) ? '#' : '?page=' . ($page + 1) . (!empty($keyword) ? '&keyword=' . htmlspecialchars($keyword) : ''); ?>">Next</a>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                    <?php endif; ?>
+                                </div>
+
                             </div>
                         </div>
 
@@ -247,23 +318,23 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        function confirmDeleteGuru(id, nama) {
-            Swal.fire({
-                title: 'Konfirmasi Hapus Data Guru',
-                html: `Apakah Anda yakin ingin menghapus <strong>${nama}</strong>?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = 'master_guru_pendamping_delete.php?id=' + id;
-                }
-            });
-        }
+    function confirmDeleteGuru(id, nama) {
+        Swal.fire({
+            title: 'Konfirmasi Hapus Data Guru',
+            html: `Apakah Anda yakin ingin menghapus <strong>${nama}</strong>?<br>Tindakan ini tidak dapat dibatalkan!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = 'master_guru_pendamping_delete.php?id=' + id;
+            }
+        });
+    }
     </script>
 
     <?php include './partials/script.php'; ?>
