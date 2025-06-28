@@ -72,9 +72,10 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
                                         class="btn btn-outline-danger w-100" target="_blank"> <i
                                             class="bx bxs-file-pdf me-1"></i> Cetak PDF
                                     </a>
-                                    <button type="button" class="btn btn-outline-success w-100">
+                                    <a href="generate_guru_excel.php<?= !empty($keyword) ? '?keyword=' . htmlspecialchars($keyword) : '' ?>"
+                                        class="btn btn-outline-success w-100" target="_blank">
                                         <i class="bx bxs-file-excel me-1"></i> Ekspor Excel
-                                    </button>
+                                    </a>
                                 </div>
                             </div>
 
@@ -119,17 +120,17 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
                                 <div class="table-responsive d-none d-md-block"
                                     style="overflow-x: auto; min-height: calc(100vh - 450px); overflow-y: auto;">
                                     <?php if ($total_rows > 0): ?>
-                                    <table class="table table-hover" style="min-width: 800px;">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>No</th>
-                                                <th>Nama Guru</th>
-                                                <th>NIP</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php
+                                        <table class="table table-hover" style="min-width: 800px;">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>No</th>
+                                                    <th>Nama Guru</th>
+                                                    <th>NIP</th>
+                                                    <th>Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php
                                                 // Reset pointer if already fetched for count
                                                 mysqli_data_seek($result, 0);
                                                 while ($row = mysqli_fetch_assoc($result)) {
@@ -156,21 +157,21 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
                                                     $no++;
                                                 }
                                                 ?>
-                                        </tbody>
-                                    </table>
+                                            </tbody>
+                                        </table>
                                     <?php else: ?>
-                                    <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp"
-                                        role="alert"
-                                        style="border-radius: 8px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                                        <h5 class="alert-heading mb-3"><i class="bx bx-info-circle bx-lg text-info"></i>
-                                        </h5>
-                                        <p class="mb-3">Tidak ada data guru ditemukan dengan kriteria tersebut.</p>
-                                        <p class="mb-0">
-                                            <a href="master_guru_pendamping_add.php"
-                                                class="alert-link fw-bold">Tambahkan
-                                                guru baru</a> atau coba filter lainnya!
-                                        </p>
-                                    </div>
+                                        <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp"
+                                            role="alert"
+                                            style="border-radius: 8px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                            <h5 class="alert-heading mb-3"><i class="bx bx-info-circle bx-lg text-info"></i>
+                                            </h5>
+                                            <p class="mb-3">Tidak ada data guru ditemukan dengan kriteria tersebut.</p>
+                                            <p class="mb-0">
+                                                <a href="master_guru_pendamping_add.php"
+                                                    class="alert-link fw-bold">Tambahkan
+                                                    guru baru</a> atau coba filter lainnya!
+                                            </p>
+                                        </div>
                                     <?php endif; ?>
                                 </div>
 
@@ -181,55 +182,55 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
                                     if ($total_rows > 0) {
                                         while ($row = mysqli_fetch_assoc($result)) {
                                     ?>
-                                    <div
-                                        class="card mb-3 shadow-sm border-start border-4 border-primary rounded-3 animate__animated animate__fadeInUp">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                                <div>
-                                                    <h6 class="mb-1 text-primary"><i class="bx bx-user-voice me-1"></i>
-                                                        <strong><?= htmlspecialchars($row['nama_pembimbing']) ?></strong>
-                                                    </h6>
-                                                    <span class="badge bg-label-secondary"><i
-                                                            class="bx bx-id-card me-1"></i>
-                                                        NIP: <?= htmlspecialchars($row['nip']) ?></span>
-                                                </div>
-                                                <div class="dropdown">
-                                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                        data-bs-toggle="dropdown">
-                                                        <i class="bx bx-dots-vertical-rounded"></i>
-                                                    </button>
-                                                    <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item"
-                                                            href="master_guru_pendamping_edit.php?id=<?= htmlspecialchars($row['id_pembimbing']) ?>">
-                                                            <i class="bx bx-edit-alt me-1"></i> Edit Data
-                                                        </a>
-                                                        <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
-                                                            onclick="confirmDeleteGuru('<?= htmlspecialchars($row['id_pembimbing']) ?>', '<?= htmlspecialchars($row['nama_pembimbing']) ?>')">
-                                                            <i class="bx bx-trash me-1"></i> Hapus
-                                                        </a>
+                                            <div
+                                                class="card mb-3 shadow-sm border-start border-4 border-primary rounded-3 animate__animated animate__fadeInUp">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                                        <div>
+                                                            <h6 class="mb-1 text-primary"><i class="bx bx-user-voice me-1"></i>
+                                                                <strong><?= htmlspecialchars($row['nama_pembimbing']) ?></strong>
+                                                            </h6>
+                                                            <span class="badge bg-label-secondary"><i
+                                                                    class="bx bx-id-card me-1"></i>
+                                                                NIP: <?= htmlspecialchars($row['nip']) ?></span>
+                                                        </div>
+                                                        <div class="dropdown">
+                                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                                data-bs-toggle="dropdown">
+                                                                <i class="bx bx-dots-vertical-rounded"></i>
+                                                            </button>
+                                                            <div class="dropdown-menu dropdown-menu-end">
+                                                                <a class="dropdown-item"
+                                                                    href="master_guru_pendamping_edit.php?id=<?= htmlspecialchars($row['id_pembimbing']) ?>">
+                                                                    <i class="bx bx-edit-alt me-1"></i> Edit Data
+                                                                </a>
+                                                                <div class="dropdown-divider"></div>
+                                                                <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                                    onclick="confirmDeleteGuru('<?= htmlspecialchars($row['id_pembimbing']) ?>', '<?= htmlspecialchars($row['nama_pembimbing']) ?>')">
+                                                                    <i class="bx bx-trash me-1"></i> Hapus
+                                                                </a>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                    <?php
+                                        <?php
                                         }
                                     } else {
                                         // This alert will also be displayed if no data is found for mobile
                                         ?>
-                                    <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp"
-                                        role="alert"
-                                        style="border-radius: 8px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                                        <h5 class="alert-heading mb-3"><i class="bx bx-info-circle bx-lg text-info"></i>
-                                        </h5>
-                                        <p class="mb-3">Tidak ada data guru ditemukan dengan kriteria tersebut.</p>
-                                        <p class="mb-0">
-                                            <a href="master_guru_pendamping_add.php"
-                                                class="alert-link fw-bold">Tambahkan
-                                                guru baru</a> atau coba filter lainnya!
-                                        </p>
-                                    </div>
+                                        <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp"
+                                            role="alert"
+                                            style="border-radius: 8px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                            <h5 class="alert-heading mb-3"><i class="bx bx-info-circle bx-lg text-info"></i>
+                                            </h5>
+                                            <p class="mb-3">Tidak ada data guru ditemukan dengan kriteria tersebut.</p>
+                                            <p class="mb-0">
+                                                <a href="master_guru_pendamping_add.php"
+                                                    class="alert-link fw-bold">Tambahkan
+                                                    guru baru</a> atau coba filter lainnya!
+                                            </p>
+                                        </div>
                                     <?php
                                     }
                                     ?>
@@ -246,23 +247,23 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-    function confirmDeleteGuru(id, nama) {
-        Swal.fire({
-            title: 'Konfirmasi Hapus Data Guru',
-            html: `Apakah Anda yakin ingin menghapus <strong>${nama}</strong>?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = 'master_guru_pendamping_delete.php?id=' + id;
-            }
-        });
-    }
+        function confirmDeleteGuru(id, nama) {
+            Swal.fire({
+                title: 'Konfirmasi Hapus Data Guru',
+                html: `Apakah Anda yakin ingin menghapus <strong>${nama}</strong>?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'master_guru_pendamping_delete.php?id=' + id;
+                }
+            });
+        }
     </script>
 
     <?php include './partials/script.php'; ?>

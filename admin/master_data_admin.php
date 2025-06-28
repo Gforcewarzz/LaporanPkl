@@ -99,9 +99,10 @@ if (isset($_GET['keyword']) && $_GET['keyword'] != '') {
                                         class="btn btn-outline-danger w-100" target="_blank"> <i
                                             class="bx bxs-file-pdf me-1"></i> Cetak PDF
                                     </a>
-                                    <button type="button" class="btn btn-outline-success w-100">
+                                    <a href="generate_admin_excel.php<?= !empty($keyword) ? '?keyword=' . htmlspecialchars($keyword) : '' ?>"
+                                        class="btn btn-outline-success w-100" target="_blank">
                                         <i class="bx bxs-file-excel me-1"></i> Ekspor Excel
-                                    </button>
+                                    </a>
                                 </div>
                             </div>
 
@@ -138,65 +139,65 @@ if (isset($_GET['keyword']) && $_GET['keyword'] != '') {
                                 <div class="table-responsive text-nowrap d-none d-md-block"
                                     style="min-height: calc(100vh - 450px); overflow-y: auto;">
                                     <?php if ($total_rows > 0): ?>
-                                    <table class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>Username</th>
-                                                <th>Nama Admin</th>
-                                                <th>Email</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="table-border-bottom-0">
-                                            <?php
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>No</th>
+                                                    <th>Username</th>
+                                                    <th>Nama Admin</th>
+                                                    <th>Email</th>
+                                                    <th>Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="table-border-bottom-0">
+                                                <?php
                                                 mysqli_data_seek($result, 0); // Reset pointer
                                                 $no = 1;
                                                 while ($row = mysqli_fetch_assoc($result)) {
                                                 ?>
-                                            <tr>
-                                                <td><?= $no ?></td>
-                                                <td><strong><?= htmlspecialchars($row['username']) ?></strong></td>
-                                                <td><?= htmlspecialchars($row['nama_admin']) ?></td>
-                                                <td><?= htmlspecialchars($row['email'] ?? '-') ?></td>
-                                                <td>
-                                                    <div class='dropdown'>
-                                                        <button class='btn p-0 dropdown-toggle hide-arrow'
-                                                            data-bs-toggle='dropdown'>
-                                                            <i class='bx bx-dots-vertical-rounded'></i>
-                                                        </button>
-                                                        <div class='dropdown-menu'>
-                                                            <a class='dropdown-item'
-                                                                href='master_data_admin_edit.php?id=<?= htmlspecialchars($row['id_admin']) ?>'>
-                                                                <i class='bx bx-edit-alt me-1'></i> Edit
-                                                            </a>
-                                                            <a class='dropdown-item text-danger'
-                                                                href='javascript:void(0);'
-                                                                onclick="confirmDeleteAdmin('<?= htmlspecialchars($row['id_admin']) ?>', '<?= htmlspecialchars($row['nama_admin']) ?>')">
-                                                                <i class='bx bx-trash me-1'></i> Hapus
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            <?php
+                                                    <tr>
+                                                        <td><?= $no ?></td>
+                                                        <td><strong><?= htmlspecialchars($row['username']) ?></strong></td>
+                                                        <td><?= htmlspecialchars($row['nama_admin']) ?></td>
+                                                        <td><?= htmlspecialchars($row['email'] ?? '-') ?></td>
+                                                        <td>
+                                                            <div class='dropdown'>
+                                                                <button class='btn p-0 dropdown-toggle hide-arrow'
+                                                                    data-bs-toggle='dropdown'>
+                                                                    <i class='bx bx-dots-vertical-rounded'></i>
+                                                                </button>
+                                                                <div class='dropdown-menu'>
+                                                                    <a class='dropdown-item'
+                                                                        href='master_data_admin_edit.php?id=<?= htmlspecialchars($row['id_admin']) ?>'>
+                                                                        <i class='bx bx-edit-alt me-1'></i> Edit
+                                                                    </a>
+                                                                    <a class='dropdown-item text-danger'
+                                                                        href='javascript:void(0);'
+                                                                        onclick="confirmDeleteAdmin('<?= htmlspecialchars($row['id_admin']) ?>', '<?= htmlspecialchars($row['nama_admin']) ?>')">
+                                                                        <i class='bx bx-trash me-1'></i> Hapus
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                <?php
                                                     $no++;
                                                 }
                                                 ?>
-                                        </tbody>
-                                    </table>
+                                            </tbody>
+                                        </table>
                                     <?php else: ?>
-                                    <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp"
-                                        role="alert"
-                                        style="border-radius: 8px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                                        <h5 class="alert-heading mb-3"><i class="bx bx-user-plus bx-lg text-info"></i>
-                                        </h5>
-                                        <p class="mb-3">Tidak ada data admin ditemukan dengan kriteria tersebut.</p>
-                                        <p class="mb-0">
-                                            <a href="master_data_admin_add.php" class="alert-link fw-bold">Tambahkan
-                                                admin baru</a> atau coba filter lainnya!
-                                        </p>
-                                    </div>
+                                        <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp"
+                                            role="alert"
+                                            style="border-radius: 8px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                            <h5 class="alert-heading mb-3"><i class="bx bx-user-plus bx-lg text-info"></i>
+                                            </h5>
+                                            <p class="mb-3">Tidak ada data admin ditemukan dengan kriteria tersebut.</p>
+                                            <p class="mb-0">
+                                                <a href="master_data_admin_add.php" class="alert-link fw-bold">Tambahkan
+                                                    admin baru</a> atau coba filter lainnya!
+                                            </p>
+                                        </div>
                                     <?php endif; ?>
                                 </div>
 
@@ -206,59 +207,59 @@ if (isset($_GET['keyword']) && $_GET['keyword'] != '') {
                                     if ($total_rows > 0) {
                                         while ($row = mysqli_fetch_assoc($result)) {
                                     ?>
-                                    <div
-                                        class="card mb-4 shadow-lg border-start border-4 border-primary rounded-3 animate__animated animate__fadeInUp">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                                <div>
-                                                    <h6 class="mb-1 text-primary"><i class="bx bx-user me-1"></i>
-                                                        <strong><?= htmlspecialchars($row['nama_admin']) ?></strong>
-                                                    </h6>
-                                                    <span class="badge bg-label-primary"><i
-                                                            class="bx bx-id-card me-1"></i>
-                                                        Username: <?= htmlspecialchars($row['username']) ?></span>
-                                                </div>
-                                                <div class="dropdown">
-                                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                        data-bs-toggle="dropdown">
-                                                        <i class="bx bx-dots-vertical-rounded"></i>
-                                                    </button>
-                                                    <div class="dropdown-menu dropdown-menu-end">
-                                                        <a class="dropdown-item"
-                                                            href="master_data_admin_edit.php?id=<?= htmlspecialchars($row['id_admin']) ?>">
-                                                            <i class="bx bx-edit-alt me-1"></i> Edit Data
-                                                        </a>
-                                                        <div class="dropdown-divider"></div>
-                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
-                                                            onclick="confirmDeleteAdmin('<?= htmlspecialchars($row['id_admin']) ?>', '<?= htmlspecialchars($row['nama_admin']) ?>')">
-                                                            <i class="bx bx-trash me-1"></i> Hapus
-                                                        </a>
+                                            <div
+                                                class="card mb-4 shadow-lg border-start border-4 border-primary rounded-3 animate__animated animate__fadeInUp">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                                        <div>
+                                                            <h6 class="mb-1 text-primary"><i class="bx bx-user me-1"></i>
+                                                                <strong><?= htmlspecialchars($row['nama_admin']) ?></strong>
+                                                            </h6>
+                                                            <span class="badge bg-label-primary"><i
+                                                                    class="bx bx-id-card me-1"></i>
+                                                                Username: <?= htmlspecialchars($row['username']) ?></span>
+                                                        </div>
+                                                        <div class="dropdown">
+                                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                                data-bs-toggle="dropdown">
+                                                                <i class="bx bx-dots-vertical-rounded"></i>
+                                                            </button>
+                                                            <div class="dropdown-menu dropdown-menu-end">
+                                                                <a class="dropdown-item"
+                                                                    href="master_data_admin_edit.php?id=<?= htmlspecialchars($row['id_admin']) ?>">
+                                                                    <i class="bx bx-edit-alt me-1"></i> Edit Data
+                                                                </a>
+                                                                <div class="dropdown-divider"></div>
+                                                                <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                                    onclick="confirmDeleteAdmin('<?= htmlspecialchars($row['id_admin']) ?>', '<?= htmlspecialchars($row['nama_admin']) ?>')">
+                                                                    <i class="bx bx-trash me-1"></i> Hapus
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="mb-2">
+                                                        <strong class="text-dark"><i class="bx bx-envelope me-1"></i>
+                                                            Email:</strong><br>
+                                                        <?= htmlspecialchars($row['email'] ?? '-') ?>
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            <div class="mb-2">
-                                                <strong class="text-dark"><i class="bx bx-envelope me-1"></i>
-                                                    Email:</strong><br>
-                                                <?= htmlspecialchars($row['email'] ?? '-') ?>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <?php
+                                        <?php
                                         }
                                     } else {
                                         ?>
-                                    <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp"
-                                        role="alert"
-                                        style="border-radius: 8px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                                        <h5 class="alert-heading mb-3"><i class="bx bx-user-plus bx-lg text-info"></i>
-                                        </h5>
-                                        <p class="mb-3">Tidak ada data admin ditemukan dengan kriteria tersebut.</p>
-                                        <p class="mb-0">
-                                            <a href="master_data_admin_add.php" class="alert-link fw-bold">Tambahkan
-                                                admin baru</a> atau coba filter lainnya!
-                                        </p>
-                                    </div>
+                                        <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp"
+                                            role="alert"
+                                            style="border-radius: 8px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                            <h5 class="alert-heading mb-3"><i class="bx bx-user-plus bx-lg text-info"></i>
+                                            </h5>
+                                            <p class="mb-3">Tidak ada data admin ditemukan dengan kriteria tersebut.</p>
+                                            <p class="mb-0">
+                                                <a href="master_data_admin_add.php" class="alert-link fw-bold">Tambahkan
+                                                    admin baru</a> atau coba filter lainnya!
+                                            </p>
+                                        </div>
                                     <?php
                                     }
                                     ?>
@@ -276,23 +277,23 @@ if (isset($_GET['keyword']) && $_GET['keyword'] != '') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-    function confirmDeleteAdmin(id, nama) {
-        Swal.fire({
-            title: 'Konfirmasi Hapus Data Admin',
-            html: `Apakah Anda yakin ingin menghapus akun admin bernama <strong>${nama}</strong>?<br>Tindakan ini tidak dapat dibatalkan!`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Ya, Hapus Sekarang!',
-            cancelButtonText: 'Batal',
-            reverseButtons: true // This reverses the button order
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = 'master_data_admin_delete.php?id=' + id;
-            }
-        });
-    }
+        function confirmDeleteAdmin(id, nama) {
+            Swal.fire({
+                title: 'Konfirmasi Hapus Data Admin',
+                html: `Apakah Anda yakin ingin menghapus akun admin bernama <strong>${nama}</strong>?<br>Tindakan ini tidak dapat dibatalkan!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Hapus Sekarang!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true // This reverses the button order
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'master_data_admin_delete.php?id=' + id;
+                }
+            });
+        }
     </script>
     <?php include './partials/script.php'; ?>
 </body>
