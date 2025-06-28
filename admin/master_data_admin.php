@@ -2,43 +2,22 @@
 
 session_start();
 
-// 1. Aturan utama: Cek apakah pengguna yang mengakses BUKAN seorang ADMIN.
 if (!isset($_SESSION['admin_status_login']) || $_SESSION['admin_status_login'] !== 'logged_in') {
-
-    // 2. Jika bukan admin, cek apakah dia adalah SISWA.
     if (isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in') {
-        // Jika benar siswa, kembalikan ke halaman siswa.
         header('Location: master_kegiatan_harian.php');
         exit();
-    }
-    // 3. TAMBAHAN: Jika bukan siswa, cek apakah dia adalah GURU.
-    elseif (isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in') {
-        // Jika benar guru, kembalikan ke halaman guru.
-        header('Location: ../../halaman_guru.php'); //belum di atur
+    } elseif (isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in') {
+        header('Location: ../../halaman_guru.php');
         exit();
-    }
-    // 4. Jika bukan salah satu dari role di atas (admin, siswa, guru),
-    // artinya pengguna belum login sama sekali. Arahkan ke halaman login.
-    else {
+    } else {
         header('Location: ../login.php');
         exit();
     }
 }
 
-// 5. Jika lolos semua pemeriksaan di atas, maka dia adalah ADMIN yang sah.
-// Tampilkan semua konten halaman ini.
-include 'partials/db.php'; // Pastikan path ini benar
+include 'partials/db.php';
 
-
-// Cek apakah admin sudah login
-// Menggunakan sesi universal 'user_role' yang kita tetapkan di login_petugas_act.php
-// if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'admin') {
-//     // Jika tidak login sebagai admin, redirect ke halaman login
-//     header('Location: ../login.php'); // Sesuaikan path jika login.php ada di root
-//     exit();
-// }
-
-$keyword = ""; // Untuk fitur pencarian
+$keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
 if (isset($_GET['keyword']) && $_GET['keyword'] != '') {
     $keyword = mysqli_real_escape_string($koneksi, $_GET['keyword']);
     $filter_sql = "WHERE username LIKE '%$keyword%' OR nama_admin LIKE '%$keyword%' OR email LIKE '%$keyword%'";
@@ -150,7 +129,15 @@ if (isset($_GET['keyword']) && $_GET['keyword'] != '') {
                                 <small class="text-muted">Informasi detail seluruh admin</small>
                             </div>
                             <div class="card-body p-0">
-                                <div class="table-responsive text-nowrap d-none d-md-block">
+                                <?php
+                                $query = "SELECT id_admin, username, nama_admin, email FROM admin $filter_sql ORDER BY id_admin ASC";
+                                $result = mysqli_query($koneksi, $query);
+                                $total_rows = mysqli_num_rows($result);
+                                ?>
+
+                                <div class="table-responsive text-nowrap d-none d-md-block"
+                                    style="min-height: calc(100vh - 450px); overflow-y: auto;">
+                                    <?php if ($total_rows > 0): ?>
                                     <table class="table table-hover">
                                         <thead>
                                             <tr>
@@ -163,13 +150,10 @@ if (isset($_GET['keyword']) && $_GET['keyword'] != '') {
                                         </thead>
                                         <tbody class="table-border-bottom-0">
                                             <?php
-                                            $query = "SELECT id_admin, username, nama_admin, email FROM admin $filter_sql ORDER BY id_admin ASC";
-                                            $result = mysqli_query($koneksi, $query);
-                                            $no = 1;
-
-                                            if (mysqli_num_rows($result) > 0) {
+                                                mysqli_data_seek($result, 0); // Reset pointer
+                                                $no = 1;
                                                 while ($row = mysqli_fetch_assoc($result)) {
-                                            ?>
+                                                ?>
                                             <tr>
                                                 <td><?= $no ?></td>
                                                 <td><strong><?= htmlspecialchars($row['username']) ?></strong></td>
@@ -198,18 +182,28 @@ if (isset($_GET['keyword']) && $_GET['keyword'] != '') {
                                             <?php
                                                     $no++;
                                                 }
-                                            } else {
-                                                echo "<tr><td colspan='5' class='text-center'>Tidak ada data admin ditemukan.</td></tr>";
-                                            }
-                                            ?>
+                                                ?>
                                         </tbody>
                                     </table>
+                                    <?php else: ?>
+                                    <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp"
+                                        role="alert"
+                                        style="border-radius: 8px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                        <h5 class="alert-heading mb-3"><i class="bx bx-user-plus bx-lg text-info"></i>
+                                        </h5>
+                                        <p class="mb-3">Tidak ada data admin ditemukan dengan kriteria tersebut.</p>
+                                        <p class="mb-0">
+                                            <a href="master_data_admin_add.php" class="alert-link fw-bold">Tambahkan
+                                                admin baru</a> atau coba filter lainnya!
+                                        </p>
+                                    </div>
+                                    <?php endif; ?>
                                 </div>
 
                                 <div class="d-md-none p-3">
                                     <?php
-                                    mysqli_data_seek($result, 0); // Reset result pointer
-                                    if (mysqli_num_rows($result) > 0) {
+                                    mysqli_data_seek($result, 0); // Reset result pointer for mobile display
+                                    if ($total_rows > 0) {
                                         while ($row = mysqli_fetch_assoc($result)) {
                                     ?>
                                     <div
@@ -255,7 +249,8 @@ if (isset($_GET['keyword']) && $_GET['keyword'] != '') {
                                     } else {
                                         ?>
                                     <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp"
-                                        role="alert" style="border-radius: 8px;">
+                                        role="alert"
+                                        style="border-radius: 8px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                                         <h5 class="alert-heading mb-3"><i class="bx bx-user-plus bx-lg text-info"></i>
                                         </h5>
                                         <p class="mb-3">Tidak ada data admin ditemukan dengan kriteria tersebut.</p>
@@ -291,7 +286,7 @@ if (isset($_GET['keyword']) && $_GET['keyword'] != '') {
             cancelButtonColor: '#6c757d',
             confirmButtonText: 'Ya, Hapus Sekarang!',
             cancelButtonText: 'Batal',
-            reverseButtons: true
+            reverseButtons: true // This reverses the button order
         }).then((result) => {
             if (result.isConfirmed) {
                 window.location.href = 'master_data_admin_delete.php?id=' + id;

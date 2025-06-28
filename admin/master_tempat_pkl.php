@@ -1,37 +1,60 @@
 <?php
-// 1. Selalu mulai sesi di baris paling awal sebelum output lainnya
+
 session_start();
 
-// --- LOGIKA KEAMANAN HALAMAN ---
+$is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
+$is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
 
-// 1. Aturan utama: Cek apakah pengguna yang mengakses BUKAN seorang ADMIN.
-if (!isset($_SESSION['admin_status_login']) || $_SESSION['admin_status_login'] !== 'logged_in') {
-
-    // 2. Jika bukan admin, cek apakah dia adalah SISWA.
-    if (isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in') {
-        // Jika benar siswa, kembalikan ke halaman siswa.
-        header('Location: master_kegiatan_harian.php');
+if (!$is_siswa && !$is_admin) {
+    if (isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in') {
+        header('Location: ../../halaman_guru.php');
         exit();
-    }
-    // 3. TAMBAHAN: Jika bukan siswa, cek apakah dia adalah GURU.
-    elseif (isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in') {
-        // Jika benar guru, kembalikan ke halaman guru.
-        header('Location: ../../halaman_guru.php'); //belum di atur
-        exit();
-    }
-    // 4. Jika bukan salah satu dari role di atas (admin, siswa, guru),
-    // artinya pengguna belum login sama sekali. Arahkan ke halaman login.
-    else {
-        header('Location: .../login.php');
+    } else {
+        header('Location: ../login.php');
         exit();
     }
 }
 
-// 5. Jika lolos semua pemeriksaan di atas, maka dia adalah ADMIN yang sah.
-// Tampilkan semua konten halaman ini.
-?>
-<?php include 'partials/db.php';
+include 'partials/db.php';
 $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
+
+$sql = "SELECT tp.*, j.nama_jurusan 
+        FROM tempat_pkl tp
+        LEFT JOIN jurusan j ON tp.jurusan_id = j.id_jurusan";
+
+$params = [];
+$types = "";
+$where_clauses = [];
+
+if (!empty($keyword)) {
+    $where_clauses[] = "(tp.nama_tempat_pkl LIKE ? OR tp.nama_instruktur LIKE ?)";
+    $params[] = "%" . $keyword . "%";
+    $params[] = "%" . $keyword . "%";
+    $types .= "ss";
+}
+
+if (!empty($where_clauses)) {
+    $sql .= " WHERE " . implode(" AND ", $where_clauses);
+}
+
+$sql .= " ORDER BY tp.nama_tempat_pkl ASC";
+
+$stmt = $koneksi->prepare($sql);
+
+if ($stmt) {
+    if (!empty($params)) {
+        $stmt->bind_param($types, ...$params);
+    }
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $data_tempat_pkl = $result->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+} else {
+    error_log("Failed to prepare statement for tempat_pkl: " . $koneksi->error);
+    $data_tempat_pkl = [];
+}
+
+$koneksi->close();
 ?>
 
 <!DOCTYPE html>
@@ -47,7 +70,6 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
                 <div class="content-wrapper">
                     <div class="container-xxl flex-grow-1 container-p-y">
 
-                        <!-- Header -->
                         <div
                             class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom position-relative">
                             <h4 class="fw-bold mb-0 text-primary animate__animated animate__fadeInLeft">
@@ -57,7 +79,6 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
                                 style="opacity: 0.6;"></i>
                         </div>
 
-                        <!-- Tombol Aksi dan Filter -->
                         <div class="card mb-4 shadow-lg">
                             <div
                                 class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 p-4">
@@ -97,14 +118,15 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
                             </div>
                         </div>
 
-                        <!-- Tabel Data -->
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0">Daftar Lengkap Tempat PKL</h5>
                                 <small class="text-muted">Informasi detail seluruh mitra perusahaan/instansi</small>
                             </div>
                             <div class="card-body p-0">
-                                <div class="table-responsive text-nowrap">
+                                <div class="table-responsive text-nowrap d-none d-md-block"
+                                    style="min-height: calc(100vh - 450px); overflow-y: auto;">
+                                    <?php if (!empty($data_tempat_pkl)): ?>
                                     <table class="table table-hover">
                                         <thead>
                                             <tr>
@@ -120,56 +142,140 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
                                         </thead>
                                         <tbody class="table-border-bottom-0">
                                             <?php
-                                            $no = 1;
-                                            $whereClause = "";
-                                            if (!empty($keyword)) {
-                                                $keywordSafe = mysqli_real_escape_string($koneksi, $keyword);
-                                                $whereClause = "WHERE tp.nama_tempat_pkl LIKE '%$keywordSafe%' 
-                                                            OR tp.nama_instruktur LIKE '%$keywordSafe%'";
-                                            }
-
-                                            $query = mysqli_query($koneksi, "
-                                            SELECT tp.*, j.nama_jurusan 
-                                            FROM tempat_pkl tp
-                                            LEFT JOIN jurusan j ON tp.jurusan_id = j.id_jurusan
-                                            $whereClause
-                                            ORDER BY tp.id_tempat_pkl ASC
-                                        ");
-
-                                            if (mysqli_num_rows($query) > 0) {
-                                                while ($data = mysqli_fetch_assoc($query)) {
-                                                    echo "<tr>
-                                                    <td>{$no}</td>
-                                                    <td><strong>" . htmlspecialchars($data['nama_tempat_pkl']) . "</strong></td>
-                                                    <td>" . htmlspecialchars($data['alamat']) . "</td>
-                                                    <td>" . htmlspecialchars($data['alamat_kontak']) . "</td>
-                                                    <td>" . htmlspecialchars($data['nama_instruktur']) . "</td>
-                                                    <td><span class='badge bg-label-info me-1'>{$data['kuota_siswa']} Siswa</span></td>
-                                                    <td>" . htmlspecialchars($data['nama_jurusan'] ?: '-') . "</td>
-                                                    <td>
-                                                        <div class='dropdown'>
-                                                            <button type='button' class='btn p-0 dropdown-toggle hide-arrow' data-bs-toggle='dropdown'>
-                                                                <i class='bx bx-dots-vertical-rounded'></i>
-                                                            </button>
-                                                            <div class='dropdown-menu'>
-                                                                <a class='dropdown-item' href='master_tempat_pkl_edit.php?id={$data['id_tempat_pkl']}'>
-                                                                    <i class='bx bx-edit-alt me-1'></i> Edit
-                                                                </a>
-                                                                <a class='dropdown-item text-danger' href='javascript:void(0);' onclick=\"confirmDeleteTempatPKL('{$data['id_tempat_pkl']}', '" . htmlspecialchars($data['nama_tempat_pkl']) . "')\">
-                                                                    <i class='bx bx-trash me-1'></i> Hapus
-                                                                </a>
-                                                            </div>
+                                                $no_table = 1;
+                                                foreach ($data_tempat_pkl as $data) {
+                                                ?>
+                                            <tr>
+                                                <td><?= $no_table++ ?></td>
+                                                <td><strong><?= htmlspecialchars($data['nama_tempat_pkl']) ?></strong>
+                                                </td>
+                                                <td><?= htmlspecialchars($data['alamat']) ?></td>
+                                                <td><?= htmlspecialchars($data['alamat_kontak']) ?></td>
+                                                <td><?= htmlspecialchars($data['nama_instruktur']) ?></td>
+                                                <td><span class='badge bg-label-info me-1'><?= $data['kuota_siswa'] ?>
+                                                        Siswa</span></td>
+                                                <td><?= htmlspecialchars($data['nama_jurusan'] ?: '-') ?></td>
+                                                <td>
+                                                    <div class='dropdown'>
+                                                        <button type='button' class='btn p-0 dropdown-toggle hide-arrow'
+                                                            data-bs-toggle='dropdown'>
+                                                            <i class='bx bx-dots-vertical-rounded'></i>
+                                                        </button>
+                                                        <div class='dropdown-menu'>
+                                                            <a class='dropdown-item'
+                                                                href='master_tempat_pkl_edit.php?id=<?= htmlspecialchars($data['id_tempat_pkl']) ?>'>
+                                                                <i class='bx bx-edit-alt me-1'></i> Edit
+                                                            </a>
+                                                            <a class='dropdown-item text-danger'
+                                                                href='javascript:void(0);'
+                                                                onclick="confirmDeleteTempatPKL('<?= htmlspecialchars($data['id_tempat_pkl']) ?>', '<?= htmlspecialchars($data['nama_tempat_pkl']) ?>')">
+                                                                <i class='bx bx-trash me-1'></i> Hapus
+                                                            </a>
                                                         </div>
-                                                    </td>
-                                                </tr>";
-                                                    $no++;
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <?php
                                                 }
-                                            } else {
-                                                echo "<tr><td colspan='8' class='text-center text-muted py-4'>Tidak ada data ditemukan.</td></tr>";
-                                            }
-                                            ?>
+                                                ?>
                                         </tbody>
                                     </table>
+                                    <?php else: ?>
+                                    <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp"
+                                        role="alert"
+                                        style="border-radius: 8px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                        <h5 class="alert-heading mb-3"><i class="bx bx-info-circle bx-lg text-info"></i>
+                                        </h5>
+                                        <p class="mb-3">Tidak ada data tempat PKL ditemukan dengan kriteria tersebut.
+                                        </p>
+                                        <p class="mb-0">
+                                            <a href="master_tempat_pkl_add.php" class="alert-link fw-bold">Tambahkan
+                                                tempat PKL baru</a> atau coba filter lainnya!
+                                        </p>
+                                    </div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="d-md-none p-3">
+                                    <?php
+                                    if (!empty($data_tempat_pkl)) {
+                                        $colors = ['primary', 'warning', 'info', 'success', 'danger'];
+                                        $color_index = 0;
+                                        foreach ($data_tempat_pkl as $data) {
+                                            $current_color = $colors[$color_index % count($colors)];
+                                            $color_index++;
+                                    ?>
+                                    <div
+                                        class="card mb-3 shadow-sm border-start border-4 border-<?= $current_color ?> rounded-3 animate__animated animate__fadeInUp">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                <div>
+                                                    <h6 class="mb-1 text-primary"><i class="bx bx-building me-1"></i>
+                                                        <strong><?= htmlspecialchars($data['nama_tempat_pkl']) ?></strong>
+                                                    </h6>
+                                                    <span class="badge bg-label-<?= $current_color ?>"><i
+                                                            class="bx bx-group me-1"></i>
+                                                        Kuota: <?= htmlspecialchars($data['kuota_siswa']) ?>
+                                                        Siswa</span>
+                                                </div>
+                                                <div class="dropdown">
+                                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                        data-bs-toggle="dropdown">
+                                                        <i class="bx bx-dots-vertical-rounded"></i>
+                                                    </button>
+                                                    <div class="dropdown-menu dropdown-menu-end">
+                                                        <a class="dropdown-item"
+                                                            href="master_tempat_pkl_edit.php?id=<?= htmlspecialchars($data['id_tempat_pkl']) ?>"><i
+                                                                class="bx bx-edit-alt me-1"></i> Edit Data</a>
+                                                        <div class="dropdown-divider"></div>
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="confirmDeleteTempatPKL('<?= htmlspecialchars($data['id_tempat_pkl']) ?>', '<?= htmlspecialchars($data['nama_tempat_pkl']) ?>')"><i
+                                                                class="bx bx-trash me-1"></i> Hapus</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-2">
+                                                <strong class="text-dark"><i class="bx bx-map-alt me-1"></i>
+                                                    Alamat:</strong><br>
+                                                <?= htmlspecialchars($data['alamat']) ?>
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong class="text-dark"><i class="bx bx-phone me-1"></i>
+                                                    Kontak:</strong><br>
+                                                <?= htmlspecialchars($data['alamat_kontak']) ?>
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong class="text-dark"><i class="bx bx-user-circle me-1"></i>
+                                                    Instruktur:</strong><br>
+                                                <?= htmlspecialchars($data['nama_instruktur']) ?>
+                                            </div>
+                                            <div class="mb-0">
+                                                <strong class="text-dark"><i class="bx bx-book-open me-1"></i>
+                                                    Jurusan:</strong><br>
+                                                <?= htmlspecialchars($data['nama_jurusan'] ?: '-') ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php
+                                        }
+                                    } else {
+                                        ?>
+                                    <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp"
+                                        role="alert"
+                                        style="border-radius: 8px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                        <h5 class="alert-heading mb-3"><i class="bx bx-info-circle bx-lg text-info"></i>
+                                        </h5>
+                                        <p class="mb-3">Tidak ada data tempat PKL ditemukan dengan kriteria tersebut.
+                                        </p>
+                                        <p class="mb-0">
+                                            <a href="master_tempat_pkl_add.php" class="alert-link fw-bold">Tambahkan
+                                                tempat PKL baru</a> atau coba filter lainnya!
+                                        </p>
+                                    </div>
+                                    <?php
+                                    }
+                                    ?>
                                 </div>
                             </div>
                         </div>
@@ -181,26 +287,25 @@ $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
         </div>
     </div>
 
-    <!-- SweetAlert -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        function confirmDeleteTempatPKL(id, namaPerusahaan) {
-            Swal.fire({
-                title: 'Konfirmasi Hapus Data Tempat PKL',
-                html: "Apakah Anda yakin ingin menghapus <strong>" + namaPerusahaan + "</strong>?",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = 'master_tempat_pkl_delete.php?id=' + id;
-                }
-            });
-        }
+    function confirmDeleteTempatPKL(id, namaPerusahaan) {
+        Swal.fire({
+            title: 'Konfirmasi Hapus Data Tempat PKL',
+            html: "Apakah Anda yakin ingin menghapus <strong>" + namaPerusahaan + "</strong>?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = 'master_tempat_pkl_delete.php?id=' + id;
+            }
+        });
+    }
     </script>
 
     <?php include './partials/script.php'; ?>

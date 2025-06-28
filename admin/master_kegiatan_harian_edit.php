@@ -2,57 +2,80 @@
 session_start();
 include 'partials/db.php';
 
-
-// --- LOGIKA KEAMANAN HALAMAN SISWA ---
-
-// 1. Definisikan dulu role yang sedang login untuk mempermudah pembacaan kode.
+// --- LOGIKA KEAMANAN HALAMAN ---
 $is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
 
-// 2. Aturan utama: Cek jika pengguna BUKAN Siswa DAN BUKAN Admin.
-// Jika salah satu dari mereka (siswa atau admin) login, kondisi ini akan false dan halaman akan lanjut dimuat.
 if (!$is_siswa && !$is_admin) {
-    
-    // 3. Jika tidak diizinkan, baru kita cek siapa pengguna ini.
-    // Apakah dia seorang Guru yang mencoba masuk?
     if (isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in') {
-        // Jika benar guru, kembalikan ke halaman dasbor guru.
-        header('Location: ../halaman_guru.php'); // Sesuaikan path jika perlu
+        header('Location: ../halaman_guru.php');
         exit();
-    }
-    // 4. Jika bukan siapa-siapa dari role di atas, artinya pengguna belum login.
-    else {
-        // Arahkan paksa ke halaman login.
-        header('Location: ../login.php'); // Sesuaikan path jika perlu
+    } else {
+        header('Location: ../login.php');
         exit();
     }
 }
 
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-$siswa_id = $_SESSION['id_siswa'];
+// Ambil ID laporan yang akan diedit dari URL
+$id_jurnal_harian = $_GET['id'] ?? null;
 
-// Ambil data kegiatan dari database berdasarkan ID dan siswa
-$query = "SELECT * FROM jurnal_harian WHERE id_jurnal_harian = $id AND siswa_id = $siswa_id";
-$result = mysqli_query($koneksi, $query);
-$activityData = mysqli_fetch_assoc($result);
+if (empty($id_jurnal_harian)) {
+    // Jika tidak ada ID laporan, redirect atau tampilkan error
+    header('Location: master_kegiatan_harian.php'); // Atau halaman error
+    exit();
+}
 
-// Data untuk datalist (opsional)
-$pekerjaan_options = [
-    'Membantu konfigurasi server',
-    'Melakukan instalasi software',
-    'Riset teknologi baru',
-    'Membuat dokumentasi proyek',
-    'Debugging kode program',
-    'Mendesain UI/UX'
-];
-$catatan_options = [
-    'Kendala teknis berhasil diatasi.',
-    'Perlu follow up besok.',
-    'Sangat memahami materi yang diberikan.',
-    'Menemukan bug minor.',
-    'Belajar fitur baru di aplikasi X.'
-];
+// Ambil data laporan dari database
+$query_laporan = "SELECT id_jurnal_harian, tanggal, pekerjaan, catatan, siswa_id FROM jurnal_harian WHERE id_jurnal_harian = ?";
+$stmt_laporan = $koneksi->prepare($query_laporan);
+
+if (!$stmt_laporan) {
+    // Handle error prepare statement
+    error_log("Failed to prepare statement for fetching data: " . $koneksi->error);
+    // Redirect ke halaman error atau tampilkan pesan
+    header('Location: master_kegiatan_harian.php'); // Atau halaman error
+    exit();
+}
+
+$stmt_laporan->bind_param("i", $id_jurnal_harian);
+$stmt_laporan->execute();
+$result_laporan = $stmt_laporan->get_result();
+$laporan_data = $result_laporan->fetch_assoc();
+$stmt_laporan->close();
+
+// Jika laporan tidak ditemukan
+if (!$laporan_data) {
+    header('Location: master_kegiatan_harian.php'); // Atau halaman error
+    exit();
+}
+
+// --- LOGIKA OTORISASI UNTUK EDIT ---
+// Siswa hanya bisa mengedit laporan miliknya sendiri
+if ($is_siswa && $laporan_data['siswa_id'] != ($_SESSION['id_siswa'] ?? null)) {
+    header('Location: master_kegiatan_harian.php'); // Arahkan kembali jika bukan laporan mereka
+    exit();
+}
+// Admin bisa mengedit laporan siapa saja, jadi tidak perlu cek siswa_id di sini
+
+// Ambil data siswa terkait laporan (untuk ditampilkan di header jika admin)
+$siswa_nama = "";
+if ($is_admin) {
+    $query_siswa_nama = "SELECT nama_siswa FROM siswa WHERE id_siswa = ?";
+    $stmt_siswa_nama = $koneksi->prepare($query_siswa_nama);
+    if ($stmt_siswa_nama) {
+        $stmt_siswa_nama->bind_param("i", $laporan_data['siswa_id']);
+        $stmt_siswa_nama->execute();
+        $result_siswa_nama = $stmt_siswa_nama->get_result();
+        if ($result_siswa_nama->num_rows > 0) {
+            $siswa_nama = htmlspecialchars($result_siswa_nama->fetch_assoc()['nama_siswa']);
+        }
+        $stmt_siswa_nama->close();
+    }
+}
+
+$koneksi->close(); // Tutup koneksi setelah semua data diambil
 ?>
+
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="./assets/"
     data-template="vertical-menu-template-free">
@@ -70,73 +93,99 @@ $catatan_options = [
                         <div
                             class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom position-relative">
                             <h4 class="fw-bold mb-0 text-primary animate__animated animate__fadeInLeft">
-                                <span class="text-muted fw-light">Laporan Harian /</span> Edit Laporan
+                                <span class="text-muted fw-light">Laporan Harian /</span> Edit Kegiatan
                             </h4>
                             <i class="fas fa-edit fa-2x text-info animate__animated animate__fadeInRight"
                                 style="opacity: 0.6;"></i>
                         </div>
 
-                        <?php if ($activityData): ?>
-                            <div class="card shadow-lg animate__animated animate__fadeInUp" style="border-radius: 10px;">
-                                <div class="card-header border-bottom">
-                                    <h5 class="card-title mb-0">Formulir Edit Laporan Kegiatan</h5>
-                                    <small class="text-muted">Isi kolom yang ingin diubah, sisanya biarkan.</small>
+                        <div class="card bg-gradient-primary-to-secondary text-white mb-4 shadow-lg animate__animated animate__fadeInDown"
+                            style="border-radius: 12px; overflow: hidden; background: linear-gradient(135deg, #696cff 0%, #a4bdfa 100%);">
+                            <div
+                                class="card-body p-4 d-flex flex-column flex-sm-row justify-content-between align-items-center">
+                                <div class="text-center text-sm-start mb-3 mb-sm-0">
+                                    <h5 class="card-title text-white mb-1">Edit Laporan Harian
+                                        <?php if ($is_admin && !empty($siswa_nama)) echo "Siswa: " . $siswa_nama;
+                                        else echo "Anda"; ?>
+                                    </h5>
+                                    <p class="card-text text-white-75 small">Perbarui data laporan kegiatan ini.</p>
                                 </div>
-                                <div class="card-body p-4">
-                                    <form action="master_kegiatan_harian_edit_act.php" method="POST">
-                                        <input type="hidden" name="id_jurnal_harian"
-                                            value="<?php echo $activityData['id_jurnal_harian']; ?>">
-
-                                        <div class="mb-3">
-                                            <label for="tanggal" class="form-label fw-bold">
-                                                <i class="bx bx-calendar me-1"></i> Hari/Tanggal Kegiatan:
-                                            </label>
-                                            <input type="date" class="form-control" id="tanggal" name="tanggal"
-                                                value="<?php echo $activityData['tanggal']; ?>" required>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label for="pekerjaan" class="form-label fw-bold">
-                                                <i class="bx bx-briefcase-alt me-1"></i> Deskripsi Pekerjaan:
-                                            </label>
-                                            <textarea class="form-control" id="pekerjaan" name="pekerjaan" rows="5"
-                                                required><?php echo htmlspecialchars($activityData['pekerjaan']); ?></textarea>
-                                            <datalist id="datalistPekerjaan">
-                                                <?php foreach ($pekerjaan_options as $p): ?>
-                                                    <option value="<?php echo htmlspecialchars($p); ?>">
-                                                    <?php endforeach; ?>
-                                            </datalist>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label for="catatan" class="form-label fw-bold">
-                                                <i class="bx bx-notepad me-1"></i> Catatan Tambahan (Opsional):
-                                            </label>
-                                            <textarea class="form-control" id="catatan" name="catatan"
-                                                rows="3"><?php echo htmlspecialchars($activityData['catatan']); ?></textarea>
-                                            <datalist id="datalistCatatan">
-                                                <?php foreach ($catatan_options as $c): ?>
-                                                    <option value="<?php echo htmlspecialchars($c); ?>">
-                                                    <?php endforeach; ?>
-                                            </datalist>
-                                        </div>
-
-                                        <hr class="my-4">
-
-                                        <div class="d-flex justify-content-end gap-2">
-                                            <a href="master_kegiatan_harian.php" class="btn btn-outline-secondary">
-                                                <i class="bx bx-arrow-back me-1"></i> Batal
-                                            </a>
-                                            <button type="submit" class="btn btn-primary">
-                                                <i class="bx bx-save me-1"></i> Simpan Perubahan
-                                            </button>
-                                        </div>
-                                    </form>
+                                <div class="text-center text-sm-end position-relative">
+                                    <div class="rounded-circle bg-white d-flex justify-content-center align-items-center animate__animated animate__zoomIn animate__delay-0-5s"
+                                        style="width: 80px; height: 80px; opacity: 0.2; position: relative; overflow: hidden; z-index: 1;">
+                                        <i class="bx bx-pencil bx-lg text-primary"
+                                            style="font-size: 3rem; opacity: 1;"></i>
+                                    </div>
+                                    <div class="position-absolute rounded-circle bg-white"
+                                        style="width: 50px; height: 50px; opacity: 0.1; top: -10px; left: -10px; transform: scale(0.6); z-index: 0;">
+                                    </div>
+                                    <div class="position-absolute rounded-circle bg-white"
+                                        style="width: 60px; height: 60px; opacity: 0.15; bottom: -10px; right: -10px; transform: scale(0.8); z-index: 0;">
+                                    </div>
                                 </div>
                             </div>
-                        <?php else: ?>
-                            <div class="alert alert-danger">Data tidak ditemukan atau tidak valid.</div>
-                        <?php endif; ?>
+                        </div>
+
+                        <div class="card shadow-lg animate__animated animate__fadeInUp" style="border-radius: 10px;">
+                            <div class="card-header border-bottom">
+                                <h5 class="card-title mb-0">Formulir Edit Kegiatan</h5>
+                                <small class="text-muted">Pastikan semua perubahan sudah benar.</small>
+                            </div>
+                            <div class="card-body p-4">
+                                <form action="master_kegiatan_harian_edit_act.php" method="POST">
+                                    <input type="hidden" name="id_jurnal_harian"
+                                        value="<?= htmlspecialchars($laporan_data['id_jurnal_harian']) ?>">
+                                    <input type="hidden" name="siswa_id_original"
+                                        value="<?= htmlspecialchars($laporan_data['siswa_id']) ?>">
+                                    <?php if ($is_admin): // Tambahkan hidden input untuk redirect admin 
+                                    ?>
+                                    <input type="hidden" name="redirect_siswa_id"
+                                        value="<?= htmlspecialchars($laporan_data['siswa_id']) ?>">
+                                    <?php endif; ?>
+
+                                    <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-2s">
+                                        <label for="tanggal_kegiatan" class="form-label fw-bold">
+                                            <i class="bx bx-calendar me-1"></i> Hari/Tanggal Kegiatan:
+                                        </label>
+                                        <input type="date" class="form-control" id="tanggal_kegiatan" name="tanggal"
+                                            required value="<?= htmlspecialchars($laporan_data['tanggal']) ?>">
+                                    </div>
+
+                                    <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-3s">
+                                        <label for="pekerjaan" class="form-label fw-bold">
+                                            <i class="bx bx-briefcase-alt me-1"></i> Deskripsi Pekerjaan:
+                                        </label>
+                                        <textarea class="form-control" id="pekerjaan" name="pekerjaan" rows="5"
+                                            placeholder="Contoh: Membantu tim IT dalam konfigurasi jaringan baru di kantor pusat."
+                                            required><?= htmlspecialchars($laporan_data['pekerjaan']) ?></textarea>
+                                    </div>
+
+                                    <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-4s">
+                                        <label for="catatan" class="form-label fw-bold">
+                                            <i class="bx bx-notepad me-1"></i> Catatan Tambahan (Opsional):
+                                        </label>
+                                        <textarea class="form-control" id="catatan" name="catatan" rows="3"
+                                            placeholder="Contoh: Menghadapi kendala teknis saat instalasi driver printer."><?= htmlspecialchars($laporan_data['catatan']) ?></textarea>
+                                    </div>
+
+                                    <hr class="my-4">
+
+                                    <div
+                                        class="d-flex flex-column flex-sm-row justify-content-end gap-2 animate__animated animate__fadeInUp animate__delay-0-5s">
+                                        <a href="master_kegiatan_harian.php"
+                                            class="btn btn-outline-secondary w-100 w-sm-auto">
+                                            <i class="bx bx-arrow-back me-1"></i> Kembali
+                                        </a>
+                                        <button type="reset" class="btn btn-outline-secondary w-100 w-sm-auto">
+                                            <i class="bx bx-refresh me-1"></i> Reset Form
+                                        </button>
+                                        <button type="submit" class="btn btn-primary w-100 w-sm-auto">
+                                            <i class="bx bx-save me-1"></i> Simpan Perubahan
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="layout-overlay layout-menu-toggle"></div>
@@ -144,11 +193,10 @@ $catatan_options = [
         </div>
     </div>
 
-    <!-- Animate & Script -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <?php include 'partials/script.php'; ?>
+    <?php include './partials/script.php'; ?>
 </body>
 
 </html>

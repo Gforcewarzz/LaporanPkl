@@ -1,33 +1,51 @@
 <?php
-// Memulai sesi untuk bisa menggunakan $_SESSION
 session_start();
+include 'partials/db.php'; // Pastikan koneksi database tersedia di sini
 
-// --- LOGIKA KEAMANAN HALAMAN SISWA ---
-
-// 1. Definisikan dulu role yang sedang login untuk mempermudah pembacaan kode.
+// LOGIKA KEAMANAN HALAMAN
 $is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
 
-// 2. Aturan utama: Cek jika pengguna BUKAN Siswa DAN BUKAN Admin.
-// Jika salah satu dari mereka (siswa atau admin) login, kondisi ini akan false dan halaman akan lanjut dimuat.
 if (!$is_siswa && !$is_admin) {
-
-    // 3. Jika tidak diizinkan, baru kita cek siapa pengguna ini.
-    // Apakah dia seorang Guru yang mencoba masuk?
     if (isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in') {
-        // Jika benar guru, kembalikan ke halaman dasbor guru.
-        header('Location: ../halaman_guru.php'); // Sesuaikan path jika perlu
+        header('Location: ../halaman_guru.php');
         exit();
-    }
-    // 4. Jika bukan siapa-siapa dari role di atas, artinya pengguna belum login.
-    else {
-        // Arahkan paksa ke halaman login.
-        header('Location: ../login.php'); // Sesuaikan path jika perlu
+    } else {
+        header('Location: ../login.php');
         exit();
     }
 }
-// Mengambil id_siswa dari sesi untuk nanti dimasukkan ke dalam form
-$id_siswa_session = $_SESSION['id_siswa'];
+
+// PENENTUAN SISWA_ID UNTUK FORM
+$siswa_id_to_prefill = null; // ID siswa yang akan diisi ke hidden input
+
+// Jika siswa yang login, gunakan ID dari sesi
+if ($is_siswa && isset($_SESSION['id_siswa'])) {
+    $siswa_id_to_prefill = $_SESSION['id_siswa'];
+} elseif ($is_admin) {
+    // Jika admin yang login, cek apakah ada siswa_id yang dilewatkan via URL (misal dari daftar siswa)
+    $siswa_id_to_prefill = $_GET['siswa_id'] ?? null;
+}
+
+// Jika admin login dan belum ada siswa_id yang terpilih dari URL, kita perlu mengambil daftar siswa untuk dropdown
+$list_siswa_for_admin = [];
+if ($is_admin && empty($siswa_id_to_prefill)) { // Ambil daftar siswa hanya jika admin dan belum ada siswa terpilih
+    $query_siswa_list = "SELECT id_siswa, nama_siswa FROM siswa ORDER BY nama_siswa ASC";
+    $stmt_siswa_list = $koneksi->prepare($query_siswa_list); // Menggunakan prepared statement
+
+    if ($stmt_siswa_list) {
+        $stmt_siswa_list->execute();
+        $result_siswa_list = $stmt_siswa_list->get_result();
+        $list_siswa_for_admin = $result_siswa_list->fetch_all(MYSQLI_ASSOC);
+        $stmt_siswa_list->close();
+    } else {
+        error_log("Failed to prepare statement for student list: " . $koneksi->error);
+    }
+}
+
+// Penting: Tutup koneksi di akhir script PHP setelah semua interaksi database selesai
+// mysqli_close($koneksi); // Pindahkan ini ke paling bawah jika ada kode lain yang perlu koneksi db
+
 ?>
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="./assets/"
@@ -46,7 +64,7 @@ $id_siswa_session = $_SESSION['id_siswa'];
                         <div
                             class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom position-relative">
                             <h4 class="fw-bold mb-0 text-primary animate__animated animate__fadeInLeft">
-                                <span class="text-muted fw-light">Laporan Harian /</span> Tambah Kegiatan
+                                <span class="text-muted fw-light">Laporan /</span> Tambah Tugas Proyek
                             </h4>
                             <i class="fas fa-file-invoice fa-2x text-info animate__animated animate__fadeInRight"
                                 style="opacity: 0.6;"></i>
@@ -54,7 +72,11 @@ $id_siswa_session = $_SESSION['id_siswa'];
 
                         <div class="card shadow-lg animate__animated animate__fadeInUp" style="border-radius: 10px;">
                             <div class="card-header border-bottom">
-                                <h5 class="card-title mb-0">Isi Detail Kegiatan Harian Anda</h5>
+                                <h5 class="card-title mb-0">Isi Detail Tugas Proyek
+                                    <?php if ($is_admin && !empty($siswa_id_to_prefill)): ?>
+                                    untuk Siswa ID: <?= htmlspecialchars($siswa_id_to_prefill) ?>
+                                    <?php endif; ?>
+                                </h5>
                                 <small class="text-muted">Lengkapi semua informasi mengenai tugas atau aktivitas Anda
                                     hari ini.</small>
                             </div>
@@ -62,8 +84,39 @@ $id_siswa_session = $_SESSION['id_siswa'];
                                 <form action="master_tugas_project_add_act.php" method="POST"
                                     enctype="multipart/form-data">
 
+                                    <?php if ($is_siswa): ?>
                                     <input type="hidden" name="siswa_id"
-                                        value="<?php echo htmlspecialchars($id_siswa_session); ?>">
+                                        value="<?= htmlspecialchars($siswa_id_to_prefill); ?>">
+                                    <?php elseif ($is_admin): ?>
+                                    <?php if (!empty($siswa_id_to_prefill)): ?>
+                                    <input type="hidden" name="siswa_id"
+                                        value="<?= htmlspecialchars($siswa_id_to_prefill); ?>">
+                                    <div class="mb-3">
+                                        <label for="display_siswa" class="form-label fw-bold">Siswa Terpilih:</label>
+                                        <input type="text" class="form-control" id="display_siswa"
+                                            value="ID Siswa: <?= htmlspecialchars($siswa_id_to_prefill); ?>" readonly>
+                                        <div class="form-text text-muted">Anda sedang menambahkan laporan untuk siswa
+                                            ini.</div>
+                                    </div>
+                                    <?php else: ?>
+                                    <div class="mb-3">
+                                        <label for="selected_siswa_id" class="form-label fw-bold"><i
+                                                class="bx bx-user me-1"></i> Pilih Siswa:</label>
+                                        <select class="form-control" id="selected_siswa_id" name="siswa_id" required>
+                                            <option value="">-- Pilih Siswa --</option>
+                                            <?php foreach ($list_siswa_for_admin as $siswa): ?>
+                                            <option value="<?= htmlspecialchars($siswa['id_siswa']) ?>">
+                                                <?= htmlspecialchars($siswa['nama_siswa']) ?> (ID:
+                                                <?= htmlspecialchars($siswa['id_siswa']) ?>)
+                                            </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                        <div class="form-text text-muted">Pilih siswa yang akan Anda buatkan laporannya.
+                                        </div>
+                                    </div>
+                                    <?php endif; ?>
+                                    <?php endif; ?>
+
 
                                     <div class="mb-3">
                                         <label for="nama_pekerjaan" class="form-label fw-bold"><i
@@ -104,7 +157,7 @@ $id_siswa_session = $_SESSION['id_siswa'];
                                                 class="bx bx-image me-1"></i> Unggah Bukti Kegiatan
                                             (Foto/Screenshot):</label>
                                         <input class="form-control" type="file" id="gambar_proyek" name="gambar_proyek"
-                                            accept="image/*" required>
+                                            accept="image/*">
                                         <div class="form-text text-muted">Unggah foto atau screenshot sebagai bukti
                                             visual kegiatan Anda. Format: JPG, PNG, GIF. Maks. ukuran 2MB.</div>
                                     </div>
@@ -122,7 +175,7 @@ $id_siswa_session = $_SESSION['id_siswa'];
                                     <hr class="my-4">
 
                                     <div class="d-flex flex-column flex-sm-row justify-content-end gap-2">
-                                        <a href="master_tugas_project.php"
+                                        <a href="master_tugas_project.php<?php echo ($is_admin && !empty($siswa_id_to_prefill)) ? '?siswa_id=' . htmlspecialchars($siswa_id_to_prefill) : ''; ?>"
                                             class="btn btn-outline-secondary w-100 w-sm-auto">
                                             <i class="bx bx-arrow-back me-1"></i> Kembali
                                         </a>
@@ -130,7 +183,7 @@ $id_siswa_session = $_SESSION['id_siswa'];
                                             <i class="bx bx-refresh me-1"></i> Reset Form
                                         </button>
                                         <button type="submit" class="btn btn-primary w-100 w-sm-auto">
-                                            <i class="bx bx-save me-1"></i> Simpan Laporan Harian
+                                            <i class="bx bx-save me-1"></i> Simpan Laporan Proyek
                                         </button>
                                     </div>
                                 </form>

@@ -2,59 +2,105 @@
 
 session_start();
 
-// 1. Aturan utama: Cek apakah pengguna yang mengakses BUKAN seorang ADMIN.
-if (!isset($_SESSION['admin_status_login']) || $_SESSION['admin_status_login'] !== 'logged_in') {
+// LOGIKA KEAMANAN HALAMAN
+$is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
+$is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
 
-    // 2. Jika bukan admin, cek apakah dia adalah SISWA.
-    if (isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in') {
-        // Jika benar siswa, kembalikan ke halaman siswa.
-        header('Location: master_kegiatan_harian.php');
+if (!$is_siswa && !$is_admin) {
+    if (isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in') {
+        header('Location: ../../halaman_guru.php');
         exit();
-    }
-    // 3. TAMBAHAN: Jika bukan siswa, cek apakah dia adalah GURU.
-    elseif (isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in') {
-        // Jika benar guru, kembalikan ke halaman guru.
-        header('Location: ../../halaman_guru.php'); //belum di atur
-        exit();
-    }
-    // 4. Jika bukan salah satu dari role di atas (admin, siswa, guru),
-    // artinya pengguna belum login sama sekali. Arahkan ke halaman login.
-    else {
+    } else {
         header('Location: ../login.php');
         exit();
     }
 }
 
-// 5. Jika lolos semua pemeriksaan di atas, maka dia adalah ADMIN yang sah.
-// Tampilkan semua konten halaman ini.
 include 'partials/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id = mysqli_real_escape_string($koneksi, $_POST['id_pembimbing']);
-    $nama = mysqli_real_escape_string($koneksi, $_POST['nama_pembimbing']);
-    $nip = mysqli_real_escape_string($koneksi, $_POST['nip']);
-    $password = $_POST['password'];
+    $id = $_POST['id_pembimbing'] ?? null;
+    $nama = $_POST['nama_pembimbing'] ?? '';
+    $nip = $_POST['nip'] ?? '';
+    $password_plain = $_POST['password'] ?? ''; // Bisa kosong jika password tidak diubah
 
-    if (!empty($password)) {
-        $password_hash = password_hash($password, PASSWORD_DEFAULT);
-        $query = "UPDATE guru_pembimbing SET 
-                    nama_pembimbing = '$nama', 
-                    nip = '$nip', 
-                    password = '$password_hash'
-                  WHERE id_pembimbing = '$id'";
-    } else {
-        $query = "UPDATE guru_pembimbing SET 
-                    nama_pembimbing = '$nama', 
-                    nip = '$nip'
-                  WHERE id_pembimbing = '$id'";
-    }
+    $status = '';
+    $message = '';
+    $title = '';
 
-    if (mysqli_query($koneksi, $query)) {
-        echo "<script>alert('Data guru berhasil diperbarui.'); window.location.href = 'master_guru_pendamping.php';</script>";
+    // Validasi input wajib
+    if (empty($id) || empty($nama) || empty($nip)) {
+        $status = 'error';
+        $title = 'Input Tidak Lengkap!';
+        $message = 'ID guru, nama, dan NIP wajib diisi.';
     } else {
-        echo "<script>alert('Gagal memperbarui data.'); window.history.back();</script>";
+        // Logika UPDATE dengan atau tanpa password
+        if (!empty($password_plain)) {
+            // Jika password diisi, update password juga
+            $password_hash = password_hash($password_plain, PASSWORD_DEFAULT);
+            $query = "UPDATE guru_pembimbing SET nama_pembimbing = ?, nip = ?, password = ? WHERE id_pembimbing = ?";
+            $stmt = $koneksi->prepare($query);
+            if ($stmt) {
+                $stmt->bind_param("sssi", $nama, $nip, $password_hash, $id); // sssi: 3 string, 1 integer
+            }
+        } else {
+            // Jika password kosong, jangan update password
+            $query = "UPDATE guru_pembimbing SET nama_pembimbing = ?, nip = ? WHERE id_pembimbing = ?";
+            $stmt = $koneksi->prepare($query);
+            if ($stmt) {
+                $stmt->bind_param("ssi", $nama, $nip, $id); // ssi: 2 string, 1 integer
+            }
+        }
+
+        if ($stmt) {
+            if ($stmt->execute()) {
+                $status = 'success';
+                $title = 'Berhasil!';
+                $message = 'Data guru berhasil diperbarui.';
+            } else {
+                $status = 'error';
+                $title = 'Gagal!';
+                $message = 'Terjadi kesalahan saat memperbarui data: ' . $stmt->error;
+            }
+            $stmt->close();
+        } else {
+            $status = 'error';
+            $title = 'Gagal!';
+            $message = 'Gagal menyiapkan statement database: ' . $koneksi->error;
+        }
     }
+    $koneksi->close();
+
+    // Tampilkan SweetAlert2 dan kemudian redirect
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Status Aksi</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <script>
+    Swal.fire({
+        icon: '<?php echo $status; ?>',
+        title: '<?php echo $title; ?>',
+        text: '<?php echo $message; ?>',
+        showConfirmButton: false, // Tidak menampilkan tombol "OK"
+        timer: 2500, // Otomatis hilang setelah 2.5 detik
+        didClose: () => { // Callback setelah alert tertutup
+            window.location.href = 'master_guru_pendamping.php';
+        }
+    });
+    </script>
+</body>
+
+</html>
+<?php
 } else {
+    // Jika akses bukan POST request, arahkan kembali ke halaman daftar guru
     header('Location: master_guru_pendamping.php');
     exit;
 }

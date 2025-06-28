@@ -1,42 +1,24 @@
 <?php
-// Sertakan file koneksi database Anda
+session_start();
 include 'partials/db.php';
-// --- LOGIKA KEAMANAN HALAMAN SISWA ---
-session_start(); // Pastikan session sudah dimulai
 
-// 1. Definisikan dulu role yang sedang login untuk mempermudah pembacaan kode.
+// LOGIKA KEAMANAN HALAMAN
 $is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
 
-// 2. Aturan utama: Cek jika pengguna BUKAN Siswa DAN BUKAN Admin.
-// Jika salah satu dari mereka (siswa atau admin) login, kondisi ini akan false dan halaman akan lanjut dimuat.
 if (!$is_siswa && !$is_admin) {
-
-    // 3. Jika tidak diizinkan, baru kita cek siapa pengguna ini.
-    // Apakah dia seorang Guru yang mencoba masuk?
     if (isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in') {
-        // Jika benar guru, kembalikan ke halaman dasbor guru.
-        header('Location: ../halaman_guru.php'); // Sesuaikan path jika perlu
+        header('Location: ../halaman_guru.php');
         exit();
-    }
-    // 4. Jika bukan siapa-siapa dari role di atas, artinya pengguna belum login.
-    else {
-        // Arahkan paksa ke halaman login.
-        header('Location: ../login.php'); // Sesuaikan path jika perlu
+    } else {
+        header('Location: ../login.php');
         exit();
     }
 }
-/**
- * Fungsi untuk menampilkan SweetAlert dan melakukan redirect via JavaScript.
- *
- * @param string $icon        Ikon alert ('success', 'error', 'warning', 'info')
- * @param string $title       Judul alert
- * @param string $text        Teks atau pesan dalam alert
- * @param string $redirectUrl URL tujuan setelah alert ditutup
- */
+
 function showAlertAndRedirect($icon, $title, $text, $redirectUrl)
 {
-    ob_clean(); // Membersihkan output buffer jika ada
+    ob_clean();
     echo <<<HTML
     <!DOCTYPE html>
     <html lang="id">
@@ -68,33 +50,38 @@ HTML;
     exit();
 }
 
-// Pastikan skrip ini diakses melalui metode POST
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    // Ambil data dari form
-    $siswa_id = $_POST['siswa_id'] ?? null;
-    // $tanggal_laporan tidak lagi diambil dari POST, akan menggunakan NOW() di SQL
+    $siswa_id_untuk_db = null;
+    if ($is_siswa && isset($_SESSION['id_siswa'])) {
+        $siswa_id_untuk_db = $_SESSION['id_siswa'];
+    } elseif ($is_admin) {
+        $siswa_id_untuk_db = $_POST['siswa_id'] ?? null; // Admin akan mengirim siswa_id via POST
+    }
+
     $nama_pekerjaan = trim($_POST['nama_pekerjaan'] ?? '');
     $perencanaan_kegiatan = trim($_POST['perencanaan_kegiatan'] ?? '');
     $pelaksanaan_kegiatan = trim($_POST['pelaksanaan_kegiatan'] ?? '');
     $catatan_instruktur = trim($_POST['catatan_instruktur'] ?? '');
 
-    $gambar_nama_file = null; // Inisialisasi untuk nama file gambar yang akan disimpan
-    $upload_dir = 'images/'; // Direktori tempat gambar akan disimpan.
+    $gambar_nama_file = null;
+    $upload_dir = 'images/';
 
-    // --- Validasi Input Teks (Wajib) ---
-    // Hapus $tanggal_laporan dari validasi empty, karena tidak dari POST lagi
-    if (empty($siswa_id) || empty($nama_pekerjaan) || empty($perencanaan_kegiatan) || empty($pelaksanaan_kegiatan)) {
+    // Validasi Input Teks (Wajib) dan siswa_id
+    if (empty($siswa_id_untuk_db) || empty($nama_pekerjaan) || empty($perencanaan_kegiatan) || empty($pelaksanaan_kegiatan)) {
+        $redirect_url_on_fail = 'master_tugas_project_add.php';
+        if ($is_admin && !empty($siswa_id_untuk_db)) { // Jika admin input untuk siswa spesifik
+            $redirect_url_on_fail .= '?siswa_id=' . htmlspecialchars($siswa_id_untuk_db);
+        }
         showAlertAndRedirect(
             'error',
             'Gagal Menyimpan',
-            'Semua kolom teks (Nama Kegiatan, Perencanaan, Pelaksanaan) wajib diisi.',
-            'master_tugas_project_add.php' // Kembali ke form
+            'Semua kolom teks (Nama Kegiatan, Perencanaan, Pelaksanaan) dan ID Siswa wajib diisi.',
+            $redirect_url_on_fail
         );
     }
 
-    // --- Penanganan dan Validasi Upload Gambar (Wajib) ---
-    // Pastikan direktori upload ada dan writable
+    // Penanganan dan Validasi Upload Gambar (Wajib)
     if (!is_dir($upload_dir)) {
         if (!mkdir($upload_dir, 0777, true)) {
             showAlertAndRedirect(
@@ -110,7 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         showAlertAndRedirect(
             'error',
             'Gagal Upload Gambar',
-            'Bukti kegiatan (foto/screenshot) wajib diunggah.', // Pesan lebih generik
+            'Bukti kegiatan (foto/screenshot) wajib diunggah.',
             'master_tugas_project_add.php'
         );
     } elseif ($_FILES['gambar_proyek']['error'] != UPLOAD_ERR_OK) {
@@ -144,12 +131,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 'master_tugas_project_add.php'
             );
         } else {
-            // Generate nama file unik
             $new_file_name = uniqid('proyek_', true) . '.' . $file_ext;
             $destination_path = $upload_dir . $new_file_name;
 
             if (move_uploaded_file($file_tmp, $destination_path)) {
-                $gambar_nama_file = $new_file_name; // Simpan nama file jika upload berhasil
+                $gambar_nama_file = $new_file_name;
             } else {
                 showAlertAndRedirect(
                     'error',
@@ -160,13 +146,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
     }
-    // --- Akhir Penanganan dan Validasi Upload Gambar ---
 
     // Siapkan query INSERT menggunakan prepared statement
-    // PASTIKAN 'jurnal_kegiatan' adalah nama tabel yang benar di DB Anda
-    // PASTIKAN Anda memiliki kolom 'gambar' di tabel 'jurnal_kegiatan'
-    // PASTIKAN Anda memiliki kolom 'tanggal_laporan' di tabel 'jurnal_kegiatan'
-    // Kolom 'tanggal_laporan' akan diisi dengan NOW()
     $sql = "INSERT INTO jurnal_kegiatan
                 (siswa_id, nama_pekerjaan, perencanaan_kegiatan, pelaksanaan_kegiatan, catatan_instruktur, gambar, tanggal_laporan)
             VALUES (?, ?, ?, ?, ?, ?, NOW())";
@@ -174,12 +155,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt = $koneksi->prepare($sql);
 
     if ($stmt) {
-        // Bind parameter: i (integer) untuk siswa_id, s (string) untuk 5 kolom berikutnya
-        // Total 6 parameter yang dibind dari PHP: siswa_id, nama_pekerjaan, perencanaan_kegiatan, pelaksanaan_kegiatan, catatan_instruktur, gambar
-        // NOW() adalah fungsi SQL, jadi tidak dibind dari PHP
         $stmt->bind_param(
-            "isssss",
-            $siswa_id,
+            "isssss", // i (integer) untuk siswa_id, s (string) untuk 5 kolom berikutnya
+            $siswa_id_untuk_db,
             $nama_pekerjaan,
             $perencanaan_kegiatan,
             $pelaksanaan_kegiatan,
@@ -187,15 +165,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $gambar_nama_file
         );
 
-        // Eksekusi statement
         if ($stmt->execute()) {
+            // Tentukan URL redirect setelah berhasil
+            $redirect_url_on_success = 'master_tugas_project.php';
+            if ($is_admin && !empty($siswa_id_untuk_db)) { // Jika admin input untuk siswa spesifik
+                $redirect_url_on_success .= '?siswa_id=' . htmlspecialchars($siswa_id_untuk_db);
+            }
             showAlertAndRedirect(
                 'success',
                 'Berhasil!',
-                'Laporan kegiatan harian telah berhasil ditambahkan.',
-                'master_tugas_project.php' // Arahkan ke halaman daftar laporan
+                'Laporan tugas proyek telah berhasil ditambahkan.',
+                $redirect_url_on_success
             );
         } else {
+            // Jika ada error database, coba hapus file gambar yang sudah diupload
+            if ($gambar_nama_file && file_exists($upload_dir . $gambar_nama_file)) {
+                unlink($upload_dir . $gambar_nama_file);
+            }
             showAlertAndRedirect(
                 'error',
                 'Gagal Menyimpan',
@@ -205,6 +191,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         $stmt->close();
     } else {
+        // Jika ada error prepare statement, coba hapus file gambar yang sudah diupload
+        if ($gambar_nama_file && file_exists($upload_dir . $gambar_nama_file)) {
+            unlink($upload_dir . $gambar_nama_file);
+        }
         showAlertAndRedirect(
             'error',
             'Gagal',
@@ -216,6 +206,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $koneksi->close();
 } else {
     // Jika tidak diakses melalui POST, redirect ke halaman utama
-    header("Location: index.php"); // Atau ke master_tugas_project_add.php
+    header("Location: master_tugas_project_add.php");
     exit();
 }

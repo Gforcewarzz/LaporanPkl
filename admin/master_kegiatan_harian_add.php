@@ -1,34 +1,68 @@
 <?php
-session_start(); // WAJIB di paling atas sebelum HTML
+session_start();
 
+// Asumsi: db.php berisi koneksi $koneksi
+include 'partials/db.php';
 
-// --- LOGIKA KEAMANAN HALAMAN SISWA ---
-
-// 1. Definisikan dulu role yang sedang login untuk mempermudah pembacaan kode.
 $is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
 
-// 2. Aturan utama: Cek jika pengguna BUKAN Siswa DAN BUKAN Admin.
-// Jika salah satu dari mereka (siswa atau admin) login, kondisi ini akan false dan halaman akan lanjut dimuat.
+// Logika keamanan halaman
 if (!$is_siswa && !$is_admin) {
-    
-    // 3. Jika tidak diizinkan, baru kita cek siapa pengguna ini.
-    // Apakah dia seorang Guru yang mencoba masuk?
     if (isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in') {
-        // Jika benar guru, kembalikan ke halaman dasbor guru.
-        header('Location: ../halaman_guru.php'); // Sesuaikan path jika perlu
+        header('Location: ../halaman_guru.php');
         exit();
-    }
-    // 4. Jika bukan siapa-siapa dari role di atas, artinya pengguna belum login.
-    else {
-        // Arahkan paksa ke halaman login.
-        header('Location: ../login.php'); // Sesuaikan path jika perlu
+    } else {
+        header('Location: ../login.php');
         exit();
     }
 }
 
+// Inisialisasi $siswa_id_for_form
+// Jika siswa yang login, ambil ID dari sesi mereka
+$siswa_id_for_form = $is_siswa && isset($_SESSION['id_siswa']) ? $_SESSION['id_siswa'] : '';
 
-$siswa_id = $_SESSION['id_siswa'];
+// Jika admin yang login dan ada parameter siswa_id di URL (misal dari daftar siswa)
+// Ini memungkinkan admin untuk langsung menginput laporan untuk siswa tertentu
+$selected_siswa_id_from_url = '';
+$selected_siswa_name_from_url = '';
+
+if ($is_admin) {
+    if (isset($_GET['siswa_id']) && !empty($_GET['siswa_id'])) {
+        $selected_siswa_id_from_url = htmlspecialchars($_GET['siswa_id']);
+
+        // Ambil nama siswa untuk ditampilkan
+        $stmt_get_siswa_name = $koneksi->prepare("SELECT nama_siswa FROM siswa WHERE id_siswa = ?");
+        if ($stmt_get_siswa_name) {
+            $stmt_get_siswa_name->bind_param("i", $selected_siswa_id_from_url);
+            $stmt_get_siswa_name->execute();
+            $result_siswa_name = $stmt_get_siswa_name->get_result();
+            if ($result_siswa_name->num_rows > 0) {
+                $selected_siswa_name_from_url = $result_siswa_name->fetch_assoc()['nama_siswa'];
+            }
+            $stmt_get_siswa_name->close();
+        }
+    }
+}
+
+// Ambil daftar siswa untuk dropdown jika admin yang login
+$siswa_list = [];
+if ($is_admin) {
+    $query_siswa_list = "SELECT id_siswa, nama_siswa FROM siswa ORDER BY nama_siswa ASC";
+    $result_siswa_list = mysqli_query($koneksi, $query_siswa_list);
+    if ($result_siswa_list) {
+        while ($row_siswa = mysqli_fetch_assoc($result_siswa_list)) {
+            $siswa_list[] = $row_siswa;
+        }
+        mysqli_free_result($result_siswa_list);
+    }
+}
+
+// Jangan lupa tutup koneksi jika tidak ada query lain setelah ini
+// $koneksi->close(); 
+// Catatan: Jika partials/script.php atau file lain di bawah membutuhkan $koneksi,
+// biarkan terbuka dan tutup di akhir file utama atau di partials/footer.php.
+// Jika $koneksi hanya untuk halaman ini, tutup di sini.
 ?>
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="./assets/"
@@ -43,7 +77,6 @@ $siswa_id = $_SESSION['id_siswa'];
                 <?php include './partials/navbar.php'; ?>
                 <div class="content-wrapper">
                     <div class="container-xxl flex-grow-1 container-p-y">
-                        <!-- HEADER -->
                         <div
                             class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom position-relative">
                             <h4 class="fw-bold mb-0 text-primary animate__animated animate__fadeInLeft">
@@ -53,7 +86,6 @@ $siswa_id = $_SESSION['id_siswa'];
                                 style="opacity: 0.6;"></i>
                         </div>
 
-                        <!-- KARTU AJAKAN -->
                         <div class="card bg-gradient-primary-to-secondary text-white mb-4 shadow-lg animate__animated animate__fadeInDown"
                             style="border-radius: 12px; overflow: hidden; background: linear-gradient(135deg, #696cff 0%, #a4bdfa 100%);">
                             <div
@@ -78,7 +110,6 @@ $siswa_id = $_SESSION['id_siswa'];
                             </div>
                         </div>
 
-                        <!-- FORM -->
                         <div class="card shadow-lg animate__animated animate__fadeInUp" style="border-radius: 10px;">
                             <div class="card-header border-bottom">
                                 <h5 class="card-title mb-0">Isi Detail Kegiatan</h5>
@@ -86,7 +117,25 @@ $siswa_id = $_SESSION['id_siswa'];
                             </div>
                             <div class="card-body p-4">
                                 <form action="master_kegiatan_harian_add_act.php" method="POST">
-                                    <!-- Input Tanggal -->
+                                    <?php if ($is_admin): // Tampilkan dropdown siswa jika admin yang login 
+                                    ?>
+                                    <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-1s">
+                                        <label for="selected_siswa_id" class="form-label fw-bold">
+                                            <i class="bx bx-user me-1"></i> Pilih Siswa:
+                                        </label>
+                                        <select class="form-control" id="selected_siswa_id" name="selected_siswa_id"
+                                            required>
+                                            <option value="">-- Pilih Siswa --</option>
+                                            <?php foreach ($siswa_list as $siswa_option): ?>
+                                            <option value="<?= htmlspecialchars($siswa_option['id_siswa']) ?>"
+                                                <?= ($selected_siswa_id_from_url == $siswa_option['id_siswa']) ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars($siswa_option['nama_siswa']) ?>
+                                            </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <?php endif; ?>
+
                                     <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-2s">
                                         <label for="tanggal_kegiatan" class="form-label fw-bold">
                                             <i class="bx bx-calendar me-1"></i> Hari/Tanggal Kegiatan:
@@ -95,7 +144,6 @@ $siswa_id = $_SESSION['id_siswa'];
                                             required value="<?php echo date('Y-m-d'); ?>">
                                     </div>
 
-                                    <!-- Input Pekerjaan -->
                                     <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-3s">
                                         <label for="pekerjaan" class="form-label fw-bold">
                                             <i class="bx bx-briefcase-alt me-1"></i> Deskripsi Pekerjaan:
@@ -105,7 +153,6 @@ $siswa_id = $_SESSION['id_siswa'];
                                             required></textarea>
                                     </div>
 
-                                    <!-- Input Catatan -->
                                     <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-4s">
                                         <label for="catatan" class="form-label fw-bold">
                                             <i class="bx bx-notepad me-1"></i> Catatan Tambahan (Opsional):
@@ -114,14 +161,17 @@ $siswa_id = $_SESSION['id_siswa'];
                                             placeholder="Contoh: Menghadapi kendala teknis saat instalasi driver printer."></textarea>
                                     </div>
 
-                                    <!-- siswa_id dari session -->
-                                    <input type="hidden" name="siswa_id" value="<?php echo $siswa_id; ?>">
+                                    <input type="hidden" name="siswa_id"
+                                        value="<?php echo htmlspecialchars($siswa_id_for_form); ?>">
 
                                     <hr class="my-4">
 
-                                    <!-- Tombol -->
                                     <div
                                         class="d-flex flex-column flex-sm-row justify-content-end gap-2 animate__animated animate__fadeInUp animate__delay-0-5s">
+                                        <a href="master_kegiatan_harian.php"
+                                            class="btn btn-outline-secondary w-100 w-sm-auto">
+                                            <i class="bx bx-arrow-back me-1"></i> Kembali
+                                        </a>
                                         <button type="reset" class="btn btn-outline-secondary w-100 w-sm-auto">
                                             <i class="bx bx-refresh me-1"></i> Reset Form
                                         </button>
