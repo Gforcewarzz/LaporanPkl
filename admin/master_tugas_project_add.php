@@ -74,7 +74,7 @@ if ($is_admin && empty($siswa_id_to_prefill)) { // Ambil daftar siswa hanya jika
                             <div class="card-header border-bottom">
                                 <h5 class="card-title mb-0">Isi Detail Tugas Proyek
                                     <?php if ($is_admin && !empty($siswa_id_to_prefill)): ?>
-                                    untuk Siswa ID: <?= htmlspecialchars($siswa_id_to_prefill) ?>
+                                        untuk Siswa ID: <?= htmlspecialchars($siswa_id_to_prefill) ?>
                                     <?php endif; ?>
                                 </h5>
                                 <small class="text-muted">Lengkapi semua informasi mengenai tugas atau aktivitas Anda
@@ -85,36 +85,36 @@ if ($is_admin && empty($siswa_id_to_prefill)) { // Ambil daftar siswa hanya jika
                                     enctype="multipart/form-data">
 
                                     <?php if ($is_siswa): ?>
-                                    <input type="hidden" name="siswa_id"
-                                        value="<?= htmlspecialchars($siswa_id_to_prefill); ?>">
+                                        <input type="hidden" name="siswa_id"
+                                            value="<?= htmlspecialchars($siswa_id_to_prefill); ?>">
                                     <?php elseif ($is_admin): ?>
-                                    <?php if (!empty($siswa_id_to_prefill)): ?>
-                                    <input type="hidden" name="siswa_id"
-                                        value="<?= htmlspecialchars($siswa_id_to_prefill); ?>">
-                                    <div class="mb-3">
-                                        <label for="display_siswa" class="form-label fw-bold">Siswa Terpilih:</label>
-                                        <input type="text" class="form-control" id="display_siswa"
-                                            value="ID Siswa: <?= htmlspecialchars($siswa_id_to_prefill); ?>" readonly>
-                                        <div class="form-text text-muted">Anda sedang menambahkan laporan untuk siswa
-                                            ini.</div>
-                                    </div>
-                                    <?php else: ?>
-                                    <div class="mb-3">
-                                        <label for="selected_siswa_id" class="form-label fw-bold"><i
-                                                class="bx bx-user me-1"></i> Pilih Siswa:</label>
-                                        <select class="form-control" id="selected_siswa_id" name="siswa_id" required>
-                                            <option value="">-- Pilih Siswa --</option>
-                                            <?php foreach ($list_siswa_for_admin as $siswa): ?>
-                                            <option value="<?= htmlspecialchars($siswa['id_siswa']) ?>">
-                                                <?= htmlspecialchars($siswa['nama_siswa']) ?> (ID:
-                                                <?= htmlspecialchars($siswa['id_siswa']) ?>)
-                                            </option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                        <div class="form-text text-muted">Pilih siswa yang akan Anda buatkan laporannya.
-                                        </div>
-                                    </div>
-                                    <?php endif; ?>
+                                        <?php if (!empty($siswa_id_to_prefill)): ?>
+                                            <input type="hidden" name="siswa_id"
+                                                value="<?= htmlspecialchars($siswa_id_to_prefill); ?>">
+                                            <div class="mb-3">
+                                                <label for="display_siswa" class="form-label fw-bold">Siswa Terpilih:</label>
+                                                <input type="text" class="form-control" id="display_siswa"
+                                                    value="ID Siswa: <?= htmlspecialchars($siswa_id_to_prefill); ?>" readonly>
+                                                <div class="form-text text-muted">Anda sedang menambahkan laporan untuk siswa
+                                                    ini.</div>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="mb-3">
+                                                <label for="selected_siswa_id" class="form-label fw-bold"><i
+                                                        class="bx bx-user me-1"></i> Pilih Siswa:</label>
+                                                <select class="form-control" id="selected_siswa_id" name="siswa_id" required>
+                                                    <option value="">-- Pilih Siswa --</option>
+                                                    <?php foreach ($list_siswa_for_admin as $siswa): ?>
+                                                        <option value="<?= htmlspecialchars($siswa['id_siswa']) ?>">
+                                                            <?= htmlspecialchars($siswa['nama_siswa']) ?> (ID:
+                                                            <?= htmlspecialchars($siswa['id_siswa']) ?>)
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                                <div class="form-text text-muted">Pilih siswa yang akan Anda buatkan laporannya.
+                                                </div>
+                                            </div>
+                                        <?php endif; ?>
                                     <?php endif; ?>
 
 
@@ -175,16 +175,16 @@ if ($is_admin && empty($siswa_id_to_prefill)) { // Ambil daftar siswa hanya jika
                                     <hr class="my-4">
 
                                     <div class="d-flex flex-column flex-sm-row justify-content-end gap-2">
+                                        <button type="submit" class="btn btn-primary w-100 w-sm-auto">
+                                            <i class="bx bx-save me-1"></i> Simpan Laporan Proyek
+                                        </button>
+                                        <button type="reset" class="btn btn-outline-warning w-100 w-sm-auto">
+                                            <i class="bx bx-refresh me-1"></i> Reset Form
+                                        </button>
                                         <a href="master_tugas_project.php<?php echo ($is_admin && !empty($siswa_id_to_prefill)) ? '?siswa_id=' . htmlspecialchars($siswa_id_to_prefill) : ''; ?>"
                                             class="btn btn-outline-secondary w-100 w-sm-auto">
                                             <i class="bx bx-arrow-back me-1"></i> Kembali
                                         </a>
-                                        <button type="reset" class="btn btn-outline-warning w-100 w-sm-auto">
-                                            <i class="bx bx-refresh me-1"></i> Reset Form
-                                        </button>
-                                        <button type="submit" class="btn btn-primary w-100 w-sm-auto">
-                                            <i class="bx bx-save me-1"></i> Simpan Laporan Proyek
-                                        </button>
                                     </div>
                                 </form>
                             </div>

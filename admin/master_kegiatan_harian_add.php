@@ -119,21 +119,21 @@ if ($is_admin) {
                                 <form action="master_kegiatan_harian_add_act.php" method="POST">
                                     <?php if ($is_admin): // Tampilkan dropdown siswa jika admin yang login 
                                     ?>
-                                    <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-1s">
-                                        <label for="selected_siswa_id" class="form-label fw-bold">
-                                            <i class="bx bx-user me-1"></i> Pilih Siswa:
-                                        </label>
-                                        <select class="form-control" id="selected_siswa_id" name="selected_siswa_id"
-                                            required>
-                                            <option value="">-- Pilih Siswa --</option>
-                                            <?php foreach ($siswa_list as $siswa_option): ?>
-                                            <option value="<?= htmlspecialchars($siswa_option['id_siswa']) ?>"
-                                                <?= ($selected_siswa_id_from_url == $siswa_option['id_siswa']) ? 'selected' : '' ?>>
-                                                <?= htmlspecialchars($siswa_option['nama_siswa']) ?>
-                                            </option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </div>
+                                        <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-1s">
+                                            <label for="selected_siswa_id" class="form-label fw-bold">
+                                                <i class="bx bx-user me-1"></i> Pilih Siswa:
+                                            </label>
+                                            <select class="form-control" id="selected_siswa_id" name="selected_siswa_id"
+                                                required>
+                                                <option value="">-- Pilih Siswa --</option>
+                                                <?php foreach ($siswa_list as $siswa_option): ?>
+                                                    <option value="<?= htmlspecialchars($siswa_option['id_siswa']) ?>"
+                                                        <?= ($selected_siswa_id_from_url == $siswa_option['id_siswa']) ? 'selected' : '' ?>>
+                                                        <?= htmlspecialchars($siswa_option['nama_siswa']) ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
                                     <?php endif; ?>
 
                                     <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-2s">
@@ -155,10 +155,11 @@ if ($is_admin) {
 
                                     <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-4s">
                                         <label for="catatan" class="form-label fw-bold">
-                                            <i class="bx bx-notepad me-1"></i> Catatan Tambahan (Opsional):
+                                            <i class="bx bx-notepad me-1"></i> Catatan Tambahan:
                                         </label>
                                         <textarea class="form-control" id="catatan" name="catatan" rows="3"
-                                            placeholder="Contoh: Menghadapi kendala teknis saat instalasi driver printer."></textarea>
+                                            placeholder="Contoh: Menghadapi kendala teknis saat instalasi driver printer."
+                                            required></textarea>
                                     </div>
 
                                     <input type="hidden" name="siswa_id"
@@ -168,16 +169,16 @@ if ($is_admin) {
 
                                     <div
                                         class="d-flex flex-column flex-sm-row justify-content-end gap-2 animate__animated animate__fadeInUp animate__delay-0-5s">
+                                        <button type="submit" class="btn btn-primary w-100 w-sm-auto">
+                                            <i class="bx bx-save me-1"></i> Simpan Laporan
+                                        </button>
+                                        <button type="reset" class="btn btn-outline-secondary w-100 w-sm-auto">
+                                            <i class="bx bx-refresh me-1"></i> Reset Form
+                                        </button>
                                         <a href="master_kegiatan_harian.php"
                                             class="btn btn-outline-secondary w-100 w-sm-auto">
                                             <i class="bx bx-arrow-back me-1"></i> Kembali
                                         </a>
-                                        <button type="reset" class="btn btn-outline-secondary w-100 w-sm-auto">
-                                            <i class="bx bx-refresh me-1"></i> Reset Form
-                                        </button>
-                                        <button type="submit" class="btn btn-primary w-100 w-sm-auto">
-                                            <i class="bx bx-save me-1"></i> Simpan Laporan
-                                        </button>
                                     </div>
                                 </form>
                             </div>

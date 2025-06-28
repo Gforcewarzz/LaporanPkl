@@ -172,16 +172,16 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
 
                                     <div
                                         class="d-flex flex-column flex-sm-row justify-content-end gap-2 animate__animated animate__fadeInUp animate__delay-0-5s">
+                                        <button type="submit" class="btn btn-primary w-100 w-sm-auto">
+                                            <i class="bx bx-save me-1"></i> Simpan Perubahan
+                                        </button>
+                                        <button type="reset" class="btn btn-outline-secondary w-100 w-sm-auto">
+                                            <i class="bx bx-refresh me-1"></i> Reset Form
+                                        </button>
                                         <a href="master_kegiatan_harian.php"
                                             class="btn btn-outline-secondary w-100 w-sm-auto">
                                             <i class="bx bx-arrow-back me-1"></i> Kembali
                                         </a>
-                                        <button type="reset" class="btn btn-outline-secondary w-100 w-sm-auto">
-                                            <i class="bx bx-refresh me-1"></i> Reset Form
-                                        </button>
-                                        <button type="submit" class="btn btn-primary w-100 w-sm-auto">
-                                            <i class="bx bx-save me-1"></i> Simpan Perubahan
-                                        </button>
                                     </div>
                                 </form>
                             </div>

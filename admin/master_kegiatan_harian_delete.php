@@ -2,7 +2,7 @@
 session_start();
 include 'partials/db.php';
 
-// --- LOGIKA KEAMANAN HALAMAN ---
+// LOGIKA KEAMANAN HALAMAN
 $is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
 
@@ -16,131 +16,167 @@ if (!$is_siswa && !$is_admin) {
     }
 }
 
-// Ambil ID laporan yang akan dihapus dari URL
-$id_jurnal_harian = $_GET['id'] ?? null;
+// Fungsi SweetAlert2 untuk notifikasi dan redirect
+function showAlertAndRedirect($icon, $title, $text, $redirectUrl)
+{
+    ob_clean(); // Membersihkan output buffer jika ada
+    echo <<<HTML
+    <!DOCTYPE html>
+    <html lang="id">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Notifikasi Hapus</title>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    </head>
+    <body>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: '{$icon}',
+                    title: '{$title}',
+                    text: '{$text}',
+                    confirmButtonColor: '#696cff',
+                    allowOutsideClick: false,
+                    showClass: { // Menambahkan kelas animasi saat muncul
+                        popup: 'animate__animated animate__fadeInDown animate__faster' // Contoh: fadeIn dari atas
+                    },
+                    hideClass: { // Menambahkan kelas animasi saat sembunyi
+                        popup: 'animate__animated animate__fadeOutUp animate__faster' // Contoh: fadeOut ke atas
+                    }
+                }).then(() => {
+                    window.location.href = '{$redirectUrl}';
+                });
+            });
+        </script>
+    </body>
+    </html>
+HTML;
+    exit();
+}
 
-// Inisialisasi variabel untuk ID siswa yang akan digunakan dalam query
-$siswa_id_filter = null;
-$redirect_to_siswa_id = null; // Untuk mengarahkan admin kembali ke laporan siswa tertentu
+$id_jurnal_harian = $_GET['id'] ?? null;
+$redirect_to_siswa_id = $_GET['redirect_siswa_id'] ?? null; // Tambahan untuk admin redirect
 
 // Validasi dasar: ID laporan harus ada
-if (empty($id_jurnal_harian)) {
-    $status = 'error';
-    $message = 'ID laporan tidak valid.';
-} else {
-    // --- Ambil siswa_id dari laporan yang akan dihapus untuk verifikasi ---
-    $query_get_siswa_id = "SELECT siswa_id FROM jurnal_harian WHERE id_jurnal_harian = ?";
-    $stmt_get_siswa_id = $koneksi->prepare($query_get_siswa_id);
-
-    if (!$stmt_get_siswa_id) {
-        $status = 'error';
-        $message = 'Gagal menyiapkan statement untuk verifikasi data: ' . $koneksi->error;
-    } else {
-        $stmt_get_siswa_id->bind_param("i", $id_jurnal_harian);
-        $stmt_get_siswa_id->execute();
-        $result_get_siswa_id = $stmt_get_siswa_id->get_result();
-        $data_laporan_dihapus = $result_get_siswa_id->fetch_assoc();
-        $stmt_get_siswa_id->close();
-
-        if (!$data_laporan_dihapus) {
-            $status = 'error';
-            $message = 'Laporan tidak ditemukan.';
-        } else {
-            $siswa_id_dari_db = $data_laporan_dihapus['siswa_id'];
-            $redirect_to_siswa_id = $siswa_id_dari_db; // Simpan untuk redirect admin
-
-            // --- LOGIKA OTORISASI UNTUK PENGHAPUSAN ---
-            $authorized_to_delete = false;
-            if ($is_siswa && $siswa_id_dari_db == ($_SESSION['id_siswa'] ?? null)) {
-                // Siswa hanya bisa menghapus laporan miliknya sendiri
-                $authorized_to_delete = true;
-            } elseif ($is_admin) {
-                // Admin bisa menghapus laporan siapa saja
-                $authorized_to_delete = true;
-            }
-
-            if (!$authorized_to_delete) {
-                $status = 'error';
-                $message = 'Anda tidak diizinkan menghapus laporan ini.';
-            } else {
-                // Lanjutkan proses penghapusan
-                $query_delete = "DELETE FROM jurnal_harian WHERE id_jurnal_harian = ?";
-                // Tambahkan siswa_id ke WHERE clause untuk keamanan ekstra, terutama untuk siswa
-                if ($is_siswa) {
-                    $query_delete .= " AND siswa_id = ?";
-                }
-
-                $stmt_delete = $koneksi->prepare($query_delete);
-
-                if ($stmt_delete) {
-                    if ($is_siswa) {
-                        $stmt_delete->bind_param("ii", $id_jurnal_harian, $_SESSION['id_siswa']);
-                    } elseif ($is_admin) {
-                        // Admin menghapus hanya berdasarkan id_jurnal_harian, karena sudah diotorisasi di atas
-                        $stmt_delete->bind_param("i", $id_jurnal_harian);
-                    }
-
-                    if ($stmt_delete->execute()) {
-                        if ($stmt_delete->affected_rows > 0) {
-                            $status = 'success';
-                            $message = 'Laporan berhasil dihapus.';
-                        } else {
-                            // Ini bisa terjadi jika data tidak ditemukan (sudah dihapus oleh orang lain)
-                            // atau siswa_id tidak cocok (untuk siswa)
-                            $status = 'info';
-                            $message = 'Laporan tidak ditemukan atau sudah dihapus.';
-                        }
-                    } else {
-                        $status = 'error';
-                        $message = 'Gagal menghapus data: ' . $stmt_delete->error;
-                    }
-                    $stmt_delete->close();
-                } else {
-                    $status = 'error';
-                    $message = 'Gagal menyiapkan statement penghapusan: ' . $koneksi->error;
-                }
-            }
-        }
-    }
+if (empty($id_jurnal_harian) || !is_numeric($id_jurnal_harian)) {
+    showAlertAndRedirect(
+        'error',
+        'Gagal Hapus',
+        'ID laporan tidak valid atau tidak ditemukan.',
+        'master_kegiatan_harian.php'
+    );
 }
-$koneksi->close();
-?>
 
-<!DOCTYPE html>
-<html lang="en">
+$id_jurnal_harian = intval($id_jurnal_harian);
 
-<head>
-    <meta charset="UTF-8">
-    <title>Status Hapus</title>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
+// Ambil siswa_id dari laporan yang akan dihapus untuk verifikasi (PENTING)
+$siswa_id_dari_db = null;
+$query_get_siswa_id = "SELECT siswa_id FROM jurnal_harian WHERE id_jurnal_harian = ?";
+$stmt_get_siswa_id = $koneksi->prepare($query_get_siswa_id);
 
-<body>
+if (!$stmt_get_siswa_id) {
+    error_log("Failed to prepare statement (get siswa_id for delete): " . $koneksi->error);
+    showAlertAndRedirect(
+        'error',
+        'Gagal Hapus',
+        'Terjadi kesalahan internal saat memverifikasi laporan.',
+        'master_kegiatan_harian.php'
+    );
+}
+$stmt_get_siswa_id->bind_param("i", $id_jurnal_harian);
+$stmt_get_siswa_id->execute();
+$result_get_siswa_id = $stmt_get_siswa_id->get_result();
+$data_laporan_dihapus = $result_get_siswa_id->fetch_assoc();
+$stmt_get_siswa_id->close();
 
-    <script>
-    Swal.fire({
-        icon: '<?php echo $status; ?>',
-        title: '<?php echo ($status == "success" || $status == "info") ? "Berhasil!" : "Gagal!"; ?>',
-        text: '<?php echo $message; ?>',
-        showConfirmButton: false,
-        timer: 2500
-    }).then(() => {
-        // Alihkan halaman berdasarkan peran yang login
-        <?php if ($is_siswa): ?>
-        window.location.href = 'master_kegiatan_harian.php';
-        <?php elseif ($is_admin): ?>
-        var redirectSiswaId = '<?php echo $redirect_to_siswa_id; ?>';
-        if (redirectSiswaId) {
-            // Jika admin menghapus laporan siswa spesifik, kembali ke daftar laporan siswa tersebut
-            window.location.href = 'master_kegiatan_harian.php?siswa_id=' + redirectSiswaId;
+if (!$data_laporan_dihapus) {
+    showAlertAndRedirect(
+        'error',
+        'Gagal Hapus',
+        'Laporan tidak ditemukan.',
+        'master_kegiatan_harian.php'
+    );
+}
+
+$siswa_id_dari_db = $data_laporan_dihapus['siswa_id'];
+
+// LOGIKA OTORISASI UNTUK PENGHAPUSAN
+$authorized_to_delete = false;
+if ($is_siswa && $siswa_id_dari_db == ($_SESSION['id_siswa'] ?? null)) {
+    // Siswa hanya bisa menghapus laporan miliknya sendiri
+    $authorized_to_delete = true;
+} elseif ($is_admin) {
+    // Admin bisa menghapus laporan siapa saja
+    $authorized_to_delete = true;
+}
+
+if (!$authorized_to_delete) {
+    showAlertAndRedirect(
+        'error',
+        'Akses Ditolak',
+        'Anda tidak diizinkan menghapus laporan ini.',
+        'master_kegiatan_harian.php'
+    );
+}
+
+// Lanjutkan proses penghapusan
+$query_delete = "DELETE FROM jurnal_harian WHERE id_jurnal_harian = ?";
+$types_delete = "i";
+$params_delete = [$id_jurnal_harian];
+
+if ($is_siswa) {
+    // Jika siswa, tambahkan siswa_id ke WHERE clause untuk keamanan ekstra
+    $query_delete .= " AND siswa_id = ?";
+    $types_delete .= "i";
+    $params_delete[] = $_SESSION['id_siswa'] ?? null;
+}
+
+$stmt_delete = $koneksi->prepare($query_delete);
+
+if ($stmt_delete) {
+    $stmt_delete->bind_param($types_delete, ...$params_delete);
+
+    if ($stmt_delete->execute()) {
+        if ($stmt_delete->affected_rows > 0) {
+            $status_type = 'success';
+            $title_swal = 'Berhasil!';
+            $message_swal = 'Laporan kegiatan harian telah berhasil dihapus.';
         } else {
-            // Jika tidak ada siswa_id yang spesifik (misal admin melihat semua laporan), kembali ke halaman daftar laporan umum admin
-            window.location.href = 'master_kegiatan_harian.php';
+            $status_type = 'info';
+            $title_swal = 'Tidak Ada Perubahan!';
+            $message_swal = 'Laporan tidak ditemukan atau sudah dihapus.';
         }
-        <?php endif; ?>
-    });
-    </script>
+    } else {
+        error_log("Error executing delete statement: " . $stmt_delete->error);
+        $status_type = 'error';
+        $title_swal = 'Gagal!';
+        $message_swal = 'Terjadi kesalahan pada database saat mencoba menghapus: ' . $stmt_delete->error;
+    }
+    $stmt_delete->close();
+} else {
+    error_log("Failed to prepare delete statement: " . $koneksi->error);
+    $status_type = 'error';
+    $title_swal = 'Gagal!';
+    $message_swal = 'Terjadi kesalahan pada persiapan query database.';
+}
 
-</body>
+// Tentukan URL redirect setelah operasi selesai
+$redirect_url_final = 'master_kegiatan_harian.php';
+// Prioritaskan redirect_siswa_id dari GET jika admin memintanya
+if ($is_admin && !empty($redirect_to_siswa_id)) {
+    $redirect_url_final .= '?siswa_id=' . htmlspecialchars($redirect_to_siswa_id);
+}
+// Jika admin menghapus dari tampilan semua laporan, siswa_id_dari_db bisa membantu redirect ke laporan siswa yang benar
+// Namun, jika redirect_siswa_id_param ada di URL, itu yang kita gunakan.
 
-</html>
+
+$koneksi->close();
+
+showAlertAndRedirect(
+    $status_type,
+    $title_swal,
+    $message_swal,
+    $redirect_url_final
+);
