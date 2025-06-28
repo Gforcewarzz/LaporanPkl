@@ -3,6 +3,13 @@ session_start();
 
 include 'partials/db.php';
 
+// Pastikan Dompdf ter-load. Sesuaikan path ini jika Anda tidak menggunakan Composer
+// atau jika folder vendor berada di lokasi yang berbeda.
+require_once 'vendor/autoload.php';
+
+use Dompdf\Dompdf;
+use Dompdf\Options;
+
 $id_jurnal_kegiatan = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 $laporan_data = null;
@@ -11,14 +18,17 @@ $is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_lo
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
 $is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
 
+// Logika keamanan: Redirect jika tidak ada peran yang diizinkan
 if (!$is_siswa && !$is_admin && !$is_guru) {
     header('Location: ../login.php');
     exit();
 }
 
-$location = "Bandung"; // Anda bisa mengubah ini atau mengambil dari konfigurasi/database
+// Data lokasi untuk tanda tangan (sekarang selalu titik-titik)
+$location = "..................................................";
 
 
+// Ambil data laporan dari database jika ID valid
 if ($id_jurnal_kegiatan > 0) {
     $sql = "SELECT 
                 jk.id_jurnal_kegiatan, 
@@ -61,40 +71,54 @@ if ($id_jurnal_kegiatan > 0) {
         if ($result->num_rows > 0) {
             $laporan_data = $result->fetch_assoc();
 
+            // Logika otorisasi: pastikan pengguna yang login berhak melihat laporan ini
             $authorized_to_view = false;
             if ($is_siswa && ($laporan_data['siswa_id'] == ($_SESSION['id_siswa'] ?? null))) {
                 $authorized_to_view = true;
             } elseif ($is_admin) {
-                $authorized_to_view = true;
+                $authorized_to_view = true; // Admin bisa melihat semua laporan
             }
 
             if (!$authorized_to_view) {
+                // Tentukan URL redirect jika akses ditolak
                 $redirect_url_on_fail = 'master_tugas_project.php';
                 if ($is_admin && isset($laporan_data['siswa_id'])) {
                     $redirect_url_on_fail .= '?siswa_id=' . htmlspecialchars($laporan_data['siswa_id']);
                 }
 
+                // Tampilkan pesan error dan redirect menggunakan SweetAlert2
                 echo "<!DOCTYPE html><html lang='id'><head><meta charset='UTF-8'><title>Akses Ditolak</title><script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script></head><body><script>Swal.fire({icon: 'error',title: 'Akses Ditolak!',text: 'Anda tidak memiliki izin untuk melihat laporan ini.',confirmButtonText: 'OK'}).then(() => {window.location.href = '{$redirect_url_on_fail}';});</script></body></html>";
                 exit();
             }
         } else {
+            // Laporan tidak ditemukan di database
             echo "<!DOCTYPE html><html lang='id'><head><meta charset='UTF-8'><title>Laporan Tidak Ditemukan</title><script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script></head><body><script>Swal.fire({icon: 'error',title: 'Tidak Ditemukan!',text: 'Laporan tugas proyek dengan ID ini tidak ada.',confirmButtonText: 'OK'}).then(() => {window.location.href = 'master_tugas_project.php';});</script></body></html>";
             exit();
         }
         $stmt->close();
     } else {
+        // Gagal menyiapkan statement database
         error_log("Failed to prepare statement for print: " . $koneksi->error);
         echo "<!DOCTYPE html><html lang='id'><head><meta charset='UTF-8'><title>Error</title><script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script></head><body><script>Swal.fire({icon: 'error',title: 'Error!',text: 'Terjadi kesalahan internal. Mohon coba lagi nanti.',confirmButtonText: 'OK'}).then(() => {window.location.href = 'master_tugas_project.php';});</script></body></html>";
         exit();
     }
 } else {
+    // ID laporan tidak valid atau tidak diberikan
     echo "<!DOCTYPE html><html lang='id'><head><meta charset='UTF-8'><title>ID Tidak Valid</title><script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script></head><body><script>Swal.fire({icon: 'warning',title: 'ID Tidak Valid!',text: 'ID laporan tidak diberikan.',confirmButtonText: 'OK'}).then(() => {window.location.href = 'master_tugas_project.php';});</script></body></html>";
     exit();
 }
 
+// Tanggal laporan diambil dari database
 $currentDate = date('d F Y', strtotime($laporan_data['tanggal_laporan']));
 
-$koneksi->close();
+$koneksi->close(); // Tutup koneksi database setelah semua query selesai
+
+// Deteksi user agent untuk menentukan apakah mobile atau desktop
+$user_agent = $_SERVER['HTTP_USER_AGENT'];
+$is_mobile = preg_match("/(android|avantgo|blackberry|bolt|boost|cricket|docomo|fone|hiptop|mini|mobi|palm|phone|pie|tablet|up\.browser|up\.link|webos|windows ce|wireless|xda|xiino)/i", $user_agent);
+
+// Mulai output buffering untuk menangkap semua HTML
+ob_start();
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -110,51 +134,59 @@ $koneksi->close();
             margin: 0;
             padding: 0;
             color: #000;
-            font-size: 10.5pt;
+            font-size: 10pt;
+            /* Ukuran font umum untuk kerapian */
         }
 
         .page {
-            width: 210mm;
+            width: 178mm;
+            /* Lebar konten efektif A4 (210mm - 2*16mm margin) */
+            margin: 0 auto;
+            /* Menengahkan konten di halaman */
             min-height: 297mm;
-            padding: 1.8cm;
+            /* Tinggi A4 */
+            padding: 0;
+            /* Padding di elemen ini nol karena margin @page sudah mengatur */
             box-sizing: border-box;
             page-break-after: auto;
+            /* Biarkan browser/printer menentukan pecah halaman */
         }
 
         .header {
-            margin-bottom: 16pt;
+            margin-bottom: 14pt;
+            /* Jarak setelah header */
         }
 
         .header h1,
         .header h2 {
             margin: 0;
-            font-size: 13pt;
+            font-size: 12pt;
             line-height: 1.1;
             text-align: left;
             font-weight: normal;
         }
 
         .header h2 {
-            margin-top: 3pt;
+            margin-top: 2pt;
         }
 
         .info-section {
-            margin-bottom: 16pt;
+            margin-bottom: 14pt;
             border-bottom: 1px dashed #bbb;
-            padding-bottom: 7pt;
+            padding-bottom: 6pt;
         }
 
         .info-item {
             display: flex;
-            margin-bottom: 2pt;
-            font-size: 10.5pt;
-            padding-left: 8pt;
+            margin-bottom: 1.5pt;
+            font-size: 10pt;
+            padding-left: 6pt;
         }
 
         .info-item strong {
             flex-shrink: 0;
-            width: 135pt;
-            margin-right: 4pt;
+            width: 130pt;
+            margin-right: 3pt;
         }
 
         .info-item span {
@@ -163,30 +195,33 @@ $koneksi->close();
         }
 
         .section-block {
-            margin-bottom: 14pt;
+            margin-bottom: 12pt;
             page-break-inside: avoid;
+            /* Usahakan blok section tidak terpecah di tengah halaman */
+            page-break-after: avoid;
+            /* Usahakan tidak ada page break langsung setelah section block */
         }
 
         .section-title {
             font-weight: bold;
-            margin-top: 10pt;
-            margin-bottom: 4pt;
+            margin-top: 8pt;
+            margin-bottom: 3pt;
             text-decoration: none;
-            font-size: 11.5pt;
+            font-size: 11pt;
         }
 
         .content-box {
             border: 1pt solid #000;
-            padding: 7pt 9pt;
-            min-height: 45pt;
+            padding: 6pt 8pt;
+            min-height: 40pt;
             white-space: pre-line;
             word-wrap: break-word;
             text-align: justify;
-            font-size: 10.5pt;
+            font-size: 10pt;
         }
 
         .small-note {
-            font-size: 8.5pt;
+            font-size: 7.5pt;
             color: #555;
             margin-top: 1pt;
             text-align: left;
@@ -194,11 +229,12 @@ $koneksi->close();
 
         .image-container {
             text-align: center;
-            margin-top: 10pt;
-            margin-bottom: 15pt;
+            margin-top: 8pt;
+            margin-bottom: 12pt;
             border: 1px solid #ddd;
-            padding: 5pt;
+            padding: 4pt;
             page-break-inside: avoid;
+            /* Pastikan gambar tidak terpotong di tengah halaman */
         }
 
         .image-container img {
@@ -206,99 +242,65 @@ $koneksi->close();
             height: auto;
             display: block;
             margin: 0 auto;
-            max-height: 100mm;
-            /* Batasi tinggi gambar potret agar tidak terlalu panjang */
+            max-height: 90mm;
+            /* Batasi tinggi maksimum gambar potret */
             object-fit: contain;
             /* Memastikan seluruh gambar terlihat tanpa terpotong */
         }
 
-
         .signature-block {
-            margin-top: 35pt;
+            margin-top: 30pt;
+            /* Jarak dari konten di atasnya */
             text-align: right;
-            font-size: 10.5pt;
-            line-height: 1.4;
+            font-size: 10pt;
+            line-height: 1.35;
             page-break-inside: avoid;
+            /* Pastikan blok tanda tangan tidak terpecah */
         }
 
         .signature-block p {
             margin: 0;
         }
 
+        /* Menghilangkan garis bawah pada tanda tangan */
         .signature-line {
-            display: block;
-            width: 180pt;
-            border-bottom: 1pt solid #000;
-            margin: 50pt 0 4pt auto;
-            text-align: center;
+            display: none;
+        }
+
+        .signature-block .location-date {
+            margin-bottom: 10pt;
+            /* Jarak setelah lokasi dan tanggal */
+        }
+
+        .signature-block .signature-title {
+            margin-bottom: 25pt;
+            /* Jarak setelah "Tanda Tangan Instruktur" */
         }
 
         .signature-name-placeholder {
-            margin-top: 1pt;
-            font-size: 10.5pt;
-        }
-
-        /* CSS tambahan untuk memecah halaman D ke halaman baru jika mepet */
-        .section-block.break-before-if-tight {
-            /* Ini akan mencoba memindahkan elemen ke halaman baru
-           jika sisa ruang di halaman saat ini terlalu kecil.
-           Nilai 'N' ini (misal 5cm) adalah tinggi minimal yang dibutuhkan elemen
-           agar tidak dipecah. Jika kurang dari N, elemen akan dipindah. */
-            page-break-before: auto;
-            /* Default: biarkan browser menentukan */
-            page-break-after: auto;
-            break-before: auto;
-            break-after: auto;
-            /* Custom property for advanced control (not standard CSS print) */
-            /* -webkit-box-decoration-break: clone; */
-            /* box-decoration-break: clone; */
-        }
-
-        /* Aturan media print untuk memaksa page break */
-        @media print {
-
-            /* Cara paling umum dan efektif untuk memecah halaman */
-            .section-block.break-before-if-tight {
-                page-break-before: avoid;
-                /* Ini mencegah pecah di tengah elemen ini */
-                /* Jika Anda ingin memaksa selalu di halaman baru (seperti yang Anda minta): */
-                /* page-break-before: always; */
-            }
-
-            /* Untuk kasus 'D' (Catatan Instruktur), kita bisa lebih agresif. */
-            /* Jika terlalu banyak isi di atasnya sehingga D akan terpotong */
-            /* Kita bisa target langsung section-block yang keempat jika selalu D. */
-            /* Contoh lebih spesifik: Jika D adalah section-block keempat */
-            .section-block:nth-of-type(4) {
-                /* Mengambil section-block ke-4 (A, B, C, D) */
-                page-break-before: auto;
-                /* Biarkan browser decide */
-                /* Alternatif jika selalu ingin D di halaman baru: */
-                /* page-break-before: always; */
-                /* HANYA JIKA ADA KEMUNGKINAN D TERPOTONG, MAKA PINDAH HALAMAN: */
-                /* Ini lebih sulit dicapai dengan CSS murni.
-               Biasanya memerlukan JS untuk mengukur konten dinamis.
-               Namun, kita bisa memberikan 'break-inside: avoid' dan sedikit margin. */
-            }
-
-            /* Untuk memaksa "Catatan Instruktur" ke halaman baru jika terlalu mepet */
-            /* Ini adalah trik CSS murni, yang terbaik adalah page-break-before: always; */
-            /* Tapi kalau mau 'jika mepet', bisa pakai min-height atau padding di footernya
-           atau mengandalkan page-break-inside. */
-            .section-block.catatan-instruktur-section {
-                page-break-before: auto;
-                /* Default behaviour */
-                /* Jika Anda ingin dia selalu di halaman 2 (atau halaman baru) */
-                /* page-break-before: always; */
-            }
+            margin-top: 0;
+            /* Tidak perlu margin-top tambahan di sini, sudah diatur di p.signature-title */
+            font-size: 10pt;
+            display: block;
+            min-height: 1.5em;
+            /* Memberi sedikit ruang untuk tulisan nama */
         }
 
 
+        /* Memaksa Bagian D ke halaman baru */
+        .section-block.catatan-instruktur-section {
+            page-break-before: always;
+            /* Ini akan memaksa elemen untuk selalu dimulai di halaman baru */
+        }
+
+        /* Pengaturan margin halaman cetak secara keseluruhan */
         @page {
             size: A4 portrait;
-            margin: 1.8cm;
+            margin: 1.6cm;
+            /* Margin di setiap sisi halaman */
         }
 
+        /* Media query @media print untuk konsistensi di browser desktop */
         @media print {
             body {
                 background: none;
@@ -312,7 +314,8 @@ $koneksi->close();
             }
 
             @page {
-                margin: 1.8cm;
+                margin: 1.6cm;
+                /* Pastikan konsisten dengan @page utama */
             }
         }
     </style>
@@ -381,18 +384,49 @@ $koneksi->close();
         </div>
 
         <div class="signature-block">
-            <p><?php echo htmlspecialchars($location); ?>, <?php echo htmlspecialchars($currentDate); ?></p>
-            <p>Tanda Tangan Instruktur</p>
-            <div class="signature-line"></div>
+            <p class="location-date"><?php echo htmlspecialchars($location); ?>,
+                <?php echo htmlspecialchars($currentDate); ?></p>
+            <p class="signature-title">Tanda Tangan Instruktur</p>
             <p class="signature-name-placeholder">(................................................)</p>
         </div>
     </div>
+</body>
 
+</html>
+<?php
+// Ambil konten HTML yang sudah di-buffer
+$html = ob_get_clean();
+
+// Deteksi Mobile dan Proses dengan Dompdf atau window.print()
+if ($is_mobile) {
+    // Instansiasi dan konfigurasi Dompdf
+    $options = new Options();
+    $options->set('isHtml5ParserEnabled', true);
+    $options->set('isRemoteEnabled', true);
+    // Path ke folder root proyek Anda jika folder 'images' ada di sana
+    // atau ke folder 'admin' jika folder 'images' ada di dalam 'admin'
+    // Asumsi folder 'images' ada di direktori yang sama dengan file ini (admin/)
+    $options->set('chroot', realpath(__DIR__));
+
+    $dompdf = new Dompdf($options);
+    $dompdf->loadHtml($html);
+
+    $dompdf->setPaper('A4', 'portrait');
+
+    $dompdf->render();
+
+    // Nama file untuk di-download
+    $filename = 'Laporan_Tugas_Proyek_' . preg_replace("/[^a-zA-Z0-9\s]/", "", $laporan_data['nama_pekerjaan']) . '_' . date('Ymd') . '.pdf';
+    $dompdf->stream($filename, ["Attachment" => true]); // true = download, false = open in browser
+    exit();
+} else {
+    // Jika bukan mobile, tampilkan HTML di browser dan panggil window.print()
+    echo $html;
+?>
     <script>
         window.onload = function() {
             window.print();
         };
     </script>
-</body>
-
-</html>
+<?php
+}

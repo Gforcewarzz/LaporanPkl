@@ -51,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['siswa_status_login'] = 'logged_in';
 
             mysqli_close($koneksi);
-            header("Location: admin/master_kegiatan_harian.php"); // Redirect ke dashboard siswa
+            header("Location: admin/dashboard_siswa.php"); // Redirect ke dashboard siswa
             exit;
         } else {
             // Password salah
