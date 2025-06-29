@@ -184,36 +184,7 @@ if (isset($_SESSION['siswa']) && $_SESSION['siswa'] === 'login') {
         </div>
 
                 <script>
-        $(document).ready(function() {
-        $('#nisn').keyup(function() {
-            let query = $(this).val();
-            if (query.length > 2) {
-            $.ajax({
-                url: "cari_nisn.php",
-                method: "POST",
-                data: { query: query },
-                success: function(data) {
-                $('#nisnList').fadeIn().html(data);
-                }
-            });
-            } else {
-            $('#nisnList').fadeOut();
-            }
-        });
 
-        // Set nilai input ketika salah satu item diklik
-        $(document).on('click', '.nisn-item', function() {
-            $('#nisn').val($(this).text());
-            $('#nisnList').fadeOut();
-        });
-
-        // Tutup list jika klik di luar
-        $(document).click(function(e) {
-            if (!$(e.target).closest('#nisn').length) {
-            $('#nisnList').fadeOut();
-            }
-        });
-        });
         </script>
 </body>
 
