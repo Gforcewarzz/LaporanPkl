@@ -50,58 +50,58 @@
         </li>
 
         <?php if ($is_admin): ?>
-            <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Data Utama</span>
-            </li>
-            <li class="menu-item">
-                <a href="javascript:void(0);" class="menu-link menu-toggle">
-                    <i class="menu-icon tf-icons bx bx-collection"></i>
-                    <div data-i18n="Master Data">Master Data</div>
-                </a>
-                <ul class="menu-sub">
-                    <li class="menu-item">
-                        <a href="master_data_siswa.php" class="menu-link">
-                            <div data-i18n="Data Siswa PKL">Data Siswa PKL</div>
-                        </a>
-                    </li>
-                    <li class="menu-item">
-                        <a href="master_guru_pendamping.php" class="menu-link">
-                            <div data-i18n="Data Guru Pendamping">Data Guru Pendamping</div>
-                        </a>
-                    </li>
-                    <li class="menu-item">
-                        <a href="master_tempat_pkl.php" class="menu-link">
-                            <div data-i18n="Data Tempat PKL">Data Tempat PKL</div>
-                        </a>
-                    </li>
-                    <li class="menu-item">
-                        <a href="master_data_admin.php" class="menu-link">
-                            <div data-i18n="Data Admin">Data Admin</div>
-                        </a>
-                    </li>
-                </ul>
-            </li>
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">Data Utama</span>
+        </li>
+        <li class="menu-item">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-collection"></i>
+                <div data-i18n="Master Data">Master Data</div>
+            </a>
+            <ul class="menu-sub">
+                <li class="menu-item">
+                    <a href="master_data_siswa.php" class="menu-link">
+                        <div data-i18n="Data Siswa PKL">Data Siswa PKL</div>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="master_guru_pendamping.php" class="menu-link">
+                        <div data-i18n="Data Guru Pendamping">Data Guru Pendamping</div>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="master_tempat_pkl.php" class="menu-link">
+                        <div data-i18n="Data Tempat PKL">Data Tempat PKL</div>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="master_data_admin.php" class="menu-link">
+                        <div data-i18n="Data Admin">Data Admin</div>
+                    </a>
+                </li>
+            </ul>
+        </li>
         <?php endif; ?>
 
         <?php if ($is_admin || $is_siswa || $is_guru): ?>
-            <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Transaksi & Laporan</span>
-            </li>
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">Transaksi & Laporan</span>
+        </li>
         <?php endif; ?>
 
         <?php if ($is_admin || $is_siswa): ?>
-            <li class="menu-item">
-                <a href="master_kegiatan_harian.php" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-book-content"></i>
-                    <div data-i18n="Kegiatan Harian">Kegiatan Harian</div>
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="master_tugas_project.php" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-book-content"></i>
-                    <div data-i18n="Kegiatan Project">Tugas Proyek</div>
-                </a>
-            </li>
+        <li class="menu-item">
+            <a href="master_kegiatan_harian.php" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-book-content"></i>
+                <div data-i18n="Kegiatan Harian">Kegiatan Harian</div>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a href="master_tugas_project.php" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-book-content"></i>
+                <div data-i18n="Kegiatan Project">Tugas Proyek</div>
+            </a>
+        </li>
         <?php endif; ?>
 
         <?php /*
@@ -134,13 +134,43 @@
         */ ?>
 
         <?php if ($is_admin || $is_siswa || $is_guru): ?>
-            <li class="menu-item">
-                <a href="javascript:void(0);" class="menu-link" onclick="confirmLogout()">
-                    <i class="menu-icon tf-icons bx bx-log-out"></i>
-                    <div data-i18n="Logout">Logout</div>
-                </a>
-            </li>
+        <li class="menu-item">
+            <a href="javascript:void(0);" class="menu-link" onclick="confirmLogout()">
+                <i class="menu-icon tf-icons bx bx-log-out"></i>
+                <div data-i18n="Logout">Logout</div>
+            </a>
+        </li>
         <?php endif; ?>
 
     </ul>
 </aside>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+<script>
+function confirmLogout() {
+    Swal.fire({
+        title: 'Konfirmasi Logout',
+        html: 'Apakah Anda yakin ingin keluar dari aplikasi?',
+        icon: 'question', // Atau 'warning', 'info'
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545', // Merah untuk Logout
+        cancelButtonColor: '#6c757d', // Abu-abu untuk Batal
+        confirmButtonText: 'Ya, Logout!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true, // Membalik posisi tombol (Batal di kiri)
+        showClass: { // Animasi saat muncul
+            popup: 'animate__animated animate__zoomIn animate__faster'
+        },
+        hideClass: { // Animasi saat menghilang
+            popup: 'animate__animated animate__zoomOut animate__faster'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Arahkan ke script logout Anda
+            // Asumsi logout.php berada satu tingkat di atas folder admin/
+            window.location.href = '../logout.php';
+        }
+    });
+}
+</script>

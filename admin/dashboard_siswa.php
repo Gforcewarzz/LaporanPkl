@@ -188,25 +188,7 @@ $koneksi->close();
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-lg-4 col-md-6 col-12">
-                                <div
-                                    class="card h-100 shadow-sm border-0 animate__animated animate__fadeInUp animate__delay-0-9s">
-                                    <div class="card-body d-flex flex-column align-items-start p-4">
-                                        <div class="avatar flex-shrink-0 mb-3 rounded-circle d-flex justify-content-center align-items-center bg-label-info"
-                                            style="width: 50px; height: 50px; font-size: 1.8rem;">
-                                            <i class="bx bx-calendar-week bx-lg"></i>
-                                        </div>
-                                        <span class="text-muted fw-semibold d-block mb-1 fs-6">Minggu PKL
-                                            Berjalan</span>
-                                        <h3 class="card-title fw-bold mb-0 display-5 text-dark"><?= $total_minggu_pkl ?>
-                                        </h3>
-                                        <small class="text-muted d-block mt-1" style="font-size: 0.85rem;">Minggu ke-mu
-                                            di tempat PKL</small>
-                                        <a href="#" class="btn btn-sm btn-outline-info mt-3">Lihat Progres <i
-                                                class="bx bx-chevron-right"></i></a>
-                                    </div>
-                                </div>
-                            </div>
+
                         </div>
 
                         <div class="row g-4 mb-4">
@@ -237,11 +219,11 @@ $koneksi->close();
                                                     class="bx bx-check-double me-2"></i>Progres Laporanmu</h5>
                                             <p class="card-text text-muted mb-0" style="font-size: 0.9rem;">
                                                 <?php if ($total_laporan_harian > 0): ?>
-                                                    Terakhir melaporkan kegiatan pada tanggal
-                                                    <strong><?= $last_report_date ?></strong>.
+                                                Terakhir melaporkan kegiatan pada tanggal
+                                                <strong><?= $last_report_date ?></strong>.
                                                 <?php else: ?>
-                                                    Belum ada laporan kegiatan yang tercatat. Ayo buat laporan pertamamu
-                                                    hari ini!
+                                                Belum ada laporan kegiatan yang tercatat. Ayo buat laporan pertamamu
+                                                hari ini!
                                                 <?php endif; ?>
                                             </p>
                                         </div>
