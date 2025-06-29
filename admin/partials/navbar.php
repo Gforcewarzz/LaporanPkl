@@ -8,7 +8,7 @@ require 'partials/db.php';
 // Inisialisasi variabel dengan nilai default untuk pengunjung
 $userName = 'Guest';
 $userRole = 'Pengunjung';
-$userAvatar = 'assets/img/avatars/1.png'; 
+$userAvatar = 'assets/img/avatars/default_user.png'; // Avatar default umum
 
 // Cek jika ada pengguna yang login
 if (isset($_SESSION['user_id']) && isset($_SESSION['user_role'])) {
@@ -21,11 +21,10 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['user_role'])) {
         case 'siswa':
             $userRole = 'Siswa PKL';
             $siswa_id = $_SESSION['user_id'];
-            
-            // Default avatar untuk siswa Laki-laki
-            $userAvatar = 'assets/img/avatars/laki-laki.jpg';
 
-            // Query ke database HANYA jika koneksi berhasil
+            // Default avatar siswa sebelum query
+            $userAvatar = 'assets/img/avatars/default_siswa.png'; // Avatar default siswa umum
+
             if ($isDbConnected) {
                 $sql = "SELECT jenis_kelamin FROM siswa WHERE id_siswa = ?";
                 $stmt = $koneksi->prepare($sql);
@@ -37,36 +36,47 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['user_role'])) {
 
                     if ($result->num_rows > 0) {
                         $siswa_data = $result->fetch_assoc();
-                        $jenis_kelamin = $siswa_data['jenis_kelamin'];
+                        $jenis_kelamin = strtolower(trim($siswa_data['jenis_kelamin'])); // Bersihkan dan kecilkan huruf
 
-                        // Jika jenis kelamin Perempuan ('P'), ganti avatar
-                        if ($jenis_kelamin === 'P' || $jenis_kelamin === 'Perempuan') {
+                        // Logika penentuan avatar berdasarkan jenis kelamin yang sudah dibersihkan
+                        if ($jenis_kelamin === 'l' || $jenis_kelamin === 'laki-laki') {
+                            $userAvatar = 'assets/img/avatars/laki.jpg';
+                        } elseif ($jenis_kelamin === 'p' || $jenis_kelamin === 'perempuan') {
                             $userAvatar = 'assets/img/avatars/perempuan.jpg';
                         }
+                        // Jika jenis kelamin tidak 'L'/'laki-laki' atau 'P'/'perempuan', tetap pakai default_siswa.png
                     }
                     $stmt->close();
+                } else {
+                    error_log("Failed to prepare statement for siswa gender: " . $koneksi->error);
+                    // Biarkan userAvatar tetap default jika query gagal
                 }
+            } else {
+                error_log("Database connection failed for avatar lookup.");
+                // Biarkan userAvatar tetap default jika koneksi gagal
             }
             break;
 
         case 'guru_pendamping':
             $userRole = 'Guru Pembimbing';
-            $userAvatar = 'assets/img/avatars/guru.png'; // Avatar default untuk guru
+            $userAvatar = 'assets/img/avatars/guru.png';
             break;
 
         case 'admin':
             $userRole = 'Administrator';
-            $userAvatar = 'assets/img/avatars/admin.png'; // Avatar default untuk admin
+            $userAvatar = 'assets/img/avatars/admin.png';
             break;
-            
+
         default:
             $userRole = 'Pengguna';
-            $userAvatar = 'assets/img/avatars/1.png'; // Avatar default
+            $userAvatar = 'assets/img/avatars/default_user.png';
             break;
     }
-    
-    // Tutup koneksi setelah selesai digunakan
-    
+    // Pastikan koneksi ditutup setelah selesai digunakan di sini jika tidak digunakan lagi di bawah
+    // Namun, jika $koneksi juga digunakan di halaman utama yang memuat navbar,
+    // biarkan $koneksi tetap terbuka sampai akhir script halaman utama.
+    // Jika tidak ada operasi DB lain setelah navbar, bisa ditutup di sini.
+    // $koneksi->close(); 
 }
 ?>
 
@@ -131,31 +141,31 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['user_role'])) {
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const logoutBtn = document.getElementById("logoutButton");
+    document.addEventListener('DOMContentLoaded', function() {
+        const logoutBtn = document.getElementById("logoutButton");
 
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", function(e) {
-            e.preventDefault();
+        if (logoutBtn) {
+            logoutBtn.addEventListener("click", function(e) {
+                e.preventDefault();
 
-            Swal.fire({
-                title: 'Konfirmasi Logout',
-                text: "Apakah Anda yakin ingin keluar dari sesi ini?",
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#007bff',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Ya, Logout',
-                cancelButtonText: 'Batal',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = "../logout.php";
-                }
+                Swal.fire({
+                    title: 'Konfirmasi Logout',
+                    text: "Apakah Anda yakin ingin keluar dari sesi ini?",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#007bff',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Logout',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = "../logout.php";
+                    }
+                });
             });
-        });
-    } else {
-        console.error("Elemen dengan ID 'logoutButton' tidak ditemukan.");
-    }
-});
+        } else {
+            console.error("Elemen dengan ID 'logoutButton' tidak ditemukan.");
+        }
+    });
 </script>

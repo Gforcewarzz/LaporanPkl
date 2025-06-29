@@ -1,8 +1,7 @@
 <?php
-
 session_start();
 
-// Keamanan: Hanya admin yang boleh mengakses dashboard ini
+// Keamanan: Hanya admin yang boleh mengakses halaman ini
 $is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
 $is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
@@ -19,8 +18,6 @@ if (!$is_admin) {
         exit();
     }
 }
-// 5. Jika lolos semua pemeriksaan di atas, maka dia adalah ADMIN yang sah.
-// Tampilkan semua konten halaman ini.
 ?>
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default">
@@ -35,7 +32,6 @@ if (!$is_admin) {
                 <div class="content-wrapper">
                     <div class="container-xxl flex-grow-1 container-p-y">
 
-                        <!-- Header -->
                         <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
                             <h4 class="fw-bold mb-0 text-primary">
                                 <span class="text-muted fw-light">Master /</span> Tambah Guru Pendamping
@@ -43,7 +39,6 @@ if (!$is_admin) {
                             <i class="fas fa-user-plus fa-2x text-info" style="opacity: 0.6;"></i>
                         </div>
 
-                        <!-- Form Card -->
                         <div class="card shadow-lg" style="border-radius: 10px;">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">Form Tambah Data Guru</h5>
@@ -64,6 +59,16 @@ if (!$is_admin) {
                                             NIP</label>
                                         <input type="text" class="form-control" id="nip" name="nip"
                                             placeholder="Contoh: 198811202015032001" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="jenis_kelamin" class="form-label fw-bold"><i
+                                                class="bx bx-male-female me-1"></i> Jenis Kelamin</label>
+                                        <select class="form-select" id="jenis_kelamin" name="jenis_kelamin" required>
+                                            <option value="">-- Pilih Jenis Kelamin --</option>
+                                            <option value="Laki-laki">Laki-laki</option>
+                                            <option value="Perempuan">Perempuan</option>
+                                        </select>
                                     </div>
 
                                     <div class="mb-3">

@@ -72,7 +72,19 @@ include 'partials/db.php';
                                             <input type="text" name="nip" class="form-control" required
                                                 value="<?= htmlspecialchars($data['nip']) ?>">
                                         </div>
-
+                                        <div class="mb-3">
+                                            <label for="jenis_kelamin" class="form-label fw-bold"><i
+                                                    class="bx bx-male-female me-1"></i> Jenis Kelamin</label>
+                                            <select class="form-select" id="jenis_kelamin" name="jenis_kelamin" required>
+                                                <option value="">-- Pilih Jenis Kelamin --</option>
+                                                <option value="Laki-laki"
+                                                    <?= (isset($guru_data['jenis_kelamin']) && $guru_data['jenis_kelamin'] == 'Laki-laki') ? 'selected' : ''; ?>>
+                                                    Laki-laki</option>
+                                                <option value="Perempuan"
+                                                    <?= (isset($guru_data['jenis_kelamin']) && $guru_data['jenis_kelamin'] == 'Perempuan') ? 'selected' : ''; ?>>
+                                                    Perempuan</option>
+                                            </select>
+                                        </div>
                                         <div class="mb-3">
                                             <label class="form-label fw-bold">Password Baru (Opsional)</label>
                                             <input type="password" name="password" class="form-control"

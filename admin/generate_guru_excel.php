@@ -34,10 +34,12 @@ if (!empty($keyword)) {
     $types = "ss";
 }
 
+// PERUBAHAN: Tambahkan kolom jenis_kelamin di SELECT query
 $query_select_guru = "SELECT 
             id_pembimbing, 
             nama_pembimbing, 
-            nip 
+            nip,
+            jenis_kelamin 
         FROM guru_pembimbing 
         $filter_sql 
         ORDER BY nama_pembimbing ASC";
@@ -69,10 +71,12 @@ try {
     $sheet = $spreadsheet->getActiveSheet();
     $sheet->setTitle('Data Guru Pendamping');
 
+    // PERUBAHAN: Tambahkan 'Jenis Kelamin' di Header Kolom
     $headers = [
         'No',
         'Nama Guru',
-        'NIP'
+        'NIP',
+        'Jenis Kelamin' // Kolom baru
     ];
     $sheet->fromArray($headers, null, 'A1');
 
@@ -103,18 +107,16 @@ try {
     $row_num = 2;
     $counter = 1;
     foreach ($data_guru as $guru) {
+        // PERUBAHAN: Tambahkan jenis_kelamin ke baris data
         $data_row = [
             $counter,
             $guru['nama_pembimbing'] ?? '',
-            // SOLUSI TERBAIK UNTUK NIP: Tambahkan tanda petik tunggal di depannya
-            // Ini akan memaksa Excel untuk memperlakukannya sebagai teks murni
-            "'" . (string)($guru['nip'] ?? '') // <--- PERUBAHAN UTAMA DI SINI
+            "'" . (string)($guru['nip'] ?? ''), // NIP tetap diformat sebagai teks
+            $guru['jenis_kelamin'] ?? '' // Data jenis_kelamin
         ];
         $sheet->fromArray($data_row, null, 'A' . $row_num);
 
-        // Sebenarnya, jika sudah pakai trik tanda petik, format NumberFormat::FORMAT_TEXT
-        // tidak terlalu diperlukan, tapi tidak ada salahnya dipertahankan sebagai backup.
-        // Kolom NIP ada di kolom C (indeks 3 jika A=1)
+        // Atur format sel NIP menjadi teks (kolom C, indeks 3)
         $nipColumn = Coordinate::stringFromColumnIndex(3);
         $sheet->getStyle($nipColumn . $row_num)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
 
@@ -141,6 +143,7 @@ try {
     $sheet->getStyle('A2:A' . $sheet->getHighestRow())->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
 
+    // Auto-size kolom
     for ($col_index = 1; $col_index <= count($headers); $col_index++) {
         $col_char = Coordinate::stringFromColumnIndex($col_index);
         $sheet->getColumnDimension($col_char)->setAutoSize(true);

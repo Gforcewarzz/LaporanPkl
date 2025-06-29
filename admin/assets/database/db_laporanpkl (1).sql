@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost
--- Generation Time: Jun 25, 2025 at 04:30 AM
--- Server version: 8.0.30
--- PHP Version: 8.1.10
+-- Host: localhost:3306
+-- Waktu pembuatan: 29 Jun 2025 pada 04.46
+-- Versi server: 8.0.30
+-- Versi PHP: 8.3.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -24,36 +24,61 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `guru_pembimbing`
+-- Struktur dari tabel `admin`
+--
+
+CREATE TABLE `admin` (
+  `id_admin` int NOT NULL,
+  `username` varchar(100) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `nama_admin` varchar(255) NOT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data untuk tabel `admin`
+--
+
+INSERT INTO `admin` (`id_admin`, `username`, `password`, `nama_admin`, `email`, `created_at`) VALUES
+(1, 'warzz', '$2y$10$CplBa3GrE2/h6P.p.FuuvOUIAyg5Fp3efRObKGOCUtYrq6c6VgD0a', 'warzz', 'rizzlonely811@gmail.com', '2025-06-27 12:55:36'),
+(2, 'Easy', '$2y$10$EpuLETFAayHoS6qjjZgFAeRSXIEj3.km5Vk.fB8qdE356ZLQdHun.', 'Easy bree', 'easyy@gmail.com', '2025-06-28 01:10:26');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `guru_pembimbing`
 --
 
 CREATE TABLE `guru_pembimbing` (
   `id_pembimbing` int NOT NULL,
   `nama_pembimbing` varchar(100) NOT NULL,
   `nip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `jenis_kelamin` enum('Laki-laki','Perempuan') DEFAULT NULL,
   `password` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Dumping data for table `guru_pembimbing`
+-- Dumping data untuk tabel `guru_pembimbing`
 --
 
-INSERT INTO `guru_pembimbing` (`id_pembimbing`, `nama_pembimbing`, `nip`, `password`) VALUES
-(1, 'Ahmad Fauzi', '198112001001', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'),
-(2, 'Siti Aminah', '198212002002', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'),
-(3, 'Budi Santoso', '198312003003', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'),
-(4, 'Dewi Lestari', '198412004004', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'),
-(5, 'Joko Prasetyo', '198512005005', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'),
-(6, 'Rina Kurnia', '198612006006', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'),
-(7, 'Heri Wijaya', '198712007007', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'),
-(8, 'Lina Marlina', '198812008008', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'),
-(9, 'Andi Saputra', '198912009009', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'),
-(10, 'Desi Ratnasari', '19810120100010', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92');
+INSERT INTO `guru_pembimbing` (`id_pembimbing`, `nama_pembimbing`, `nip`, `jenis_kelamin`, `password`) VALUES
+(1, 'Ahmad Fauzi', '198112001001', 'Laki-laki', '$2y$10$yq5CNAsYYGXiKdCwgZfy.esEeq/lt4eNsUBBrSTxrYVy0nrMbR5Fq'),
+(2, 'Siti Aminah', '198212002002', 'Perempuan', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'),
+(3, 'Budi Santoso', '198312003003', 'Laki-laki', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'),
+(4, 'Dewi Lestari', '198412004004', 'Perempuan', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'),
+(5, 'Joko Prasetyo', '198512005005', 'Laki-laki', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'),
+(6, 'Rina Kurnia', '198612006006', 'Perempuan', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'),
+(7, 'Heri Wijaya', '198712007007', 'Laki-laki', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'),
+(8, 'Lina Marlina', '198812008008', 'Perempuan', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'),
+(9, 'Andi Saputra', '198912009009', 'Laki-laki', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'),
+(10, 'Desi Ratnasari', '19810120100010', 'Perempuan', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'),
+(13, 'Ibrahim Zaenal', '198008191826171', 'Laki-laki', '$2y$10$biJMwaSVowgIQgskMvqnSOhUmf2AetJcZkLfbKELU81CYFvJaZBva');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `jurnal_harian`
+-- Struktur dari tabel `jurnal_harian`
 --
 
 CREATE TABLE `jurnal_harian` (
@@ -64,10 +89,21 @@ CREATE TABLE `jurnal_harian` (
   `siswa_id` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+--
+-- Dumping data untuk tabel `jurnal_harian`
+--
+
+INSERT INTO `jurnal_harian` (`id_jurnal_harian`, `tanggal`, `pekerjaan`, `catatan`, `siswa_id`) VALUES
+(1, '2025-06-25', 'ngoding sampai sukses', 'pala gua muter coo', 1),
+(5, '2025-06-28', 'Mantapp', 'Demi 5 btc', 1),
+(6, '2025-06-28', 'Ngelas', 'Ngepas kapal laud tegar siregar', 30),
+(8, '2025-06-28', 'Hzbz', 'Hahz', 1),
+(10, '2025-06-28', 'Bzkaka', 'BzjJz', 2);
+
 -- --------------------------------------------------------
 
 --
--- Table structure for table `jurnal_kegiatan`
+-- Struktur dari tabel `jurnal_kegiatan`
 --
 
 CREATE TABLE `jurnal_kegiatan` (
@@ -76,13 +112,25 @@ CREATE TABLE `jurnal_kegiatan` (
   `perencanaan_kegiatan` text,
   `pelaksanaan_kegiatan` text,
   `catatan_instruktur` text,
-  `siswa_id` int DEFAULT NULL
+  `gambar` varchar(255) DEFAULT NULL,
+  `siswa_id` int DEFAULT NULL,
+  `tanggal_laporan` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data untuk tabel `jurnal_kegiatan`
+--
+
+INSERT INTO `jurnal_kegiatan` (`id_jurnal_kegiatan`, `nama_pekerjaan`, `perencanaan_kegiatan`, `pelaksanaan_kegiatan`, `catatan_instruktur`, `gambar`, `siswa_id`, `tanggal_laporan`) VALUES
+(5, 'projek lumpuh', 'ngoding pagi malem', 'membuat web pkl', 'gasss terus', 'proyek_edit_685f25dfcef983.70444904.jpg', 1, '2025-06-28 06:14:39'),
+(10, 'Yyv', 'F', 'Ychccg', 'Vttct', 'proyek_685fd2f4b53976.39966015.png', 1, '2025-06-28 18:33:08'),
+(12, 'Baksnajznnajajansjana', 'Bzianzjzjzhhzjzj\r\nJzjzjsjzbzbjzjzjzjzjzjzbznannaoaisjsjja\r\nJaoanskalakjxgjanajxikamahz\r\nHzjansbbzhhs', 'Hskalalksjxhahahahkakakakajajajajhxhaodhsiansbsuxkakxb, hjabsbshhsbdnskskskksbxjaiahsbbajzbzhhxhdhdbbbxnanjanxjahsnxnjsbabsbixbaha sjzbbsbshs sbzbjzbzjabzb', 'Jajzjzhxhxbajiajabzbzbsjakakakkakajahsbbajananabbshahakakldkxjjbsbsb hsisknabzhananajiakzbjs khshxhaoakns', 'proyek_685fda713e6272.50506851.jpg', 1, '2025-06-28 19:05:05'),
+(13, 'Hsusjsj', 'Bxhhzbzbzbz', 'Hsnsns', 'Jajajsj', 'proyek_685fdb820924b6.83589264.png', 2, '2025-06-28 19:09:38');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `jurusan`
+-- Struktur dari tabel `jurusan`
 --
 
 CREATE TABLE `jurusan` (
@@ -91,7 +139,7 @@ CREATE TABLE `jurusan` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Dumping data for table `jurusan`
+-- Dumping data untuk tabel `jurusan`
 --
 
 INSERT INTO `jurusan` (`id_jurusan`, `nama_jurusan`) VALUES
@@ -107,7 +155,7 @@ INSERT INTO `jurusan` (`id_jurusan`, `nama_jurusan`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `siswa`
+-- Struktur dari tabel `siswa`
 --
 
 CREATE TABLE `siswa` (
@@ -125,12 +173,12 @@ CREATE TABLE `siswa` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Dumping data for table `siswa`
+-- Dumping data untuk tabel `siswa`
 --
 
 INSERT INTO `siswa` (`id_siswa`, `password`, `nama_siswa`, `no_induk`, `nisn`, `jenis_kelamin`, `kelas`, `status`, `jurusan_id`, `pembimbing_id`, `tempat_pkl_id`) VALUES
-(1, '$2y$10$D3OZXyw4IwbdZ.nIKeZ/jeJd8B4ZFptWgY4Mmym/A8GhKaCki9QIC', 'CANDRA', 'TP001', '00700001', 'Laki-laki', 'XI TP 1', 'Aktif', 4, 1, 154),
-(2, '$2y$10$WvwXr8nGzu9OPFTzUD/4IOFxN1AuE8m.HFJ8CReDg96bszdsrW6Wq', 'KRISNA', 'TP002', '00700002', 'Laki-laki', 'XI TP 2', 'Aktif', 4, 2, 156),
+(1, '$2y$10$rRK7jFEMEOCYmPJllBYGWOET3o3SlDzrwSXxhlX2auvhCw.vBu1Oa', 'CANDRA', 'TP001', '00700001', 'Perempuan', 'XI TP 1', 'Aktif', 4, 1, 154),
+(2, '$2y$10$Kkl9xsAdrfdA/XPzbXgBJeyO89fiYO7XP4/zm8FNVHKoVUNBJGor.', 'KRISNA', 'TP002', '00700002', 'Laki-laki', 'XI TP 2', 'Aktif', 4, 2, 156),
 (3, '$2y$10$/Id2VBH0XGf/u76grPZ6U.NMZFGN28gakKA0lDKseAto/Ac2rt29q', 'ARMAN', 'TP003', '00700003', 'Laki-laki', 'XII TP 1', 'Aktif', 4, 3, 158),
 (4, '$2y$10$6I0qkMwe0.XVkbwCnyqDIOT7nZj.WRLCfZ0tHRwso0EWeFfWcpIlC', 'RENO AJI SAPUTRA', 'TP004', '00700004', 'Laki-laki', 'XII TP 2', 'Aktif', 4, 4, 160),
 (5, '$2y$10$m6kUW2rxLjh0RwbT5egE6OIy6.w7YIGo/1VdmAAVqumBb/DFNQfiG', 'RAFEL ADITYA', 'TP005', '00700005', 'Laki-laki', 'XI TP 1', 'Aktif', 4, 5, 162),
@@ -160,12 +208,14 @@ INSERT INTO `siswa` (`id_siswa`, `password`, `nama_siswa`, `no_induk`, `nisn`, `
 (29, '$2y$10$qsnTutNEtA8ugbjjLTG7ZOHq1Y.wnN19RBNHdBgfpTvt8LSdmGa0u', 'GEVI FANIANSYAH', 'TP029', '00700029', 'Laki-laki', 'XI TP 1', 'Aktif', 4, 9, 191),
 (30, '$2y$10$URflrKDBdFj5ZxEVvXzKj.iFUSKoGCxXYv0APK7TsV0.orYuD8.Pq', 'SAEFUL AKBAR', 'TP030', '00700030', 'Laki-laki', 'XI TP 2', 'Aktif', 4, 10, 189),
 (31, '$2y$10$kBv7HP7uG59OFoAGyOHbcebnKnXGX0ZWuRtTNulNEP8HXf0tR7aUO', 'RIO MAHENDRA', 'TP031', '00700031', 'Laki-laki', 'XII TP 1', 'Aktif', 4, 1, 187),
-(34, '$2y$10$doMQ.0GiRZdD9MtoGUHdUe14taD4RTMcfAO5P8F5oBoziZ8Tph61q', 'TRIAN ALAMSYAH', 'TP0072', '0070000722', 'Laki-laki', 'XII DPIB 1', 'Aktif', 7, 4, 160);
+(36, '$2y$10$Jo8eWXj053UiVT5PLI7eyeOUhCLMKRHafBhyy241Ryl71VHZUBBdi', 'joko anwar', '21332132', '32131312323', 'Laki-laki', 'XII FI 1', 'Aktif', 8, 1, 160),
+(38, '$2y$10$U80rdvrateqLJE9bRoUGEe.gG5HLFQi.SJs3FozpxKOGMAdLHnvSq', 'ANWAR HIDAYAT', '213321324', '007000077', 'Laki-laki', 'XII RPL 2', 'Tidak Aktif', 1, 1, 158),
+(39, '$2y$10$tSmOW7r7ecN/bsFqdKjlDOjc2mLYfp.tSq31qkL3ux3.EQR.zo6/G', 'ghhh', '4544', '46444', 'Laki-laki', 'XII RPL 2', 'Aktif', 2, 1, 155);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tempat_pkl`
+-- Struktur dari tabel `tempat_pkl`
 --
 
 CREATE TABLE `tempat_pkl` (
@@ -179,7 +229,7 @@ CREATE TABLE `tempat_pkl` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Dumping data for table `tempat_pkl`
+-- Dumping data untuk tabel `tempat_pkl`
 --
 
 INSERT INTO `tempat_pkl` (`id_tempat_pkl`, `nama_tempat_pkl`, `alamat`, `nama_instruktur`, `alamat_kontak`, `kuota_siswa`, `jurusan_id`) VALUES
@@ -304,125 +354,167 @@ INSERT INTO `tempat_pkl` (`id_tempat_pkl`, `nama_tempat_pkl`, `alamat`, `nama_in
 (272, 'Notaris Pendi Paundrakarna Gantar', '', '', '', 2, 8),
 (273, 'DEASSY SUKSES MULTI USAHA', '', '', '', 2, 8),
 (274, 'PERUM PERHUTANI', '', '', '', 2, 8),
-(275, 'Pt sejahtera indah', 'cirebon utara', 'bapak yono', '02343433', 21, 8);
+(275, 'Pt sejahtera indah', 'cirebon utara', 'bapak yono', '02343433', 21, 8),
+(277, 'PT SAGARAA', 'Jl surenn', 'ANWAR H', 'coba@gamil.com', 4, 1);
 
 --
 -- Indexes for dumped tables
 --
 
 --
--- Indexes for table `guru_pembimbing`
+-- Indeks untuk tabel `admin`
+--
+ALTER TABLE `admin`
+  ADD PRIMARY KEY (`id_admin`),
+  ADD UNIQUE KEY `username` (`username`),
+  ADD UNIQUE KEY `username_2` (`username`),
+  ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `email_2` (`email`),
+  ADD KEY `created_at` (`created_at`);
+
+--
+-- Indeks untuk tabel `guru_pembimbing`
 --
 ALTER TABLE `guru_pembimbing`
   ADD PRIMARY KEY (`id_pembimbing`),
-  ADD UNIQUE KEY `username` (`nip`);
+  ADD UNIQUE KEY `username` (`nip`),
+  ADD UNIQUE KEY `nip` (`nip`),
+  ADD KEY `nama_pembimbing` (`nama_pembimbing`);
 
 --
--- Indexes for table `jurnal_harian`
+-- Indeks untuk tabel `jurnal_harian`
 --
 ALTER TABLE `jurnal_harian`
   ADD PRIMARY KEY (`id_jurnal_harian`),
-  ADD KEY `siswa_id` (`siswa_id`);
+  ADD KEY `siswa_id` (`siswa_id`),
+  ADD KEY `siswa_id_2` (`siswa_id`,`tanggal`),
+  ADD KEY `siswa_id_3` (`siswa_id`),
+  ADD KEY `tanggal` (`tanggal`);
 
 --
--- Indexes for table `jurnal_kegiatan`
+-- Indeks untuk tabel `jurnal_kegiatan`
 --
 ALTER TABLE `jurnal_kegiatan`
   ADD PRIMARY KEY (`id_jurnal_kegiatan`),
-  ADD KEY `siswa_id` (`siswa_id`);
+  ADD KEY `siswa_id` (`siswa_id`),
+  ADD KEY `siswa_id_2` (`siswa_id`),
+  ADD KEY `tanggal_laporan` (`tanggal_laporan`),
+  ADD KEY `siswa_id_3` (`siswa_id`,`tanggal_laporan`);
 
 --
--- Indexes for table `jurusan`
+-- Indeks untuk tabel `jurusan`
 --
 ALTER TABLE `jurusan`
   ADD PRIMARY KEY (`id_jurusan`);
 
 --
--- Indexes for table `siswa`
+-- Indeks untuk tabel `siswa`
 --
 ALTER TABLE `siswa`
   ADD PRIMARY KEY (`id_siswa`),
   ADD UNIQUE KEY `no_induk` (`no_induk`),
   ADD UNIQUE KEY `nisn` (`nisn`),
+  ADD UNIQUE KEY `no_induk_2` (`no_induk`),
+  ADD UNIQUE KEY `nisn_2` (`nisn`),
   ADD KEY `jurusan_id` (`jurusan_id`),
   ADD KEY `pembimbing_id` (`pembimbing_id`),
-  ADD KEY `tempat_pkl_id` (`tempat_pkl_id`);
+  ADD KEY `tempat_pkl_id` (`tempat_pkl_id`),
+  ADD KEY `jurusan_id_2` (`jurusan_id`),
+  ADD KEY `pembimbing_id_2` (`pembimbing_id`),
+  ADD KEY `tempat_pkl_id_2` (`tempat_pkl_id`),
+  ADD KEY `nama_siswa` (`nama_siswa`),
+  ADD KEY `status` (`status`);
 
 --
--- Indexes for table `tempat_pkl`
+-- Indeks untuk tabel `tempat_pkl`
 --
 ALTER TABLE `tempat_pkl`
   ADD PRIMARY KEY (`id_tempat_pkl`),
-  ADD KEY `jurusan_id` (`jurusan_id`);
+  ADD KEY `jurusan_id` (`jurusan_id`),
+  ADD KEY `jurusan_id_2` (`jurusan_id`),
+  ADD KEY `nama_tempat_pkl` (`nama_tempat_pkl`),
+  ADD KEY `nama_instruktur` (`nama_instruktur`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT untuk tabel yang dibuang
 --
 
 --
--- AUTO_INCREMENT for table `guru_pembimbing`
+-- AUTO_INCREMENT untuk tabel `admin`
+--
+ALTER TABLE `admin`
+  MODIFY `id_admin` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT untuk tabel `guru_pembimbing`
 --
 ALTER TABLE `guru_pembimbing`
-  MODIFY `id_pembimbing` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id_pembimbing` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
--- AUTO_INCREMENT for table `jurnal_harian`
+-- AUTO_INCREMENT untuk tabel `jurnal_harian`
 --
 ALTER TABLE `jurnal_harian`
-  MODIFY `id_jurnal_harian` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_jurnal_harian` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
--- AUTO_INCREMENT for table `jurnal_kegiatan`
+-- AUTO_INCREMENT untuk tabel `jurnal_kegiatan`
 --
 ALTER TABLE `jurnal_kegiatan`
-  MODIFY `id_jurnal_kegiatan` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_jurnal_kegiatan` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
--- AUTO_INCREMENT for table `jurusan`
+-- AUTO_INCREMENT untuk tabel `jurusan`
 --
 ALTER TABLE `jurusan`
   MODIFY `id_jurusan` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
--- AUTO_INCREMENT for table `siswa`
+-- AUTO_INCREMENT untuk tabel `siswa`
 --
 ALTER TABLE `siswa`
-  MODIFY `id_siswa` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id_siswa` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 
 --
--- AUTO_INCREMENT for table `tempat_pkl`
+-- AUTO_INCREMENT untuk tabel `tempat_pkl`
 --
 ALTER TABLE `tempat_pkl`
-  MODIFY `id_tempat_pkl` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=277;
+  MODIFY `id_tempat_pkl` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=278;
 
 --
--- Constraints for dumped tables
+-- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
 --
 
 --
--- Constraints for table `jurnal_harian`
+-- Ketidakleluasaan untuk tabel `jurnal_harian`
 --
 ALTER TABLE `jurnal_harian`
+  ADD CONSTRAINT `fk_jurnal_harian_siswa` FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id_siswa`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `jurnal_harian_ibfk_1` FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id_siswa`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `jurnal_kegiatan`
+-- Ketidakleluasaan untuk tabel `jurnal_kegiatan`
 --
 ALTER TABLE `jurnal_kegiatan`
+  ADD CONSTRAINT `fk_jurnal_kegiatan_siswa` FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id_siswa`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `jurnal_kegiatan_ibfk_1` FOREIGN KEY (`siswa_id`) REFERENCES `siswa` (`id_siswa`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `siswa`
+-- Ketidakleluasaan untuk tabel `siswa`
 --
 ALTER TABLE `siswa`
+  ADD CONSTRAINT `fk_siswa_jurusan` FOREIGN KEY (`jurusan_id`) REFERENCES `jurusan` (`id_jurusan`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_siswa_pembimbing` FOREIGN KEY (`pembimbing_id`) REFERENCES `guru_pembimbing` (`id_pembimbing`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_siswa_tempat_pkl` FOREIGN KEY (`tempat_pkl_id`) REFERENCES `tempat_pkl` (`id_tempat_pkl`) ON DELETE RESTRICT ON UPDATE CASCADE,
   ADD CONSTRAINT `siswa_ibfk_1` FOREIGN KEY (`jurusan_id`) REFERENCES `jurusan` (`id_jurusan`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `siswa_ibfk_2` FOREIGN KEY (`pembimbing_id`) REFERENCES `guru_pembimbing` (`id_pembimbing`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `siswa_ibfk_3` FOREIGN KEY (`tempat_pkl_id`) REFERENCES `tempat_pkl` (`id_tempat_pkl`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Constraints for table `tempat_pkl`
+-- Ketidakleluasaan untuk tabel `tempat_pkl`
 --
 ALTER TABLE `tempat_pkl`
+  ADD CONSTRAINT `fk_tempat_pkl_jurusan` FOREIGN KEY (`jurusan_id`) REFERENCES `jurusan` (`id_jurusan`) ON DELETE RESTRICT ON UPDATE CASCADE,
   ADD CONSTRAINT `tempat_pkl_ibfk_1` FOREIGN KEY (`jurusan_id`) REFERENCES `jurusan` (`id_jurusan`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 COMMIT;
 

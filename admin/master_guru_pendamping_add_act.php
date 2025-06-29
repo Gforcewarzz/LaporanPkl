@@ -21,28 +21,74 @@ if (!$is_admin) {
 }
 include 'partials/db.php';
 
+// Fungsi SweetAlert2
+function showAlertAndRedirect($icon, $title, $text, $redirectUrl)
+{
+    ob_clean();
+    echo <<<HTML
+    <!DOCTYPE html>
+    <html lang="id">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Notifikasi</title>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    </head>
+    <body>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: '{$icon}',
+                    title: '{$title}',
+                    text: '{$text}',
+                    confirmButtonColor: '#696cff',
+                    allowOutsideClick: false,
+                    showClass: {
+                        popup: 'animate__animated animate__fadeInDown animate__faster'
+                    },
+                    hideClass: {
+                        popup: 'animate__animated animate__fadeOutUp animate__faster'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '{$redirectUrl}';
+                    }
+                });
+            });
+        </script>
+    </body>
+    </html>
+HTML;
+    exit();
+}
+
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama = $_POST['nama_pembimbing'] ?? '';
     $nip = $_POST['nip'] ?? '';
+    $jenis_kelamin = $_POST['jenis_kelamin'] ?? ''; // PERUBAHAN: Ambil jenis_kelamin
     $password_plain = $_POST['password'] ?? '';
 
     $status = '';
     $message = '';
     $title = '';
 
-    if (empty($nama) || empty($nip) || empty($password_plain)) {
+    // PERUBAHAN: Tambahkan jenis_kelamin dalam validasi
+    if (empty($nama) || empty($nip) || empty($jenis_kelamin) || empty($password_plain)) {
         $status = 'error';
         $title = 'Input Tidak Lengkap!';
-        $message = 'Nama guru, NIP, dan password wajib diisi.';
+        $message = 'Nama guru, NIP, jenis kelamin, dan password wajib diisi.';
     } else {
         $password_hash = password_hash($password_plain, PASSWORD_DEFAULT);
 
-        // Gunakan prepared statement untuk INSERT
-        $query = "INSERT INTO guru_pembimbing (nama_pembimbing, nip, password) VALUES (?, ?, ?)";
+        // PERUBAHAN: Tambahkan kolom jenis_kelamin di INSERT query
+        $query = "INSERT INTO guru_pembimbing (nama_pembimbing, nip, jenis_kelamin, password) VALUES (?, ?, ?, ?)";
         $stmt = $koneksi->prepare($query);
 
         if ($stmt) {
-            $stmt->bind_param("sss", $nama, $nip, $password_hash); // 'sss' for three strings
+            // PERUBAHAN: Tambahkan 's' untuk jenis_kelamin di bind_param
+            $stmt->bind_param("ssss", $nama, $nip, $jenis_kelamin, $password_hash); // 'ssss' for four strings
 
             if ($stmt->execute()) {
                 $status = 'success';
@@ -62,37 +108,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $koneksi->close();
 
-    // Tampilkan SweetAlert2 dan kemudian redirect
-?>
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Status Aksi</title>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
-
-<body>
-    <script>
-    Swal.fire({
-        icon: '<?php echo $status; ?>',
-        title: '<?php echo $title; ?>',
-        text: '<?php echo $message; ?>',
-        showConfirmButton: false, // Tidak menampilkan tombol "OK"
-        timer: 2500, // Otomatis hilang setelah 2.5 detik
-        didClose: () => { // Callback setelah alert tertutup
-            window.location.href = 'master_guru_pendamping.php';
-        }
-    });
-    </script>
-</body>
-
-</html>
-<?php
+    showAlertAndRedirect(
+        $status,
+        $title,
+        $message,
+        'master_guru_pendamping.php'
+    );
 } else {
-    // Jika akses bukan POST request, arahkan kembali ke halaman tambah guru
     header("Location: master_guru_pendamping_add.php");
     exit;
 }
-?>

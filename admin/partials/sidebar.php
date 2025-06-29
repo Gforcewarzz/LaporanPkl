@@ -1,5 +1,5 @@
 <?php
-// Pastikan sesi sudah dimulai di halaman yang memuat sidebar ini,
+// Asumsi sesi sudah dimulai di halaman yang memuat sidebar ini,
 // dan variabel $is_admin, $is_siswa, $is_guru sudah didefinisikan.
 
 // Contoh inisialisasi default jika sidebar diakses langsung (TIDAK disarankan untuk produksi)
@@ -50,64 +50,62 @@
         </li>
 
         <?php if ($is_admin): ?>
-        <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">Data Utama</span>
-        </li>
-        <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-collection"></i>
-                <div data-i18n="Master Data">Master Data</div>
-            </a>
-            <ul class="menu-sub">
-                <li class="menu-item">
-                    <a href="master_data_siswa.php" class="menu-link">
-                        <div data-i18n="Data Siswa PKL">Data Siswa PKL</div>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="master_guru_pendamping.php" class="menu-link">
-                        <div data-i18n="Data Guru Pendamping">Data Guru Pendamping</div>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="master_tempat_pkl.php" class="menu-link">
-                        <div data-i18n="Data Tempat PKL">Data Tempat PKL</div>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="master_data_admin.php" class="menu-link">
-                        <div data-i18n="Data Admin">Data Admin</div>
-                    </a>
-                </li>
-            </ul>
-        </li>
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Data Utama</span>
+            </li>
+            <li class="menu-item">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx-collection"></i>
+                    <div data-i18n="Master Data">Master Data</div>
+                </a>
+                <ul class="menu-sub">
+                    <li class="menu-item">
+                        <a href="master_data_siswa.php" class="menu-link">
+                            <div data-i18n="Data Siswa PKL">Data Siswa PKL</div>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="master_guru_pendamping.php" class="menu-link">
+                            <div data-i18n="Data Guru Pendamping">Data Guru Pendamping</div>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="master_tempat_pkl.php" class="menu-link">
+                            <div data-i18n="Data Tempat PKL">Data Tempat PKL</div>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="master_data_admin.php" class="menu-link">
+                            <div data-i18n="Data Admin">Data Admin</div>
+                        </a>
+                    </li>
+                </ul>
+            </li>
         <?php endif; ?>
 
-        <?php if ($is_admin || $is_siswa || $is_guru): // Tampilkan section ini jika salah satu role login 
-        ?>
-        <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">Transaksi & Laporan</span>
-        </li>
+        <?php if ($is_admin || $is_siswa || $is_guru): ?>
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Transaksi & Laporan</span>
+            </li>
         <?php endif; ?>
 
-        <?php if ($is_admin || $is_siswa): // Admin dan Siswa bisa lihat ini 
-        ?>
-        <li class="menu-item">
-            <a href="master_kegiatan_harian.php" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-book-content"></i>
-                <div data-i18n="Kegiatan Harian">Kegiatan Harian</div>
-            </a>
-        </li>
-        <li class="menu-item">
-            <a href="master_tugas_project.php" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-book-content"></i>
-                <div data-i18n="Kegiatan Project">Tugas Proyek</div>
-            </a>
-        </li>
+        <?php if ($is_admin || $is_siswa): ?>
+            <li class="menu-item">
+                <a href="master_kegiatan_harian.php" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-book-content"></i>
+                    <div data-i18n="Kegiatan Harian">Kegiatan Harian</div>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="master_tugas_project.php" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-book-content"></i>
+                    <div data-i18n="Kegiatan Project">Tugas Proyek</div>
+                </a>
+            </li>
         <?php endif; ?>
 
-        <?php if ($is_admin || $is_guru): // Admin dan Guru bisa lihat ini 
-        ?>
+        <?php /*
+        <?php if ($is_admin || $is_guru): ?>
         <li class="menu-item">
             <a href="penilaian_pkl.php" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-star"></i>
@@ -116,18 +114,16 @@
         </li>
         <?php endif; ?>
 
-        <?php if ($is_admin || $is_guru): // Admin dan Guru bisa lihat ini 
-        ?>
+        <?php if ($is_admin || $is_guru): ?>
         <li class="menu-item">
             <a href="absensi_pkl.php" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-calendar-check"></i>
-                <div data-i18n="Absensi PKL">Observasi PKL</div>
+                <div data-i18n="Observasi PKL">Observasi PKL</div>
             </a>
         </li>
         <?php endif; ?>
 
-        <?php if ($is_admin || $is_guru): // Admin dan Guru bisa lihat ini 
-        ?>
+        <?php if ($is_admin || $is_guru): ?>
         <li class="menu-item">
             <a href="laporan_pkl.php" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-file"></i>
@@ -135,15 +131,15 @@
             </a>
         </li>
         <?php endif; ?>
+        */ ?>
 
-        <?php if ($is_admin || $is_siswa || $is_guru): // Tambahan: Menu logout (jika belum ada di navbar) 
-        ?>
-        <li class="menu-item">
-            <a href="../logout.php" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-log-out"></i>
-                <div data-i18n="Logout">Logout</div>
-            </a>
-        </li>
+        <?php if ($is_admin || $is_siswa || $is_guru): ?>
+            <li class="menu-item">
+                <a href="javascript:void(0);" class="menu-link" onclick="confirmLogout()">
+                    <i class="menu-icon tf-icons bx bx-log-out"></i>
+                    <div data-i18n="Logout">Logout</div>
+                </a>
+            </li>
         <?php endif; ?>
 
     </ul>
