@@ -1,32 +1,72 @@
 <?php
-// Asumsi session_start() sudah dipanggil di partials/head.php atau file induk utama
+// Asumsi session_start() sudah dipanggil di file induk utama
 
+// 1. Panggil file koneksi database.
+// File ini diasumsikan sudah membuat objek koneksi dengan nama variabel $koneksi.
+require 'partials/db.php';
+
+// Inisialisasi variabel dengan nilai default untuk pengunjung
 $userName = 'Guest';
 $userRole = 'Pengunjung';
-$userAvatar = 'assets/img/avatars/1.png'; // Menggunakan avatar default dari aset
+$userAvatar = 'assets/img/avatars/1.png'; 
 
-// Cek jika ada pengguna yang login menggunakan sesi universal
+// Cek jika ada pengguna yang login
 if (isset($_SESSION['user_id']) && isset($_SESSION['user_role'])) {
-    $userName = $_SESSION['user_name'] ?? 'Pengguna Tidak Dikenal';
+    $userName = $_SESSION['user_name'] ?? 'Pengguna';
+
+    // Cek apakah koneksi berhasil dibuat dari file partials/db.php
+    $isDbConnected = isset($koneksi) && $koneksi->ping();
 
     switch ($_SESSION['user_role']) {
         case 'siswa':
             $userRole = 'Siswa PKL';
-            $userAvatar = 'assets/img/avatars/1.png'; // Avatar default untuk siswa
+            $siswa_id = $_SESSION['user_id'];
+            
+            // Default avatar untuk siswa Laki-laki
+            $userAvatar = 'assets/img/avatars/laki-laki.jpg';
+
+            // Query ke database HANYA jika koneksi berhasil
+            if ($isDbConnected) {
+                $sql = "SELECT jenis_kelamin FROM siswa WHERE id_siswa = ?";
+                $stmt = $koneksi->prepare($sql);
+
+                if ($stmt) {
+                    $stmt->bind_param("i", $siswa_id);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+
+                    if ($result->num_rows > 0) {
+                        $siswa_data = $result->fetch_assoc();
+                        $jenis_kelamin = $siswa_data['jenis_kelamin'];
+
+                        // Jika jenis kelamin Perempuan ('P'), ganti avatar
+                        if ($jenis_kelamin === 'P' || $jenis_kelamin === 'Perempuan') {
+                            $userAvatar = 'assets/img/avatars/perempuan.jpg';
+                        }
+                    }
+                    $stmt->close();
+                }
+            }
             break;
+
         case 'guru_pendamping':
             $userRole = 'Guru Pembimbing';
-            $userAvatar = 'assets/img/avatars/1.png'; // Avatar default untuk guru
+            $userAvatar = 'assets/img/avatars/guru.png'; // Avatar default untuk guru
             break;
+
         case 'admin':
             $userRole = 'Administrator';
-            $userAvatar = 'assets/img/avatars/1.png'; // Avatar default untuk admin
+            $userAvatar = 'assets/img/avatars/admin.png'; // Avatar default untuk admin
             break;
+            
         default:
-            $userRole = 'Pengguna'; // Fallback jika peran tidak dikenali
+            $userRole = 'Pengguna';
             $userAvatar = 'assets/img/avatars/1.png'; // Avatar default
             break;
     }
+    
+    // Tutup koneksi setelah selesai digunakan
+    
 }
 ?>
 

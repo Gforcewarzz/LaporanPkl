@@ -3,17 +3,18 @@ session_start();
 
 $is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
+$is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
 
 if (!$is_siswa && !$is_admin) {
-    if (isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in') {
-        header('Location: ../halaman_guru.php');
+
+    if ($is_guru) {
+        header('Location: ../halaman_guru.php'); // Redirect guru ke halaman guru
         exit();
     } else {
-        header('Location: ../login.php');
+        header('Location: ../login.php'); // Jika tidak login sama sekali, redirect ke halaman login
         exit();
     }
 }
-
 include 'partials/db.php';
 
 $id_siswa_filter = null;

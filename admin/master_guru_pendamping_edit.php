@@ -1,25 +1,20 @@
 <?php
 session_start();
 
-// 1. Aturan utama: Cek apakah pengguna yang mengakses BUKAN seorang ADMIN.
-if (!isset($_SESSION['admin_status_login']) || $_SESSION['admin_status_login'] !== 'logged_in') {
+// Keamanan: Hanya admin yang boleh mengakses dashboard ini
+$is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
+$is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
+$is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
 
-    // 2. Jika bukan admin, cek apakah dia adalah SISWA.
-    if (isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in') {
-        // Jika benar siswa, kembalikan ke halaman siswa.
-        header('Location: master_kegiatan_harian.php');
+if (!$is_admin) {
+    if ($is_siswa) {
+        header('Location: dashboard_siswa.php'); // Redirect siswa ke dashboard siswa
         exit();
-    }
-    // 3. TAMBAHAN: Jika bukan siswa, cek apakah dia adalah GURU.
-    elseif (isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in') {
-        // Jika benar guru, kembalikan ke halaman guru.
-        header('Location: ../../halaman_guru.php'); //belum di atur
+    } elseif ($is_guru) {
+        header('Location: ../halaman_guru.php'); // Redirect guru ke halaman guru
         exit();
-    }
-    // 4. Jika bukan salah satu dari role di atas (admin, siswa, guru),
-    // artinya pengguna belum login sama sekali. Arahkan ke halaman login.
-    else {
-        header('Location: ../login.php');
+    } else {
+        header('Location: ../login.php'); // Jika tidak login sama sekali, redirect ke halaman login
         exit();
     }
 }
