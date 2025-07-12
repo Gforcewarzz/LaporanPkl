@@ -21,7 +21,8 @@ $offset = ($page - 1) * $limit;
 $filter_tanggal = $_GET['tanggal'] ?? date('Y-m-d'); // Default ke tanggal hari ini
 
 // Default filter status absen menjadi 'Hadir' saat pertama kali dimuat
-$filter_status = $_GET['status'] ?? 'Hadir';
+// PERUBAHAN DI SINI: Jika default ingin menampilkan 'Semua', ubah di sini
+$filter_status = $_GET['status'] ?? 'Semua'; // Defaultkan ke 'Semua'
 
 $keyword = $_GET['keyword'] ?? ''; // Filter nama siswa/NISN/kelas
 
@@ -34,7 +35,6 @@ $tanggal_mulai_pdf = $_GET['tanggal_mulai_pdf'] ?? $default_tanggal_mulai;
 // Default tanggal akhir: tanggal terakhir di bulan yang sama dengan $filter_tanggal
 $default_tanggal_akhir = date('Y-m-t', strtotime($filter_tanggal));
 $tanggal_akhir_pdf = $_GET['tanggal_akhir_pdf'] ?? $default_tanggal_akhir;
-
 
 // --- Query untuk menghitung total data (untuk tabel harian) ---
 $count_base_query = "
@@ -252,6 +252,8 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                                 Sakit</option>
                                             <option value="Izin" <?= $filter_status == 'Izin' ? 'selected' : '' ?>>Izin
                                             </option>
+                                            <option value="Libur" <?= $filter_status == 'Libur' ? 'selected' : '' ?>>
+                                                Libur</option>
                                             <option value="Alfa" <?= $filter_status == 'Alfa' ? 'selected' : '' ?>>Alfa
                                             </option>
                                         </select>
@@ -268,7 +270,8 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                         </div>
                                     </div>
                                     <div class="col-md-auto col-lg-2">
-                                        <?php if (!empty($keyword) || ($filter_status !== 'Hadir') || $filter_tanggal !== date('Y-m-d')): ?>
+                                        <?php if (!empty($keyword) || ($filter_status !== 'Semua') || $filter_tanggal !== date('Y-m-d')): // PERUBAHAN DI SINI: Ubah default ke 'Semua' 
+                                        ?>
                                         <a href="master_data_absensi_siswa.php" class="btn btn-outline-secondary w-100">
                                             <i class="bx bx-x"></i> Reset Filter
                                         </a>
@@ -303,6 +306,8 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                                 Sakit</option>
                                             <option value="Izin" <?= $filter_status == 'Izin' ? 'selected' : '' ?>>Izin
                                             </option>
+                                            <option value="Libur" <?= $filter_status == 'Libur' ? 'selected' : '' ?>>
+                                                Libur</option>
                                             <option value="Alfa" <?= $filter_status == 'Alfa' ? 'selected' : '' ?>>Alfa
                                             </option>
                                         </select>
@@ -359,6 +364,9 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                                             break;
                                                         case 'Alfa':
                                                             $badgeColor = 'bg-label-danger';
+                                                            break;
+                                                        case 'Libur': // PERUBAHAN DI SINI
+                                                            $badgeColor = 'bg-label-secondary';
                                                             break;
                                                         default:
                                                             $badgeColor = 'bg-label-secondary';
@@ -425,7 +433,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                     // Reset result pointer untuk tampilan mobile
                                     if ($result_absensi->num_rows > 0) {
                                         $result_absensi->data_seek(0); // Set pointer kembali ke awal
-                                        $colors = ['primary', 'warning', 'info', 'success', 'danger'];
+                                        $colors = ['primary', 'warning', 'info', 'success', 'danger', 'secondary']; // PERUBAHAN DI SINI: Tambahkan 'secondary'
                                         $color_index = 0;
                                         while ($row_mobile = $result_absensi->fetch_assoc()) {
                                             $current_color = $colors[$color_index % count($colors)];
@@ -444,6 +452,9 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                                     break;
                                                 case 'Alfa':
                                                     $badgeColorMobile = 'bg-label-danger';
+                                                    break;
+                                                case 'Libur': // PERUBAHAN DI SINI
+                                                    $badgeColorMobile = 'bg-label-secondary';
                                                     break;
                                                 default:
                                                     $badgeColorMobile = 'bg-label-secondary';

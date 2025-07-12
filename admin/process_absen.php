@@ -18,12 +18,14 @@ if (!$is_siswa || empty($siswa_id)) {
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $statusAbsen = $_POST['statusAbsen'] ?? '';
+    // Keterangan dan bukti foto hanya relevan untuk Sakit/Izin
+    // Untuk Hadir dan Libur, ini bisa null atau kosong
     $keterangan = !empty($_POST['keterangan']) ? trim($_POST['keterangan']) : null;
     $tanggal_absen = date('Y-m-d'); // Tanggal absen hari ini
     $bukti_foto_path = null; // Default null, akan diisi jika ada upload
 
-    // Validasi dasar input statusAbsen
-    if (!in_array($statusAbsen, ['Hadir', 'Sakit', 'Izin'])) { // 'Alfa' akan di-generate otomatis oleh cron job, tidak dari input user
+    // PERUBAHAN UTAMA DI SINI: Tambahkan 'Libur' ke daftar status yang valid
+    if (!in_array($statusAbsen, ['Hadir', 'Sakit', 'Izin', 'Libur'])) {
         $_SESSION['alert_message'] = 'Status absensi tidak valid.';
         $_SESSION['alert_type'] = 'error';
         $_SESSION['alert_title'] = 'Gagal Absen!';
@@ -58,7 +60,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
 
-    // --- Logika Upload File Bukti Foto (jika status Sakit atau Izin) ---
+    // --- Logika Upload File Bukti Foto dan Validasi Keterangan ---
+    // PERUBAHAN UTAMA DI SINI: Hanya berlaku jika status Sakit atau Izin
     if ($statusAbsen === 'Sakit' || $statusAbsen === 'Izin') {
         if (empty($keterangan)) {
             $_SESSION['alert_message'] = 'Keterangan wajib diisi untuk status ' . htmlspecialchars($statusAbsen) . '.';
@@ -68,9 +71,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit();
         }
 
-        // ========================================================
-        // Perubahan: Path folder untuk gambar bukti absensi
-        // ========================================================
         $target_dir = "image_absensi/";
         if (!is_dir($target_dir)) {
             mkdir($target_dir, 0775, true); // Buat folder jika belum ada
@@ -120,6 +120,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit();
         }
     }
+    // Jika statusnya 'Hadir' atau 'Libur', bagian ini akan dilewati,
+    // dan $keterangan, $bukti_foto_path akan tetap null (atau nilai default dari form)
+    // yang memang tidak dibutuhkan untuk status tersebut.
 
     // --- Insert data ke database ---
     $insert_stmt = $koneksi->prepare("INSERT INTO absensi_siswa (siswa_id, tanggal_absen, status_absen, keterangan, bukti_foto) VALUES (?, ?, ?, ?, ?)");
@@ -134,10 +137,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['alert_title'] = 'Absensi Berhasil!';
 
             // Update simulasi absen di sesi agar tombol di dashboard menghilang
+            // Catatan: Variabel $_SESSION['simulasi_absen'] ini tidak digunakan
+            // pada dashboard_siswa.php yang Anda berikan,
+            // tetapi jika ada di tempat lain, ini bisa diperbarui.
+            // Untuk dashboard_siswa.php, pengecekan `sudah_absen_hari_ini`
+            // sudah dilakukan langsung dari database.
             $_SESSION['simulasi_absen'] = [
                 'sudah_absen' => true,
                 'status' => $statusAbsen,
-                'lengkap' => true, // Karena sudah divalidasi dan disimpan
+                'lengkap' => ($statusAbsen !== 'Sakit' && $statusAbsen !== 'Izin') || (!empty($keterangan) && !empty($bukti_foto_path)), // Pastikan ini akurat
                 'tanggal' => $tanggal_absen
             ];
         } else {

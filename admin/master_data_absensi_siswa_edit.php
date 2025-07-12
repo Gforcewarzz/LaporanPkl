@@ -14,9 +14,9 @@ if (!$is_admin && !$is_guru) {
 
 include 'partials/db.php'; // Sertakan file koneksi database
 
-$id_absensi_exist = $_GET['id'] ?? null;      // Parameter untuk mode EDIT (jika ada ID Absensi)
-$siswa_id_new = $_GET['siswa_id'] ?? null;    // Parameter untuk mode ADD (jika ada ID Siswa)
-$tanggal_new = $_GET['tanggal'] ?? null;      // Parameter untuk mode ADD (jika ada Tanggal)
+$id_absensi_exist = $_GET['id'] ?? null;    // Parameter untuk mode EDIT (jika ada ID Absensi)
+$siswa_id_new = $_GET['siswa_id'] ?? null;   // Parameter untuk mode ADD (jika ada ID Siswa)
+$tanggal_new = $_GET['tanggal'] ?? null;     // Parameter untuk mode ADD (jika ada Tanggal)
 
 $is_editing = !empty($id_absensi_exist); // Flag: TRUE jika mode EDIT, FALSE jika mode ADD
 
@@ -108,9 +108,9 @@ if ($is_editing) {
     $data_absensi = [
         'id_absensi' => null, // null menandakan bahwa ini adalah record baru (untuk master_data_absensi_siswa_edit_act.php)
         'tanggal_absen' => $tanggal_new,
-        'status_absen' => 'Hadir', // Default status untuk input absensi baru
-        'keterangan' => null,      // Keterangan default kosong
-        'bukti_foto' => null       // Bukti foto default kosong
+        'status_absen' => 'Alfa', // Default status untuk input absensi baru (biasanya ketika admin/guru manual input untuk siswa yg tidak absen)
+        'keterangan' => null,     // Keterangan default kosong
+        'bukti_foto' => null      // Bukti foto default kosong
     ];
     $page_title = "Tambah Absensi Siswa"; // Judul halaman untuk mode tambah
 }
@@ -230,6 +230,14 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                                         Izin</span>
                                                 </label>
                                             </div>
+                                            <div class="form-check me-4 mb-2">
+                                                <input class="form-check-input" type="radio" name="statusAbsen"
+                                                    id="editRadioLibur" value="Libur"
+                                                    <?= ($data_absensi['status_absen'] == 'Libur') ? 'checked' : '' ?>>
+                                                <label class="form-check-label" for="editRadioLibur">
+                                                    <span class="badge bg-secondary"><i
+                                                            class="bx bx-calendar-alt me-1"></i> Libur</span> </label>
+                                            </div>
                                             <div class="form-check mb-2">
                                                 <input class="form-check-input" type="radio" name="statusAbsen"
                                                     id="editRadioAlfa" value="Alfa"
@@ -308,19 +316,20 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
         const editRadioSakit = document.getElementById('editRadioSakit');
         const editRadioIzin = document.getElementById('editRadioIzin');
         const editRadioAlfa = document.getElementById('editRadioAlfa');
+        const editRadioLibur = document.getElementById('editRadioLibur'); // PERUBAHAN DI SINI
         const editAdditionalFields = document.getElementById('editAdditionalFields');
         const editKeterangan = document.getElementById('editKeterangan');
         const editBuktiFoto = document.getElementById('editBuktiFoto');
 
         function toggleEditAdditionalFields() {
-            // Tampilkan jika Sakit atau Izin
+            // Tampilkan jika Sakit atau Izin. Tidak tampil untuk Hadir, Alfa, ATAU LIBUR
             if (editRadioSakit.checked || editRadioIzin.checked) {
                 editAdditionalFields.style.display = 'block';
                 editKeterangan.setAttribute('required', 'required');
 
-                // Logic untuk 'required' pada buktiFoto saat mode edit/add
                 const currentBuktiFoto = "<?= htmlspecialchars($data_absensi['bukti_foto'] ?? '') ?>";
                 // Jika tidak ada bukti foto lama DAN input file bukti foto kosong, maka wajib
+                // Ini untuk kasus ADD absensi sakit/izin atau EDIT absensi sakit/izin tanpa bukti sebelumnya
                 if (currentBuktiFoto === "" && editBuktiFoto.files.length === 0) {
                     editBuktiFoto.setAttribute('required', 'required');
                 } else {
@@ -328,10 +337,13 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                 }
 
             } else {
-                // Sembunyikan jika Hadir atau Alfa
+                // Sembunyikan jika Hadir, Alfa, ATAU LIBUR
                 editAdditionalFields.style.display = 'none';
                 editKeterangan.removeAttribute('required');
                 editBuktiFoto.removeAttribute('required');
+                // Penting: Kosongkan nilai field saat disembunyikan agar tidak terkirim data yang tidak relevan
+                editKeterangan.value = '';
+                editBuktiFoto.value = ''; // Mengatur ulang input file
             }
         }
 
@@ -343,6 +355,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
         editRadioSakit.addEventListener('change', toggleEditAdditionalFields);
         editRadioIzin.addEventListener('change', toggleEditAdditionalFields);
         editRadioAlfa.addEventListener('change', toggleEditAdditionalFields);
+        editRadioLibur.addEventListener('change', toggleEditAdditionalFields); // PERUBAHAN DI SINI
     });
     </script>
 </body>

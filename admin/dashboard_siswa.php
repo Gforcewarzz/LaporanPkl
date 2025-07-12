@@ -60,12 +60,12 @@ if ($stmt_check_absen) {
         $status_absen_hari_ini = $data_absen['status_absen'];
 
         // Cek kelengkapan keterangan untuk Sakit/Izin
-        if ($status_absen_hari_ini == 'Sakit' || $status_absen_hari_ini == 'Izin') {
-            // Jika keterangan atau bukti foto kosong, maka dianggap belum lengkap
-            if (empty($data_absen['keterangan']) || empty($data_absen['bukti_foto'])) {
-                $keterangan_absen_lengkap = false;
-            }
+        // PERUBAHAN DI SINI: Tambahkan kondisi untuk 'Libur'
+        if (($status_absen_hari_ini == 'Sakit' || $status_absen_hari_ini == 'Izin') && (empty($data_absen['keterangan']) || empty($data_absen['bukti_foto']))) {
+            $keterangan_absen_lengkap = false;
         }
+        // Jika statusnya 'Libur', maka otomatis dianggap lengkap (tidak perlu keterangan/bukti)
+        // Tidak perlu else if ($status_absen_hari_ini == 'Libur') karena $keterangan_absen_lengkap sudah true secara default
     }
     $stmt_check_absen->close();
 } else {
@@ -222,7 +222,10 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                                         Ini (Status:
                                                         <?= htmlspecialchars($status_absen_hari_ini ?? '') ?>)
                                                     </button>
-                                                    <?php if ($status_absen_hari_ini != 'Hadir' && !$keterangan_absen_lengkap): ?>
+                                                    <?php
+                                                        // PERUBAHAN DI SINI: Hanya tampilkan peringatan jika statusnya Sakit/Izin DAN belum lengkap
+                                                        if (($status_absen_hari_ini == 'Sakit' || $status_absen_hari_ini == 'Izin') && !$keterangan_absen_lengkap):
+                                                        ?>
                                                     <p class="text-warning mt-2 mb-0 fw-bold">
                                                         <i class="bx bx-error-circle me-1"></i> Absensi Sakit/Izin Anda
                                                         belum lengkap. Mohon lengkapi!
@@ -339,7 +342,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                         class="btn btn-info btn-lg flex-fill animate__animated animate__zoomIn animate__delay-1-7s">
                                         <i class="bx bx-plus-circle me-2"></i> Tambah Jurnal PKL Harian
                                     </a>
-                                    <a href="master_tugas_project_add.php"
+                                    <a href="master_tugas_project.php"
                                         class="btn btn-warning btn-lg flex-fill animate__animated animate__zoomIn animate__delay-1-8s">
                                         <i class="bx bx-edit-alt me-2"></i> Tambah Jurnal PKL Per Kegiatan
                                     </a>
@@ -404,6 +407,15 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                     tidak dapat masuk karena ada keperluan.
                                 </label>
                             </div>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="radio" name="statusAbsen" id="radioLibur"
+                                    value="Libur">
+                                <label class="form-check-label" for="radioLibur">
+                                    <span class="badge bg-secondary"><i class="bx bx-calendar-alt me-1"></i>
+                                        Libur</span>
+                                    - Anda tidak ada jadwal masuk hari ini (misal: akhir pekan, libur nasional).
+                                </label>
+                            </div>
                         </div>
 
                         <div id="additionalFields" style="display: none;" class="mt-4 p-3 border rounded-3 bg-light">
@@ -440,6 +452,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
         const radioHadir = document.getElementById('radioHadir');
         const radioSakit = document.getElementById('radioSakit');
         const radioIzin = document.getElementById('radioIzin');
+        const radioLibur = document.getElementById('radioLibur'); // Ambil elemen radio Libur
         const additionalFields = document.getElementById('additionalFields');
         const keteranganField = document.getElementById('keterangan');
         const buktiFotoField = document.getElementById('buktiFoto');
@@ -449,6 +462,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
 
 
         function toggleAdditionalFields() {
+            // PERUBAHAN DI SINI: additionalFields hanya muncul jika Sakit ATAU Izin
             if (radioSakit.checked || radioIzin.checked) {
                 additionalFields.style.display = 'block';
                 keteranganField.setAttribute('required', 'required');
@@ -469,6 +483,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
         radioHadir.addEventListener('change', toggleAdditionalFields);
         radioSakit.addEventListener('change', toggleAdditionalFields);
         radioIzin.addEventListener('change', toggleAdditionalFields);
+        radioLibur.addEventListener('change', toggleAdditionalFields); // Tambahkan listener untuk Libur
 
         // Tangani pengiriman formulir TANPA SweetAlert Konfirmasi kedua
         formAbsen.addEventListener('submit', function(event) {
@@ -485,6 +500,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                     return;
                 }
             }
+            // Tidak ada validasi khusus untuk 'Libur' karena tidak memerlukan keterangan/bukti
 
             // Jika validasi lolos, form akan langsung disubmit.
             // Tutup modal secara manual sebelum submit form agar tidak terlihat aneh saat refresh

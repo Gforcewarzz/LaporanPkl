@@ -17,11 +17,12 @@ include 'partials/db.php'; // Sertakan file koneksi database
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $id_absensi = $_POST['id_absensi'] ?? null; // Akan ada jika mode UPDATE
-    $siswa_id = $_POST['siswa_id'] ?? null;     // Akan ada jika mode INSERT
+    $siswa_id = $_POST['siswa_id'] ?? null;      // Akan ada jika mode INSERT
     // Gunakan tanggal dari form jika ada, jika tidak, gunakan tanggal saat ini
     $tanggal_absen = $_POST['tanggal_absen'] ?? date('Y-m-d');
 
     $statusAbsen = $_POST['statusAbsen'] ?? '';
+    // Keterangan akan diambil jika statusnya Sakit/Izin, jika tidak, akan di-set null
     $keterangan = !empty($_POST['keterangan']) ? trim($_POST['keterangan']) : null;
     $old_bukti_foto = $_POST['old_bukti_foto'] ?? null; // Hanya ada saat mode UPDATE
     $bukti_foto_path = $old_bukti_foto; // Default path ke foto lama, akan diubah jika ada upload baru
@@ -49,14 +50,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    // Validasi statusAbsen
-    if (!in_array($statusAbsen, ['Hadir', 'Sakit', 'Izin', 'Alfa'])) {
+    // PERUBAHAN DI SINI: Tambahkan 'Libur' ke daftar status yang valid
+    if (!in_array($statusAbsen, ['Hadir', 'Sakit', 'Izin', 'Alfa', 'Libur'])) {
         $_SESSION['alert_message'] = 'Status absensi tidak valid.';
         $_SESSION['alert_type'] = 'error';
         $_SESSION['alert_title'] = 'Gagal Simpan!';
         // Redirect kembali ke form edit/add dengan parameter yang sesuai
         $redirect_url_params = $is_update_mode ? 'id=' . $id_absensi : 'siswa_id=' . $siswa_id . '&tanggal=' . $tanggal_absen;
-        header('Location: absensi_edit.php?' . $redirect_url_params);
+        header('Location: master_data_absensi_siswa_edit.php?' . $redirect_url_params);
         exit();
     }
 
@@ -67,19 +68,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         mkdir($target_dir, 0775, true); // Buat folder jika belum ada
     }
 
+    // PERUBAHAN DI SINI: Logika upload/validasi keterangan/bukti foto hanya untuk Sakit atau Izin
     if ($statusAbsen === 'Sakit' || $statusAbsen === 'Izin') {
         if (empty($keterangan)) {
             $_SESSION['alert_message'] = 'Keterangan wajib diisi untuk status ' . htmlspecialchars($statusAbsen) . '.';
             $_SESSION['alert_type'] = 'error';
             $_SESSION['alert_title'] = 'Gagal Simpan!';
             $redirect_url_params = $is_update_mode ? 'id=' . $id_absensi : 'siswa_id=' . $siswa_id . '&tanggal=' . $tanggal_absen;
-            header('Location: absensi_edit.php?' . $redirect_url_params);
+            header('Location: master_data_absensi_siswa_edit.php?' . $redirect_url_params);
             exit();
         }
 
+        // Cek apakah ada file baru diunggah ATAU jika tidak ada file lama dan tidak ada file baru
         if (isset($_FILES['buktiFoto']) && $_FILES['buktiFoto']['error'] === UPLOAD_ERR_OK) {
-            // Jika ada file baru diunggah, hapus file lama jika ada dan berbeda
-            if (!empty($old_bukti_foto) && $old_bukti_foto !== $bukti_foto_path && file_exists($target_dir . $old_bukti_foto)) {
+            // Jika ada file baru diunggah, hapus file lama jika ada
+            if (!empty($old_bukti_foto) && file_exists($target_dir . $old_bukti_foto)) {
                 unlink($target_dir . $old_bukti_foto);
             }
 
@@ -95,7 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION['alert_type'] = 'error';
                 $_SESSION['alert_title'] = 'Gagal Upload!';
                 $redirect_url_params = $is_update_mode ? 'id=' . $id_absensi : 'siswa_id=' . $siswa_id . '&tanggal=' . $tanggal_absen;
-                header('Location: absensi_edit.php?' . $redirect_url_params);
+                header('Location: master_data_absensi_siswa_edit.php?' . $redirect_url_params);
                 exit();
             }
             if ($_FILES["buktiFoto"]["size"] > $max_file_size) {
@@ -103,7 +106,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION['alert_type'] = 'error';
                 $_SESSION['alert_title'] = 'Gagal Upload!';
                 $redirect_url_params = $is_update_mode ? 'id=' . $id_absensi : 'siswa_id=' . $siswa_id . '&tanggal=' . $tanggal_absen;
-                header('Location: absensi_edit.php?' . $redirect_url_params);
+                header('Location: master_data_absensi_siswa_edit.php?' . $redirect_url_params);
                 exit();
             }
 
@@ -115,20 +118,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION['alert_title'] = 'Gagal Upload!';
                 error_log("Error moving uploaded file: " . $_FILES["buktiFoto"]["error"]);
                 $redirect_url_params = $is_update_mode ? 'id=' . $id_absensi : 'siswa_id=' . $siswa_id . '&tanggal=' . $tanggal_absen;
-                header('Location: absensi_edit.php?' . $redirect_url_params);
+                header('Location: master_data_absensi_siswa_edit.php?' . $redirect_url_params);
                 exit();
             }
         } elseif (empty($old_bukti_foto) && empty($_FILES['buktiFoto']['tmp_name'])) {
             // Jika status Sakit/Izin, tidak ada file lama, DAN tidak ada file baru diunggah
+            // Ini validasi jika admin/guru mencoba mengubah ke Sakit/Izin tanpa upload bukti atau bukti sebelumnya kosong
             $_SESSION['alert_message'] = 'Bukti foto wajib diunggah untuk status ' . htmlspecialchars($statusAbsen) . '.';
             $_SESSION['alert_type'] = 'error';
             $_SESSION['alert_title'] = 'Gagal Simpan!';
             $redirect_url_params = $is_update_mode ? 'id=' . $id_absensi : 'siswa_id=' . $siswa_id . '&tanggal=' . $tanggal_absen;
-            header('Location: absensi_edit.php?' . $redirect_url_params);
+            header('Location: master_data_absensi_siswa_edit.php?' . $redirect_url_params);
             exit();
         }
-    } else { // Jika status Hadir atau Alfa, pastikan keterangan dan bukti foto dihapus/dikosongkan
-        // Hapus file lama jika ada dan status diubah ke Hadir/Alfa
+        // Jika ada old_bukti_foto dan tidak ada upload baru, $bukti_foto_path akan tetap $old_bukti_foto, ini sudah benar
+    } else { // Jika status Hadir, Alfa, ATAU LIBUR, pastikan keterangan dan bukti foto dihapus/dikosongkan
+        // Hapus file lama jika ada dan status diubah ke Hadir/Alfa/Libur
         if (!empty($old_bukti_foto) && file_exists($target_dir . $old_bukti_foto)) {
             unlink($target_dir . $old_bukti_foto);
         }
