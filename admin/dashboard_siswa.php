@@ -31,30 +31,46 @@ if (empty($siswa_id)) {
     exit();
 }
 
-// Include koneksi database untuk data jurnal
+// ========================================================
+// Perubahan: Sertakan koneksi database di sini untuk semua query
+// Asumsi: partials/db.php ada di dalam folder yang sama dengan dashboard_siswa.php
+// ========================================================
 include 'partials/db.php';
 
-// --- Simulasi Status Absensi Harian (TIDAK DARI DATABASE UNTUK ABSENSI INI) ---
-// Ini akan menggunakan SESSION untuk menyimpan status absen sementara
-$sudah_absen_hari_ini = $_SESSION['simulasi_absen']['sudah_absen'] ?? false;
-$status_absen_hari_ini = $_SESSION['simulasi_absen']['status'] ?? ''; // Hadir, Sakit, Izin
-$keterangan_absen_lengkap = $_SESSION['simulasi_absen']['lengkap'] ?? true; // Untuk Sakit/Izin, apakah keterangan dan bukti sudah ada
+// --- Cek Absensi Harian dari Database (REAL) ---
+$sudah_absen_hari_ini = false;
+$status_absen_hari_ini = ''; // Inisialisasi dengan string kosong untuk menghindari null
+$keterangan_absen_lengkap = true; // Untuk Sakit/Izin, apakah keterangan dan bukti sudah ada
 
-// Cek tanggal untuk reset simulasi absen setiap hari
-$last_sim_date = $_SESSION['simulasi_absen']['tanggal'] ?? '';
 $current_date = date('Y-m-d');
 
-if ($last_sim_date !== $current_date) {
-    // Reset status absen setiap hari jika tanggal berbeda
-    $_SESSION['simulasi_absen'] = [
-        'sudah_absen' => false,
-        'status' => '',
-        'lengkap' => true,
-        'tanggal' => $current_date
-    ];
-    $sudah_absen_hari_ini = false;
-    $status_absen_hari_ini = '';
-    $keterangan_absen_lengkap = true;
+// Query menggunakan nama tabel dan kolom yang benar: absensi_siswa, status_absen, tanggal_absen, siswa_id
+$query_check_absen = "SELECT status_absen, keterangan, bukti_foto FROM absensi_siswa WHERE siswa_id = ? AND tanggal_absen = ?";
+$stmt_check_absen = $koneksi->prepare($query_check_absen);
+
+if ($stmt_check_absen) {
+    $stmt_check_absen->bind_param("is", $siswa_id, $current_date);
+    $stmt_check_absen->execute();
+    $result_check_absen = $stmt_check_absen->get_result();
+
+    if ($result_check_absen->num_rows > 0) {
+        $data_absen = $result_check_absen->fetch_assoc();
+        $sudah_absen_hari_ini = true;
+        // Perbaikan: Mengakses key 'status_absen' sesuai nama kolom di DB
+        $status_absen_hari_ini = $data_absen['status_absen'];
+
+        // Cek kelengkapan keterangan untuk Sakit/Izin
+        if ($status_absen_hari_ini == 'Sakit' || $status_absen_hari_ini == 'Izin') {
+            // Jika keterangan atau bukti foto kosong, maka dianggap belum lengkap
+            if (empty($data_absen['keterangan']) || empty($data_absen['bukti_foto'])) {
+                $keterangan_absen_lengkap = false;
+            }
+        }
+    }
+    $stmt_check_absen->close();
+} else {
+    // Log error jika persiapan query gagal
+    error_log("Error preparing check absen query: " . $koneksi->error);
 }
 
 // --- Data Jurnal dari Database (REAL) ---
@@ -96,11 +112,13 @@ if ($stmt_proyek) {
 // Logika untuk menghitung minggu PKL (Contoh, sesuaikan dengan tanggal mulai PKL sebenarnya)
 $start_pkl_date_example = '2025-01-01'; // Ganti dengan tanggal mulai PKL siswa yang sebenarnya
 $today = new DateTime();
+$total_minggu_pkl = 0; // Default value
 $start_date_obj = new DateTime($start_pkl_date_example);
 if ($start_date_obj <= $today) {
     $interval = $today->diff($start_date_obj);
     $total_minggu_pkl = floor($interval->days / 7);
 }
+
 
 $quotes = [
     ["Setiap tugas kecil adalah langkah besar. Jangan takut bertanya, dan teruslah belajar dari setiap pengalaman!", "text-success"],
@@ -198,31 +216,18 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                                     progresmu di sini!
                                                 </p>
                                                 <div class="mt-4 animate__animated animate__fadeInUp animate__delay-2s">
-                                                    <?php if ($sudah_absen_hari_ini && $status_absen_hari_ini == 'Hadir'): ?>
+                                                    <?php if ($sudah_absen_hari_ini): ?>
                                                     <button type="button" class="btn btn-light" disabled>
                                                         <i class="bx bx-check-double me-2"></i> Anda sudah Absen Hari
-                                                        Ini (Hadir)
+                                                        Ini (Status:
+                                                        <?= htmlspecialchars($status_absen_hari_ini ?? '') ?>)
                                                     </button>
-                                                    <?php elseif ($sudah_absen_hari_ini && !$keterangan_absen_lengkap): ?>
-                                                    <button type="button" class="btn btn-warning btn-lg"
-                                                        data-bs-toggle="modal" data-bs-target="#absenModal">
-                                                        <i class="bx bx-info-circle me-2"></i> Absensi
-                                                        <?= htmlspecialchars($status_absen_hari_ini) ?> Belum Lengkap!
-                                                    </button>
+                                                    <?php if ($status_absen_hari_ini != 'Hadir' && !$keterangan_absen_lengkap): ?>
                                                     <p class="text-warning mt-2 mb-0 fw-bold">
-                                                        <i class="bx bx-error-circle me-1"></i> Mohon lengkapi
-                                                        keterangan dan bukti foto.
+                                                        <i class="bx bx-error-circle me-1"></i> Absensi Sakit/Izin Anda
+                                                        belum lengkap. Mohon lengkapi!
                                                     </p>
-                                                    <?php elseif ($sudah_absen_hari_ini && ($status_absen_hari_ini == 'Sakit' || $status_absen_hari_ini == 'Izin') && $keterangan_absen_lengkap): ?>
-                                                    <button type="button" class="btn btn-light" disabled>
-                                                        <i class="bx bx-check-double me-2"></i> Anda sudah Absen Hari
-                                                        Ini (Status: <?= htmlspecialchars($status_absen_hari_ini) ?>)
-                                                    </button>
-                                                    <p class="text-white-50 mt-2 mb-0 fw-bold">
-                                                        <i class="bx bx-info-circle me-1"></i> Fitur jurnal
-                                                        dinonaktifkan karena Anda
-                                                        <?= htmlspecialchars($status_absen_hari_ini) ?>.
-                                                    </p>
+                                                    <?php endif; ?>
                                                     <?php else: ?>
                                                     <button type="button" class="btn btn-success btn-lg"
                                                         data-bs-toggle="modal" data-bs-target="#absenModal">
@@ -240,7 +245,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                             </div>
                         </div>
                         <div class="row g-4 mb-4">
-                            <div class="col-lg-4 col-md-6 col-12">
+                            <div class="col-lg-6 col-md-6 col-12">
                                 <div
                                     class="card h-100 shadow-sm border-0 animate__animated animate__fadeInUp animate__delay-0-5s">
                                     <div class="card-body d-flex flex-column align-items-start p-4">
@@ -258,7 +263,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-lg-4 col-md-6 col-12">
+                            <div class="col-lg-6 col-md-6 col-12">
                                 <div
                                     class="card h-100 shadow-sm border-0 animate__animated animate__fadeInUp animate__delay-0-7s">
                                     <div class="card-body d-flex flex-column align-items-start p-4">
@@ -277,25 +282,6 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-lg-4 col-md-6 col-12">
-                                <div
-                                    class="card h-100 shadow-sm border-0 animate__animated animate__fadeInUp animate__delay-0-9s">
-                                    <div class="card-body d-flex flex-column align-items-start p-4">
-                                        <div class="avatar flex-shrink-0 mb-3 rounded-circle d-flex justify-content-center align-items-center bg-label-info"
-                                            style="width: 50px; height: 50px; font-size: 1.8rem;">
-                                            <i class="bx bx-time bx-lg"></i>
-                                        </div>
-                                        <span class="text-muted fw-semibold d-block mb-1 fs-6">Minggu PKL
-                                            Berjalan</span>
-                                        <h3 class="fw-bold mb-0 display-5 text-dark"><?= $total_minggu_pkl ?></h3>
-                                        <small class="text-muted d-block mt-1" style="font-size: 0.85rem;">Total
-                                            minggu PKL Anda berjalan</small>
-                                        <a href="#" class="btn btn-sm btn-outline-info mt-3 disabled">Detail <i
-                                                class="bx bx-chevron-right"></i></a>
-                                    </div>
-                                </div>
-                            </div>
-
                         </div>
 
                         <div class="row g-4 mb-4">
@@ -349,47 +335,15 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                 <h5 class="mb-3 animate__animated animate__fadeInLeft animate__delay-1-5s">Mulai Catat
                                     Kegiatanmu!</h5>
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-start flex-wrap">
-                                    <?php
-                                    // Kondisi untuk menonaktifkan tombol jurnal
-                                    $disable_buttons = !$sudah_absen_hari_ini || ($status_absen_hari_ini != 'Hadir');
-                                    // Tambahan: jika status Sakit/Izin tapi belum lengkap, juga disable
-                                    if (($status_absen_hari_ini == 'Sakit' || $status_absen_hari_ini == 'Izin') && !$keterangan_absen_lengkap) {
-                                        $disable_buttons = true;
-                                    }
-
-                                    $disabled_class = $disable_buttons ? 'disabled' : '';
-                                    // Style ini penting agar link tidak bisa diklik dan pointer berubah
-                                    $disabled_link_style = $disable_buttons ? 'pointer-events: none; opacity: 0.6; text-decoration: none;' : '';
-                                    ?>
                                     <a href="master_kegiatan_harian_add.php"
-                                        class="btn btn-info btn-lg flex-fill animate__animated animate__zoomIn animate__delay-1-7s <?= $disabled_class ?>"
-                                        style="<?= $disabled_link_style ?>"
-                                        aria-disabled="<?= $disable_buttons ? 'true' : 'false' ?>"
-                                        <?= $disable_buttons ? 'tabindex="-1"' : '' ?>>
+                                        class="btn btn-info btn-lg flex-fill animate__animated animate__zoomIn animate__delay-1-7s">
                                         <i class="bx bx-plus-circle me-2"></i> Tambah Jurnal PKL Harian
                                     </a>
                                     <a href="master_tugas_project_add.php"
-                                        class="btn btn-warning btn-lg flex-fill animate__animated animate__zoomIn animate__delay-1-8s <?= $disabled_class ?>"
-                                        style="<?= $disabled_link_style ?>"
-                                        aria-disabled="<?= $disable_buttons ? 'true' : 'false' ?>"
-                                        <?= $disable_buttons ? 'tabindex="-1"' : '' ?>>
+                                        class="btn btn-warning btn-lg flex-fill animate__animated animate__zoomIn animate__delay-1-8s">
                                         <i class="bx bx-edit-alt me-2"></i> Tambah Jurnal PKL Per Kegiatan
                                     </a>
                                 </div>
-                                <?php if ($disable_buttons): ?>
-                                <div class="alert alert-danger mt-3 animate__animated animate__fadeIn" role="alert">
-                                    <h6 class="alert-heading"><i class="bx bx-block me-2"></i>Akses Terbatas!</h6>
-                                    <?php if (!$sudah_absen_hari_ini): ?>
-                                    Mohon **Absen Hari Ini** terlebih dahulu untuk dapat mengisi jurnal kegiatan.
-                                    <?php elseif ($status_absen_hari_ini != 'Hadir' && !$keterangan_absen_lengkap): ?>
-                                    Absensi **<?= htmlspecialchars($status_absen_hari_ini) ?>** Anda belum lengkap.
-                                    Mohon lengkapi keterangan dan bukti foto pada formulir absen.
-                                    <?php elseif ($status_absen_hari_ini != 'Hadir' && $keterangan_absen_lengkap): ?>
-                                    Fitur jurnal dinonaktifkan karena Anda
-                                    **<?= htmlspecialchars($status_absen_hari_ini) ?>** hari ini.
-                                    <?php endif; ?>
-                                </div>
-                                <?php endif; ?>
                             </div>
                         </div>
 

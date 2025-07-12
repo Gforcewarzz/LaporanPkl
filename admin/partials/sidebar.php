@@ -75,11 +75,17 @@
                     </a>
                 </li>
                 <li class="menu-item">
+                    <a href="master_data_absensi_siswa.php" class="menu-link">
+                        <div data-i18n="Absensi Siswa">Absensi Siswa</div>
+                    </a>
+                </li>
+                <li class="menu-item">
                     <a href="master_data_admin.php" class="menu-link">
                         <div data-i18n="Data Admin">Data Admin</div>
                     </a>
                 </li>
             </ul>
+
         </li>
         <?php endif; ?>
 
