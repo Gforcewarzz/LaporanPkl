@@ -31,11 +31,35 @@ if (empty($siswa_id)) {
     exit();
 }
 
-include 'partials/db.php'; // Sertakan file koneksi database
+// Include koneksi database untuk data jurnal
+include 'partials/db.php';
 
+// --- Simulasi Status Absensi Harian (TIDAK DARI DATABASE UNTUK ABSENSI INI) ---
+// Ini akan menggunakan SESSION untuk menyimpan status absen sementara
+$sudah_absen_hari_ini = $_SESSION['simulasi_absen']['sudah_absen'] ?? false;
+$status_absen_hari_ini = $_SESSION['simulasi_absen']['status'] ?? ''; // Hadir, Sakit, Izin
+$keterangan_absen_lengkap = $_SESSION['simulasi_absen']['lengkap'] ?? true; // Untuk Sakit/Izin, apakah keterangan dan bukti sudah ada
+
+// Cek tanggal untuk reset simulasi absen setiap hari
+$last_sim_date = $_SESSION['simulasi_absen']['tanggal'] ?? '';
+$current_date = date('Y-m-d');
+
+if ($last_sim_date !== $current_date) {
+    // Reset status absen setiap hari jika tanggal berbeda
+    $_SESSION['simulasi_absen'] = [
+        'sudah_absen' => false,
+        'status' => '',
+        'lengkap' => true,
+        'tanggal' => $current_date
+    ];
+    $sudah_absen_hari_ini = false;
+    $status_absen_hari_ini = '';
+    $keterangan_absen_lengkap = true;
+}
+
+// --- Data Jurnal dari Database (REAL) ---
 $total_laporan_harian = 0;
 $total_tugas_proyek = 0;
-$total_minggu_pkl = 0;
 $last_report_date = 'Belum ada laporan';
 
 // Ambil jumlah laporan kegiatan harian
@@ -69,7 +93,8 @@ if ($stmt_proyek) {
     error_log("Error preparing proyek query: " . $koneksi->error);
 }
 
-$start_pkl_date_example = '2025-01-01';
+// Logika untuk menghitung minggu PKL (Contoh, sesuaikan dengan tanggal mulai PKL sebenarnya)
+$start_pkl_date_example = '2025-01-01'; // Ganti dengan tanggal mulai PKL siswa yang sebenarnya
 $today = new DateTime();
 $start_date_obj = new DateTime($start_pkl_date_example);
 if ($start_date_obj <= $today) {
@@ -105,7 +130,8 @@ $quote_text = $random_quote[0];
 $quote_color_class = $random_quote[1];
 
 
-$koneksi->close();
+$koneksi->close(); // Tutup koneksi setelah semua data diambil
+
 ?>
 
 <!DOCTYPE html>
@@ -122,6 +148,34 @@ $koneksi->close();
                 <?php include './partials/navbar.php'; ?>
                 <div class="content-wrapper">
                     <div class="container-xxl flex-grow-1 container-p-y">
+
+                        <?php
+                        // Pesan SweetAlert. Penting: ini dipicu langsung, BUKAN di DOMContentLoaded
+                        if (isset($_SESSION['alert_message'])) {
+                            $alert_icon = $_SESSION['alert_type'];
+                            $alert_title = $_SESSION['alert_title'];
+                            $alert_text = $_SESSION['alert_message'];
+                            echo "
+                                <script>
+                                    Swal.fire({
+                                        icon: '{$alert_icon}',
+                                        title: '{$alert_title}',
+                                        text: '{$alert_text}',
+                                        confirmButtonColor: '#696cff',
+                                        showClass: {
+                                            popup: 'animate__animated animate__fadeInDown animate__faster'
+                                        },
+                                        hideClass: {
+                                            popup: 'animate__animated animate__fadeOutUp animate__faster'
+                                        }
+                                    });
+                                </script>
+                                ";
+                            unset($_SESSION['alert_message']);
+                            unset($_SESSION['alert_type']);
+                            unset($_SESSION['alert_title']);
+                        }
+                        ?>
 
                         <div class="row mb-4">
                             <div class="col-12">
@@ -143,6 +197,39 @@ $koneksi->close();
                                                     Semangat menjalankan Praktik Kerja Lapanganmu. Catat setiap
                                                     progresmu di sini!
                                                 </p>
+                                                <div class="mt-4 animate__animated animate__fadeInUp animate__delay-2s">
+                                                    <?php if ($sudah_absen_hari_ini && $status_absen_hari_ini == 'Hadir'): ?>
+                                                    <button type="button" class="btn btn-light" disabled>
+                                                        <i class="bx bx-check-double me-2"></i> Anda sudah Absen Hari
+                                                        Ini (Hadir)
+                                                    </button>
+                                                    <?php elseif ($sudah_absen_hari_ini && !$keterangan_absen_lengkap): ?>
+                                                    <button type="button" class="btn btn-warning btn-lg"
+                                                        data-bs-toggle="modal" data-bs-target="#absenModal">
+                                                        <i class="bx bx-info-circle me-2"></i> Absensi
+                                                        <?= htmlspecialchars($status_absen_hari_ini) ?> Belum Lengkap!
+                                                    </button>
+                                                    <p class="text-warning mt-2 mb-0 fw-bold">
+                                                        <i class="bx bx-error-circle me-1"></i> Mohon lengkapi
+                                                        keterangan dan bukti foto.
+                                                    </p>
+                                                    <?php elseif ($sudah_absen_hari_ini && ($status_absen_hari_ini == 'Sakit' || $status_absen_hari_ini == 'Izin') && $keterangan_absen_lengkap): ?>
+                                                    <button type="button" class="btn btn-light" disabled>
+                                                        <i class="bx bx-check-double me-2"></i> Anda sudah Absen Hari
+                                                        Ini (Status: <?= htmlspecialchars($status_absen_hari_ini) ?>)
+                                                    </button>
+                                                    <p class="text-white-50 mt-2 mb-0 fw-bold">
+                                                        <i class="bx bx-info-circle me-1"></i> Fitur jurnal
+                                                        dinonaktifkan karena Anda
+                                                        <?= htmlspecialchars($status_absen_hari_ini) ?>.
+                                                    </p>
+                                                    <?php else: ?>
+                                                    <button type="button" class="btn btn-success btn-lg"
+                                                        data-bs-toggle="modal" data-bs-target="#absenModal">
+                                                        <i class="bx bx-check-square me-2"></i> Absen Hari Ini!
+                                                    </button>
+                                                    <?php endif; ?>
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="position-absolute bottom-0 end-0 p-2 p-md-3" style="opacity: 0.1;">
@@ -161,10 +248,10 @@ $koneksi->close();
                                             style="width: 50px; height: 50px; font-size: 1.8rem;">
                                             <i class="bx bx-receipt bx-lg"></i>
                                         </div>
-                                        <span class="text-muted fw-semibold d-block mb-1 fs-6">Laporan Harian</span>
+                                        <span class="text-muted fw-semibold d-block mb-1 fs-6">Jurnal PKL Harian</span>
                                         <h3 class="fw-bold mb-0 display-5 text-dark"><?= $total_laporan_harian ?></h3>
                                         <small class="text-muted d-block mt-1" style="font-size: 0.85rem;">Total
-                                            laporanmu</small>
+                                            Jurnal PKL Harian </small>
                                         <a href="master_kegiatan_harian.php"
                                             class="btn btn-sm btn-outline-primary mt-3">Lihat Detail <i
                                                 class="bx bx-chevron-right"></i></a>
@@ -179,12 +266,32 @@ $koneksi->close();
                                             style="width: 50px; height: 50px; font-size: 1.8rem;">
                                             <i class="bx bx-task bx-lg"></i>
                                         </div>
-                                        <span class="text-muted fw-semibold d-block mb-1 fs-6">Tugas Proyek</span>
+                                        <span class="text-muted fw-semibold d-block mb-1 fs-6">Jurnal PKL Per
+                                            Kegiatan</span>
                                         <h3 class="fw-bold mb-0 display-5 text-dark"><?= $total_tugas_proyek ?></h3>
                                         <small class="text-muted d-block mt-1" style="font-size: 0.85rem;">Total
-                                            proyekmu</small>
-                                        <a href="master_tugas_project.php" class="btn btn-sm btn-outline-success">Lihat
+                                            Jurnal PKL Per Kegiatanmu</small>
+                                        <a href="master_tugas_project.php"
+                                            class="btn btn-sm btn-outline-success mt-auto">Lihat
                                             Detail <i class="bx bx-chevron-right"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-6 col-12">
+                                <div
+                                    class="card h-100 shadow-sm border-0 animate__animated animate__fadeInUp animate__delay-0-9s">
+                                    <div class="card-body d-flex flex-column align-items-start p-4">
+                                        <div class="avatar flex-shrink-0 mb-3 rounded-circle d-flex justify-content-center align-items-center bg-label-info"
+                                            style="width: 50px; height: 50px; font-size: 1.8rem;">
+                                            <i class="bx bx-time bx-lg"></i>
+                                        </div>
+                                        <span class="text-muted fw-semibold d-block mb-1 fs-6">Minggu PKL
+                                            Berjalan</span>
+                                        <h3 class="fw-bold mb-0 display-5 text-dark"><?= $total_minggu_pkl ?></h3>
+                                        <small class="text-muted d-block mt-1" style="font-size: 0.85rem;">Total
+                                            minggu PKL Anda berjalan</small>
+                                        <a href="#" class="btn btn-sm btn-outline-info mt-3 disabled">Detail <i
+                                                class="bx bx-chevron-right"></i></a>
                                     </div>
                                 </div>
                             </div>
@@ -242,15 +349,47 @@ $koneksi->close();
                                 <h5 class="mb-3 animate__animated animate__fadeInLeft animate__delay-1-5s">Mulai Catat
                                     Kegiatanmu!</h5>
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-start flex-wrap">
+                                    <?php
+                                    // Kondisi untuk menonaktifkan tombol jurnal
+                                    $disable_buttons = !$sudah_absen_hari_ini || ($status_absen_hari_ini != 'Hadir');
+                                    // Tambahan: jika status Sakit/Izin tapi belum lengkap, juga disable
+                                    if (($status_absen_hari_ini == 'Sakit' || $status_absen_hari_ini == 'Izin') && !$keterangan_absen_lengkap) {
+                                        $disable_buttons = true;
+                                    }
+
+                                    $disabled_class = $disable_buttons ? 'disabled' : '';
+                                    // Style ini penting agar link tidak bisa diklik dan pointer berubah
+                                    $disabled_link_style = $disable_buttons ? 'pointer-events: none; opacity: 0.6; text-decoration: none;' : '';
+                                    ?>
                                     <a href="master_kegiatan_harian_add.php"
-                                        class="btn btn-info btn-lg flex-fill animate__animated animate__zoomIn animate__delay-1-7s">
-                                        <i class="bx bx-plus-circle me-2"></i> Tambah Laporan Harian
+                                        class="btn btn-info btn-lg flex-fill animate__animated animate__zoomIn animate__delay-1-7s <?= $disabled_class ?>"
+                                        style="<?= $disabled_link_style ?>"
+                                        aria-disabled="<?= $disable_buttons ? 'true' : 'false' ?>"
+                                        <?= $disable_buttons ? 'tabindex="-1"' : '' ?>>
+                                        <i class="bx bx-plus-circle me-2"></i> Tambah Jurnal PKL Harian
                                     </a>
                                     <a href="master_tugas_project_add.php"
-                                        class="btn btn-warning btn-lg flex-fill animate__animated animate__zoomIn animate__delay-1-8s">
-                                        <i class="bx bx-edit-alt me-2"></i> Tambah Tugas Proyek
+                                        class="btn btn-warning btn-lg flex-fill animate__animated animate__zoomIn animate__delay-1-8s <?= $disabled_class ?>"
+                                        style="<?= $disabled_link_style ?>"
+                                        aria-disabled="<?= $disable_buttons ? 'true' : 'false' ?>"
+                                        <?= $disable_buttons ? 'tabindex="-1"' : '' ?>>
+                                        <i class="bx bx-edit-alt me-2"></i> Tambah Jurnal PKL Per Kegiatan
                                     </a>
                                 </div>
+                                <?php if ($disable_buttons): ?>
+                                <div class="alert alert-danger mt-3 animate__animated animate__fadeIn" role="alert">
+                                    <h6 class="alert-heading"><i class="bx bx-block me-2"></i>Akses Terbatas!</h6>
+                                    <?php if (!$sudah_absen_hari_ini): ?>
+                                    Mohon **Absen Hari Ini** terlebih dahulu untuk dapat mengisi jurnal kegiatan.
+                                    <?php elseif ($status_absen_hari_ini != 'Hadir' && !$keterangan_absen_lengkap): ?>
+                                    Absensi **<?= htmlspecialchars($status_absen_hari_ini) ?>** Anda belum lengkap.
+                                    Mohon lengkapi keterangan dan bukti foto pada formulir absen.
+                                    <?php elseif ($status_absen_hari_ini != 'Hadir' && $keterangan_absen_lengkap): ?>
+                                    Fitur jurnal dinonaktifkan karena Anda
+                                    **<?= htmlspecialchars($status_absen_hari_ini) ?>** hari ini.
+                                    <?php endif; ?>
+                                </div>
+                                <?php endif; ?>
                             </div>
                         </div>
 
@@ -263,6 +402,7 @@ $koneksi->close();
 
 
                     </div>
+                    <?php include './partials/footer.php'; ?>
                     <div class="content-backdrop fade"></div>
                 </div>
             </div>
@@ -273,6 +413,137 @@ $koneksi->close();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <?php include './partials/script.php'; ?>
+
+    <div class="modal fade" id="absenModal" tabindex="-1" aria-labelledby="absenModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="absenModalLabel"><i
+                            class="bx bx-calendar-check me-2 text-success"></i>Formulir Absensi PKL</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <form id="formAbsen" action="process_absen.php" method="POST" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Pilih Status Absensi Anda Hari Ini:</label>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="radio" name="statusAbsen" id="radioHadir"
+                                    value="Hadir" checked>
+                                <label class="form-check-label" for="radioHadir">
+                                    <span class="badge bg-success"><i class="bx bx-check-circle me-1"></i> Hadir</span>
+                                    - Anda masuk kerja/praktik hari ini.
+                                </label>
+                            </div>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="radio" name="statusAbsen" id="radioSakit"
+                                    value="Sakit">
+                                <label class="form-check-label" for="radioSakit">
+                                    <span class="badge bg-warning"><i class="bx bx-plus-medical me-1"></i> Sakit</span>
+                                    - Anda tidak dapat masuk karena sakit.
+                                </label>
+                            </div>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="radio" name="statusAbsen" id="radioIzin"
+                                    value="Izin">
+                                <label class="form-check-label" for="radioIzin">
+                                    <span class="badge bg-info"><i class="bx bx-receipt me-1"></i> Izin</span> - Anda
+                                    tidak dapat masuk karena ada keperluan.
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="additionalFields" style="display: none;" class="mt-4 p-3 border rounded-3 bg-light">
+                            <p class="text-danger fw-bold"><i class="bx bx-info-circle me-1"></i> Mohon lengkapi
+                                informasi berikut untuk status Sakit / Izin:</p>
+                            <div class="mb-3">
+                                <label for="keterangan" class="form-label">Keterangan Tambahan <span
+                                        class="text-danger">*</span></label>
+                                <textarea class="form-control" id="keterangan" name="keterangan" rows="3"
+                                    placeholder="Contoh: Sakit demam, Izin ada acara keluarga, dll."
+                                    maxlength="255"></textarea>
+                                <div class="form-text">Jelaskan alasan Anda tidak dapat hadir.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="buktiFoto" class="form-label">Unggah Bukti Foto <span
+                                        class="text-danger">*</span></label>
+                                <input class="form-control" type="file" id="buktiFoto" name="buktiFoto"
+                                    accept="image/jpeg,image/png">
+                                <div class="form-text">Unggah foto sebagai bukti (Contoh: Surat dokter, surat izin, dll.
+                                    Maks. 2MB, format JPG/PNG).</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary" id="submitAbsenBtn">Konfirmasi Absen</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const radioHadir = document.getElementById('radioHadir');
+        const radioSakit = document.getElementById('radioSakit');
+        const radioIzin = document.getElementById('radioIzin');
+        const additionalFields = document.getElementById('additionalFields');
+        const keteranganField = document.getElementById('keterangan');
+        const buktiFotoField = document.getElementById('buktiFoto');
+        const formAbsen = document.getElementById('formAbsen');
+        const absenModalElement = document.getElementById('absenModal');
+        const absenModal = new bootstrap.Modal(absenModalElement);
+
+
+        function toggleAdditionalFields() {
+            if (radioSakit.checked || radioIzin.checked) {
+                additionalFields.style.display = 'block';
+                keteranganField.setAttribute('required', 'required');
+                buktiFotoField.setAttribute('required', 'required');
+            } else {
+                additionalFields.style.display = 'none';
+                keteranganField.removeAttribute('required');
+                buktiFotoField.removeAttribute('required');
+                keteranganField.value = ''; // Kosongkan field saat disembunyikan
+                buktiFotoField.value = ''; // Kosongkan input file saat disembunyikan
+            }
+        }
+
+        // Inisialisasi status saat halaman dimuat
+        toggleAdditionalFields();
+
+        // Tambahkan event listener untuk perubahan pada radio button
+        radioHadir.addEventListener('change', toggleAdditionalFields);
+        radioSakit.addEventListener('change', toggleAdditionalFields);
+        radioIzin.addEventListener('change', toggleAdditionalFields);
+
+        // Tangani pengiriman formulir TANPA SweetAlert Konfirmasi kedua
+        formAbsen.addEventListener('submit', function(event) {
+            // Validasi client-side tambahan untuk Sakit/Izin sebelum submit langsung
+            if (radioSakit.checked || radioIzin.checked) {
+                if (keteranganField.value.trim() === '' || buktiFotoField.files.length === 0) {
+                    event.preventDefault(); // Hentikan submit jika tidak lengkap
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Data Tidak Lengkap!',
+                        text: 'Untuk status Sakit/Izin, keterangan dan bukti foto wajib diisi.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+            }
+
+            // Jika validasi lolos, form akan langsung disubmit.
+            // Tutup modal secara manual sebelum submit form agar tidak terlihat aneh saat refresh
+            absenModal.hide();
+        });
+
+        // Reset form dan field tambahan saat modal ditutup
+        absenModalElement.addEventListener('hidden.bs.modal', function() {
+            formAbsen.reset(); // Mengatur ulang semua input form
+            toggleAdditionalFields(); // Memastikan field tambahan tersembunyi
+        });
+    });
+    </script>
 </body>
 
 </html>

@@ -65,7 +65,7 @@ if ($is_admin && empty($siswa_id_to_prefill)) { // Ambil daftar siswa hanya jika
                         <div
                             class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom position-relative">
                             <h4 class="fw-bold mb-0 text-primary animate__animated animate__fadeInLeft">
-                                <span class="text-muted fw-light">Laporan /</span> Tambah Tugas Proyek
+                                <span class="text-muted fw-light">Laporan /</span> Tambah Jurnal PKL Per Kegiatan
                             </h4>
                             <i class="fas fa-file-invoice fa-2x text-info animate__animated animate__fadeInRight"
                                 style="opacity: 0.6;"></i>
@@ -73,7 +73,7 @@ if ($is_admin && empty($siswa_id_to_prefill)) { // Ambil daftar siswa hanya jika
 
                         <div class="card shadow-lg animate__animated animate__fadeInUp" style="border-radius: 10px;">
                             <div class="card-header border-bottom">
-                                <h5 class="card-title mb-0">Isi Detail Tugas Proyek
+                                <h5 class="card-title mb-0">Isi Detail Jurnal PKL Per Kegiatan
                                     <?php if ($is_admin && !empty($siswa_id_to_prefill)): ?>
                                         untuk Siswa ID: <?= htmlspecialchars($siswa_id_to_prefill) ?>
                                     <?php endif; ?>
@@ -96,7 +96,7 @@ if ($is_admin && empty($siswa_id_to_prefill)) { // Ambil daftar siswa hanya jika
                                                 <label for="display_siswa" class="form-label fw-bold">Siswa Terpilih:</label>
                                                 <input type="text" class="form-control" id="display_siswa"
                                                     value="ID Siswa: <?= htmlspecialchars($siswa_id_to_prefill); ?>" readonly>
-                                                <div class="form-text text-muted">Anda sedang menambahkan laporan untuk siswa
+                                                <div class="form-text text-muted">Anda sedang menambahkan Jurnal PKL Per Kegiatan untuk siswa
                                                     ini.</div>
                                             </div>
                                         <?php else: ?>
@@ -177,7 +177,7 @@ if ($is_admin && empty($siswa_id_to_prefill)) { // Ambil daftar siswa hanya jika
 
                                     <div class="d-flex flex-column flex-sm-row justify-content-end gap-2">
                                         <button type="submit" class="btn btn-primary w-100 w-sm-auto">
-                                            <i class="bx bx-save me-1"></i> Simpan Laporan Proyek
+                                            <i class="bx bx-save me-1"></i> Simpan Jurnal PKL Per Kegiatan
                                         </button>
                                         <button type="reset" class="btn btn-outline-warning w-100 w-sm-auto">
                                             <i class="bx bx-refresh me-1"></i> Reset Form

@@ -95,7 +95,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                         <div
                             class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom position-relative">
                             <h4 class="fw-bold mb-0 text-primary animate__animated animate__fadeInLeft">
-                                <span class="text-muted fw-light">Laporan Harian /</span> Edit Kegiatan
+                                <span class="text-muted fw-light">Jurnal PKL Harian /</span> Edit Kegiatan
                             </h4>
                             <i class="fas fa-edit fa-2x text-info animate__animated animate__fadeInRight"
                                 style="opacity: 0.6;"></i>
@@ -106,11 +106,11 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                             <div
                                 class="card-body p-4 d-flex flex-column flex-sm-row justify-content-between align-items-center">
                                 <div class="text-center text-sm-start mb-3 mb-sm-0">
-                                    <h5 class="card-title text-white mb-1">Edit Laporan Harian
+                                    <h5 class="card-title text-white mb-1">Edit Jurnal PKL Harian
                                         <?php if ($is_admin && !empty($siswa_nama)) echo "Siswa: " . $siswa_nama;
                                         else echo "Anda"; ?>
                                     </h5>
-                                    <p class="card-text text-white-75 small">Perbarui data laporan kegiatan ini.</p>
+                                    <p class="card-text text-white-75 small">Perbarui data Jurnal PKL Harian ini.</p>
                                 </div>
                                 <div class="text-center text-sm-end position-relative">
                                     <div class="rounded-circle bg-white d-flex justify-content-center align-items-center animate__animated animate__zoomIn animate__delay-0-5s"
@@ -130,7 +130,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
 
                         <div class="card shadow-lg animate__animated animate__fadeInUp" style="border-radius: 10px;">
                             <div class="card-header border-bottom">
-                                <h5 class="card-title mb-0">Formulir Edit Kegiatan</h5>
+                                <h5 class="card-title mb-0">Formulir Edit Jurnal PKL Harian</h5>
                                 <small class="text-muted">Pastikan semua perubahan sudah benar.</small>
                             </div>
                             <div class="card-body p-4">

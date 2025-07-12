@@ -93,13 +93,13 @@
         <li class="menu-item">
             <a href="master_kegiatan_harian.php" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-book-content"></i>
-                <div data-i18n="Kegiatan Harian">Kegiatan Harian</div>
+                <div data-i18n="Kegiatan Harian">Jurnal PKL Harian</div>
             </a>
         </li>
         <li class="menu-item">
             <a href="master_tugas_project.php" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-book-content"></i>
-                <div data-i18n="Kegiatan Project">Tugas Proyek</div>
+                <div data-i18n="Kegiatan Project">Jurnal PKL Per Kegiatan</div>
             </a>
         </li>
         <?php endif; ?>

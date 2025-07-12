@@ -118,7 +118,7 @@ $koneksi->close();
                                 <span class="text-muted fw-light">
                                     <?php if ($is_siswa) echo "Siswa /";
                                     elseif ($is_admin) echo "Admin /"; ?>
-                                </span> Tugas Proyek
+                                </span> Jurnal PKL Per Kegiatan
                             </h4>
                             <i class="fas fa-tasks fa-2x text-info" style="opacity: 0.6;"></i>
                         </div>
@@ -142,7 +142,7 @@ $koneksi->close();
 
                                     <a href="master_tugas_project_add.php<?php echo ($is_admin && !empty($id_siswa_filter)) ? '?siswa_id=' . htmlspecialchars($id_siswa_filter) : ''; ?>"
                                         class="btn btn-primary w-100 animate__animated animate__fadeInUp animate__delay-0-3s">
-                                        <i class="bx bx-plus me-1"></i> Tambah Laporan
+                                        <i class="bx bx-plus me-1"></i> Tambah Jurnal PKL Per Kegiatan
                                     </a>
                                     <a href="<?php echo $is_siswa ? 'dashboard_siswa.php' : 'dashboard_siswa.php'; ?>"
                                         class="btn btn-outline-secondary w-100 animate__animated animate__fadeInUp animate__delay-0-2s">
@@ -173,7 +173,7 @@ $koneksi->close();
 
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">Daftar Laporan Tugas Proyek
+                                <h5 class="mb-0">Daftar Jurnal PKL Per Kegiatan
                                     <?= htmlspecialchars($siswa_nama_display) ?></h5>
                                 <small class="text-muted">Total: <?php echo count($laporan_tugas); ?> Laporan</small>
                             </div>
@@ -186,7 +186,7 @@ $koneksi->close();
                                                 <tr>
                                                     <th>No</th>
                                                     <th>Tanggal</th>
-                                                    <th>Nama Pekerjaan / Proyek</th>
+                                                    <th>Nama Pekerjaan / Kegiatan</th>
                                                     <th>Perencanaan</th>
                                                     <th>Pelaksanaan</th>
                                                     <th>Gambar</th>
@@ -327,15 +327,15 @@ $koneksi->close();
                                         </h5>
                                         <p class="mb-0">
                                             <?php if (!empty($keyword)): ?>
-                                                Tidak ada laporan yang cocok dengan kata kunci
+                                                Tidak ada Jurnal PKL Per Kegiatan yang cocok dengan kata kunci
                                                 "<strong><?php echo htmlspecialchars($keyword); ?></strong>".
                                             <?php elseif ($is_siswa): ?>
-                                                Anda belum memiliki laporan tugas proyek yang tercatat. Silakan tambahkan
+                                                Anda belum memiliki Jurnal PKL Per Kegiatan yang tercatat. Silakan tambahkan
                                                 laporan pertama Anda.
                                             <?php elseif ($is_admin && !empty($id_siswa_filter)): ?>
-                                                Siswa ini belum memiliki laporan tugas proyek.
+                                                Siswa ini belum memiliki Jurnal PKL Per Kegiatan.
                                             <?php elseif ($is_admin && ($id_siswa_filter === null || $id_siswa_filter === "")): ?>
-                                                Tidak ada laporan tugas proyek yang ditemukan di sistem.
+                                                Tidak ada Jurnal PKL Per Kegiatan yang ditemukan di sistem.
                                             <?php endif; ?>
                                         </p>
                                     </div>

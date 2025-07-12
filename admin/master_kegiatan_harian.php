@@ -134,7 +134,7 @@ $koneksi->close(); // Tutup koneksi setelah semua query selesai
                                         echo "Admin /";
                                     }
                                     ?>
-                                </span> Laporan Harian
+                                </span> Jurnal Harian
                             </h4>
                             <i class="fas fa-edit fa-2x text-info animate__animated animate__fadeInRight"
                                 style="opacity: 0.6;"></i>
@@ -184,7 +184,7 @@ $koneksi->close(); // Tutup koneksi setelah semua query selesai
                                     <div class="d-flex gap-2 w-100 w-md-auto order-1">
                                         <a href="master_kegiatan_harian_add.php<?php echo ($is_admin && !empty($id_siswa_filter)) ? '?siswa_id=' . htmlspecialchars($id_siswa_filter) : ''; ?>"
                                             class="btn btn-primary w-100 animate__animated animate__fadeInUp animate__delay-0-3s">
-                                            <i class="bx bx-plus me-1"></i> Tambah Laporan
+                                            <i class="bx bx-plus me-1"></i> Tambah Jurnal PKL Harian
                                         </a>
                                     </div>
 
@@ -238,7 +238,7 @@ $koneksi->close(); // Tutup koneksi setelah semua query selesai
 
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">Daftar Laporan Harian <?= htmlspecialchars($siswa_nama_display) ?></h5>
+                                <h5 class="mb-0">Daftar Jurnal PKL Harian <?= htmlspecialchars($siswa_nama_display) ?></h5>
                                 <small class="text-muted">Total: <?= count($laporan_data) ?> Laporan</small>
                             </div>
                             <div class="card-body p-0">
@@ -319,10 +319,10 @@ $koneksi->close(); // Tutup koneksi setelah semua query selesai
                                                     Tidak ada laporan yang cocok dengan kata kunci
                                                     "<strong><?php echo htmlspecialchars($keyword); ?></strong>".
                                                 <?php elseif ($is_siswa): ?>
-                                                    Anda belum memiliki laporan kegiatan harian yang tercatat. Silakan tambahkan
+                                                    Anda belum memiliki Jurnal PKL Harian yang tercatat. Silakan tambahkan
                                                     laporan pertama Anda.
                                                 <?php elseif ($is_admin && $id_siswa_filter !== null && $id_siswa_filter !== ""): ?>
-                                                    Siswa ini belum memiliki laporan kegiatan harian.
+                                                    Siswa ini belum memiliki Jurnal PKL Harian.
                                                 <?php elseif ($is_admin && ($id_siswa_filter === null || $id_siswa_filter === "")): ?>
                                                     Tidak ada laporan kegiatan harian yang ditemukan di sistem.
                                                 <?php endif; ?>
@@ -333,7 +333,7 @@ $koneksi->close(); // Tutup koneksi setelah semua query selesai
 
                                 <div class="d-md-none p-3">
                                     <div class="text-center text-muted mb-4 animate__animated animate__fadeInUp">
-                                        <small><i class="bx bx-mobile me-1"></i> Geser ke bawah untuk melihat laporan
+                                        <small><i class="bx bx-mobile me-1"></i> Geser ke bawah untuk melihat Jurnal PKL Harian
                                             Anda</small>
                                     </div>
 
@@ -368,7 +368,7 @@ $koneksi->close(); // Tutup koneksi setelah semua query selesai
                                                                 <strong><?= htmlspecialchars($formatted_date_mobile) ?></strong>
                                                             </h6>
                                                             <span class="badge bg-label-<?= $current_color ?>"><i
-                                                                    class="bx bx-file me-1"></i> Laporan
+                                                                    class="bx bx-file me-1"></i> Jurnal PKL Harian
                                                                 #<?= $no_mobile++ ?></span>
                                                         </div>
                                                         <div class="dropdown">
@@ -379,7 +379,7 @@ $koneksi->close(); // Tutup koneksi setelah semua query selesai
                                                             <div class="dropdown-menu dropdown-menu-end">
                                                                 <a class="dropdown-item"
                                                                     href="master_kegiatan_harian_edit.php?id=<?= htmlspecialchars($row_mobile['id_jurnal_harian']) ?>">
-                                                                    <i class="bx bx-edit-alt me-1"></i> Edit Laporan
+                                                                    <i class="bx bx-edit-alt me-1"></i> Edit Jurnal PKL Harian
                                                                 </a>
                                                                 <div class="dropdown-divider"></div>
                                                                 <a class="dropdown-item text-danger" href="javascript:void(0);"
@@ -423,10 +423,10 @@ $koneksi->close(); // Tutup koneksi setelah semua query selesai
                                             role="alert" style="border-radius: 8px;">
                                             <h5 class="alert-heading mb-3"><i class="bx bx-list-plus bx-lg text-info"></i>
                                             </h5>
-                                            <p class="mb-3">Belum ada laporan kegiatan yang tercatat di sini.</p>
+                                            <p class="mb-3">Belum ada Jurnal PKL Harian yang tercatat di sini.</p>
                                             <p class="mb-0">
                                                 Ayo, <a href="master_kegiatan_harian_add.php"
-                                                    class="alert-link fw-bold">tambahkan laporan pertama Anda</a> sekarang!
+                                                    class="alert-link fw-bold">tambahkan Jurnal PKL Harian pertama Anda</a> sekarang!
                                             </p>
                                         </div>
                                     <?php
@@ -448,8 +448,8 @@ $koneksi->close(); // Tutup koneksi setelah semua query selesai
     <script>
         function confirmDeleteKegiatanHarian(id, tanggal) {
             Swal.fire({
-                title: 'Konfirmasi Hapus Laporan Harian',
-                html: "Apakah Anda yakin ingin menghapus laporan kegiatan pada tanggal <strong>" + tanggal +
+                title: 'Konfirmasi Hapus Jurnal Harian',
+                html: "Apakah Anda yakin ingin menghapus Jurnal Harian pada tanggal <strong>" + tanggal +
                     "</strong>?<br>Tindakan ini tidak dapat dibatalkan!",
                 icon: 'warning',
                 showCancelButton: true,

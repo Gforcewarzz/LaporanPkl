@@ -128,196 +128,190 @@ ob_start();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cetak Laporan Tugas PKL: <?php echo htmlspecialchars($laporan_data['nama_pekerjaan']); ?></title>
     <style>
+    body {
+        font-family: 'Times New Roman', serif;
+        line-height: 1.35;
+        /* Sedikit kurangi line-height untuk menghemat ruang */
+        margin: 0;
+        padding: 0;
+        color: #000;
+        font-size: 10pt;
+    }
+
+    .page {
+        width: 178mm;
+        margin: 0 auto;
+        min-height: 297mm;
+        /* Ini lebih relevan untuk tampilan browser, Dompdf akan mengikuti @page */
+        padding: 0;
+        box-sizing: border-box;
+        page-break-after: auto;
+    }
+
+    .header {
+        margin-bottom: 12pt;
+        /* Sedikit kurangi margin bawah */
+    }
+
+    .header h1,
+    .header h2 {
+        margin: 0;
+        font-size: 12pt;
+        line-height: 1.1;
+        text-align: left;
+        font-weight: normal;
+    }
+
+    .header h2 {
+        margin-top: 2pt;
+    }
+
+    .info-section {
+        margin-bottom: 12pt;
+        /* Sedikit kurangi margin bawah */
+        border-bottom: 1px dashed #bbb;
+        padding-bottom: 5pt;
+        /* Sedikit kurangi padding bawah */
+    }
+
+    .info-item {
+        display: flex;
+        margin-bottom: 1pt;
+        /* Kurangi margin antar item info */
+        font-size: 10pt;
+        padding-left: 6pt;
+    }
+
+    .info-item strong {
+        flex-shrink: 0;
+        width: 130pt;
+        margin-right: 3pt;
+    }
+
+    .info-item span {
+        flex-grow: 1;
+        text-align: left;
+    }
+
+    .section-block {
+        margin-bottom: 10pt;
+        /* Sedikit kurangi margin bawah antar blok section */
+        page-break-inside: avoid;
+        page-break-after: avoid;
+    }
+
+    .section-title {
+        font-weight: bold;
+        margin-top: 7pt;
+        /* Sedikit kurangi margin atas */
+        margin-bottom: 2pt;
+        /* Sedikit kurangi margin bawah */
+        text-decoration: none;
+        font-size: 11pt;
+    }
+
+    .content-box {
+        border: 1pt solid #000;
+        padding: 5pt 7pt;
+        /* Sedikit kurangi padding */
+        min-height: 35pt;
+        /* Sedikit kurangi min-height jika kontennya pendek */
+        white-space: pre-line;
+        word-wrap: break-word;
+        text-align: justify;
+        font-size: 10pt;
+    }
+
+    .small-note {
+        font-size: 7.5pt;
+        color: #555;
+        margin-top: 1pt;
+        text-align: left;
+    }
+
+    .image-container {
+        text-align: center;
+        margin-top: 7pt;
+        /* Sedikit kurangi margin atas */
+        margin-bottom: 10pt;
+        /* Sedikit kurangi margin bawah */
+        border: 1px solid #ddd;
+        padding: 3pt;
+        /* Sedikit kurangi padding */
+        page-break-inside: avoid;
+    }
+
+    .image-container img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+        max-height: 85mm;
+        /* Sedikit kurangi tinggi maksimum gambar jika memungkinkan */
+        object-fit: contain;
+    }
+
+    .signature-block {
+        margin-top: 25pt;
+        /* Sedikit kurangi margin atas dari konten di atasnya */
+        text-align: right;
+        font-size: 10pt;
+        line-height: 1.3;
+        /* Sedikit kurangi line-height */
+        page-break-inside: avoid;
+    }
+
+    .signature-block p {
+        margin: 0;
+    }
+
+    .signature-line {
+        display: none;
+    }
+
+    .signature-block .location-date {
+        margin-bottom: 8pt;
+        /* Sedikit kurangi margin bawah */
+    }
+
+    .signature-block .signature-title {
+        margin-bottom: 20pt;
+        /* Sedikit kurangi margin bawah */
+    }
+
+    .signature-name-placeholder {
+        margin-top: 0;
+        font-size: 10pt;
+        display: block;
+        min-height: 1.5em;
+    }
+
+    /* Ini tetap dipertahankan sesuai keinginanmu */
+    .section-block.catatan-instruktur-section {
+        page-break-before: always;
+    }
+
+    @page {
+        size: A4 portrait;
+        margin: 1.6cm;
+    }
+
+    @media print {
         body {
-            font-family: 'Times New Roman', serif;
-            line-height: 1.4;
-            margin: 0;
-            padding: 0;
-            color: #000;
-            font-size: 10pt;
-            /* Ukuran font umum untuk kerapian */
+            background: none;
         }
 
         .page {
-            width: 178mm;
-            /* Lebar konten efektif A4 (210mm - 2*16mm margin) */
-            margin: 0 auto;
-            /* Menengahkan konten di halaman */
-            min-height: 297mm;
-            /* Tinggi A4 */
+            border: none;
+            box-shadow: none;
+            margin: 0;
             padding: 0;
-            /* Padding di elemen ini nol karena margin @page sudah mengatur */
-            box-sizing: border-box;
-            page-break-after: auto;
-            /* Biarkan browser/printer menentukan pecah halaman */
         }
 
-        .header {
-            margin-bottom: 14pt;
-            /* Jarak setelah header */
-        }
-
-        .header h1,
-        .header h2 {
-            margin: 0;
-            font-size: 12pt;
-            line-height: 1.1;
-            text-align: left;
-            font-weight: normal;
-        }
-
-        .header h2 {
-            margin-top: 2pt;
-        }
-
-        .info-section {
-            margin-bottom: 14pt;
-            border-bottom: 1px dashed #bbb;
-            padding-bottom: 6pt;
-        }
-
-        .info-item {
-            display: flex;
-            margin-bottom: 1.5pt;
-            font-size: 10pt;
-            padding-left: 6pt;
-        }
-
-        .info-item strong {
-            flex-shrink: 0;
-            width: 130pt;
-            margin-right: 3pt;
-        }
-
-        .info-item span {
-            flex-grow: 1;
-            text-align: left;
-        }
-
-        .section-block {
-            margin-bottom: 12pt;
-            page-break-inside: avoid;
-            /* Usahakan blok section tidak terpecah di tengah halaman */
-            page-break-after: avoid;
-            /* Usahakan tidak ada page break langsung setelah section block */
-        }
-
-        .section-title {
-            font-weight: bold;
-            margin-top: 8pt;
-            margin-bottom: 3pt;
-            text-decoration: none;
-            font-size: 11pt;
-        }
-
-        .content-box {
-            border: 1pt solid #000;
-            padding: 6pt 8pt;
-            min-height: 40pt;
-            white-space: pre-line;
-            word-wrap: break-word;
-            text-align: justify;
-            font-size: 10pt;
-        }
-
-        .small-note {
-            font-size: 7.5pt;
-            color: #555;
-            margin-top: 1pt;
-            text-align: left;
-        }
-
-        .image-container {
-            text-align: center;
-            margin-top: 8pt;
-            margin-bottom: 12pt;
-            border: 1px solid #ddd;
-            padding: 4pt;
-            page-break-inside: avoid;
-            /* Pastikan gambar tidak terpotong di tengah halaman */
-        }
-
-        .image-container img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin: 0 auto;
-            max-height: 90mm;
-            /* Batasi tinggi maksimum gambar potret */
-            object-fit: contain;
-            /* Memastikan seluruh gambar terlihat tanpa terpotong */
-        }
-
-        .signature-block {
-            margin-top: 30pt;
-            /* Jarak dari konten di atasnya */
-            text-align: right;
-            font-size: 10pt;
-            line-height: 1.35;
-            page-break-inside: avoid;
-            /* Pastikan blok tanda tangan tidak terpecah */
-        }
-
-        .signature-block p {
-            margin: 0;
-        }
-
-        /* Menghilangkan garis bawah pada tanda tangan */
-        .signature-line {
-            display: none;
-        }
-
-        .signature-block .location-date {
-            margin-bottom: 10pt;
-            /* Jarak setelah lokasi dan tanggal */
-        }
-
-        .signature-block .signature-title {
-            margin-bottom: 25pt;
-            /* Jarak setelah "Tanda Tangan Instruktur" */
-        }
-
-        .signature-name-placeholder {
-            margin-top: 0;
-            /* Tidak perlu margin-top tambahan di sini, sudah diatur di p.signature-title */
-            font-size: 10pt;
-            display: block;
-            min-height: 1.5em;
-            /* Memberi sedikit ruang untuk tulisan nama */
-        }
-
-
-        /* Memaksa Bagian D ke halaman baru */
-        .section-block.catatan-instruktur-section {
-            page-break-before: always;
-            /* Ini akan memaksa elemen untuk selalu dimulai di halaman baru */
-        }
-
-        /* Pengaturan margin halaman cetak secara keseluruhan */
         @page {
-            size: A4 portrait;
             margin: 1.6cm;
-            /* Margin di setiap sisi halaman */
         }
-
-        /* Media query @media print untuk konsistensi di browser desktop */
-        @media print {
-            body {
-                background: none;
-            }
-
-            .page {
-                border: none;
-                box-shadow: none;
-                margin: 0;
-                padding: 0;
-            }
-
-            @page {
-                margin: 1.6cm;
-                /* Pastikan konsisten dengan @page utama */
-            }
-        }
+    }
     </style>
 </head>
 
@@ -369,10 +363,10 @@ ob_start();
                 <div class="small-note">(Uraian proses kerja dan foto hasil)</div>
             </div>
             <?php if (!empty($laporan_data['gambar'])): ?>
-                <div class="image-container">
-                    <img src="images/<?php echo htmlspecialchars($laporan_data['gambar']); ?>" alt="Bukti Kegiatan">
-                    <div class="small-note" style="text-align: center; margin-top: 3pt;">(Bukti Kegiatan Visual)</div>
-                </div>
+            <div class="image-container">
+                <img src="images/<?php echo htmlspecialchars($laporan_data['gambar']); ?>" alt="Bukti Kegiatan">
+                <div class="small-note" style="text-align: center; margin-top: 3pt;">(Bukti Kegiatan Visual)</div>
+            </div>
             <?php endif; ?>
         </div>
 
@@ -423,10 +417,10 @@ if ($is_mobile) {
     // Jika bukan mobile, tampilkan HTML di browser dan panggil window.print()
     echo $html;
 ?>
-    <script>
-        window.onload = function() {
-            window.print();
-        };
-    </script>
+<script>
+window.onload = function() {
+    window.print();
+};
+</script>
 <?php
 }

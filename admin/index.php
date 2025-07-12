@@ -258,7 +258,7 @@ $koneksi->close();
                                     class="card h-100 shadow-sm border-0 animate__animated animate__fadeInUp animate__delay-0-9s">
                                     <div class="card-body d-flex align-items-center justify-content-between p-4">
                                         <div>
-                                            <h5 class="card-title text-info mb-2">Total Laporan Harian</h5>
+                                            <h5 class="card-title text-info mb-2">Total Jurnal PKL Harian</h5>
                                             <h3 class="fw-bold mb-0 display-5 text-dark">
                                                 <?= $total_laporan_harian_all ?></h3>
                                             <small class="text-muted">Dari semua siswa</small>
@@ -272,7 +272,7 @@ $koneksi->close();
                                     </div>
                                     <div class="card-footer bg-light text-end">
                                         <a href="master_kegiatan_harian.php" class="btn btn-sm btn-outline-info">Lihat
-                                            Semua Laporan <i class="bx bx-chevron-right"></i></a>
+                                            Semua Jurnal Harian <i class="bx bx-chevron-right"></i></a>
                                     </div>
                                 </div>
                             </div>
@@ -281,7 +281,7 @@ $koneksi->close();
                                     class="card h-100 shadow-sm border-0 animate__animated animate__fadeInUp animate__delay-1-1s">
                                     <div class="card-body d-flex align-items-center justify-content-between p-4">
                                         <div>
-                                            <h5 class="card-title text-danger mb-2">Total Tugas Proyek</h5>
+                                            <h5 class="card-title text-danger mb-2">Total Jurnal Per Kegiatan</h5>
                                             <h3 class="fw-bold mb-0 display-5 text-dark"><?= $total_tugas_proyek_all ?>
                                             </h3>
                                             <small class="text-muted">Dari semua siswa</small>
@@ -326,14 +326,14 @@ $koneksi->close();
                                 <div
                                     class="card h-100 shadow-sm border-0 animate__animated animate__fadeInUp animate__delay-1-5s">
                                     <div class="card-header border-bottom">
-                                        <h5 class="card-title mb-0">Tren Laporan Kegiatan Harian (Tahun
+                                        <h5 class="card-title mb-0">Tren Jurnal PKL Harian (Tahun
                                             <?= date('Y') ?>)</h5>
                                         <small class="text-muted">Total laporan yang diinput per bulan</small>
                                     </div>
                                     <div class="card-body">
                                         <div id="monthlyReportChart" style="min-height: 250px;"></div>
                                         <p class="text-muted text-center mt-3 mb-0" style="font-size: 0.85rem;">Grafik
-                                            menunjukkan akumulasi laporan harian dari semua siswa.</p>
+                                            menunjukkan akumulasi laporan Jurnal PKL Harian dari semua siswa.</p>
                                     </div>
                                 </div>
                             </div>

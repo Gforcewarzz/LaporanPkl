@@ -120,7 +120,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                         <div
                             class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom position-relative">
                             <h4 class="fw-bold mb-0 text-primary animate__animated animate__fadeInLeft">
-                                <span class="text-muted fw-light">Laporan /</span> Edit Laporan Tugas Proyek
+                                <span class="text-muted fw-light">Laporan /</span> Edit Jurnal PKL Per Kegiatan
                             </h4>
                             <i class="fas fa-pencil-alt fa-2x text-info animate__animated animate__fadeInRight"
                                 style="opacity: 0.6;"></i>
@@ -206,7 +206,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                         <?php else: ?>
                         <div class="alert alert-danger mt-4">
                             <h5 class="alert-heading">Akses Ditolak!</h5>
-                            <p class="mb-0">Laporan tugas tidak ditemukan atau Anda tidak memiliki izin untuk
+                            <p class="mb-0">Jurnal PKL Per Kegiatan tidak ditemukan atau Anda tidak memiliki izin untuk
                                 mengeditnya.</p>
                         </div>
                         <?php endif; ?>
