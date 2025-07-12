@@ -34,7 +34,7 @@ switch ($role_selected) {
         $id_column = 'id_pembimbing';
         $identifier_column = 'nip'; // Sesuaikan jika nama kolom berbeda
         $name_column = 'nama_pembimbing';
-        $redirect_path = 'admin/index.php';
+        $redirect_path = 'admin/dashboard_guru.php';
         break;
     default:
         // Jika peran tidak valid, atur alert dan kembali ke form login
@@ -71,6 +71,7 @@ if ($stmt) {
         } elseif ($role_selected === 'guru_pendamping') {
             $_SESSION['guru_pendamping_status_login'] = 'logged_in';
             $_SESSION['guru_pendamping'] = 'login';
+            $_SESSION['id_guru_pendamping']=$id_column;
         }
 
         // Tutup koneksi dan alihkan ke dashboard

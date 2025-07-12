@@ -42,7 +42,7 @@
 
     <ul class="menu-inner py-1">
         <li class="menu-item active">
-            <a href="<?php echo ($is_siswa ? 'dashboard_siswa.php' : ($is_admin ? 'index.php' : ($is_guru ? '../halaman_guru.php' : '../login.php'))); ?>"
+            <a href="<?php echo ($is_siswa ? 'dashboard_siswa.php' : ($is_admin ? 'index.php' : ($is_guru ? 'master_dashboard_guru.php' : '../login.php'))); ?>"
                 class="menu-link">
                 <i class="menu-icon tf-icons bx bx-home-circle"></i>
                 <div data-i18n="Dashboard">Dashboard</div>
