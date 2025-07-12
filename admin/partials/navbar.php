@@ -2,81 +2,73 @@
 // Asumsi session_start() sudah dipanggil di file induk utama
 
 // 1. Panggil file koneksi database.
-// File ini diasumsikan sudah membuat objek koneksi dengan nama variabel $koneksi.
 require 'partials/db.php';
 
-// Inisialisasi variabel dengan nilai default untuk pengunjung
+// Inisialisasi variabel dengan nilai default untuk pengunjung (jika tidak ada yang login)
 $userName = 'Guest';
 $userRole = 'Pengunjung';
 $userAvatar = 'assets/img/avatars/default_user.png'; // Avatar default umum
 
 // Cek jika ada pengguna yang login
-if (isset($_SESSION['user_id']) && isset($_SESSION['user_role'])) {
-    $userName = $_SESSION['user_name'] ?? 'Pengguna';
-
+if (isset($_SESSION['user_role'])) { // Cukup cek user_role karena ini yang utama
+    
     // Cek apakah koneksi berhasil dibuat dari file partials/db.php
     $isDbConnected = isset($koneksi) && $koneksi->ping();
 
     switch ($_SESSION['user_role']) {
         case 'siswa':
+            $userName = $_SESSION['user_name'] ?? 'Siswa';
             $userRole = 'Siswa PKL';
-            $siswa_id = $_SESSION['user_id'];
+            $siswa_id = $_SESSION['user_id'] ?? 0;
+            $userAvatar = 'assets/img/avatars/default_siswa.png'; 
 
-            // Default avatar siswa sebelum query
-            $userAvatar = 'assets/img/avatars/default_siswa.png'; // Avatar default siswa umum
-
-            if ($isDbConnected) {
+            if ($isDbConnected && $siswa_id > 0) {
                 $sql = "SELECT jenis_kelamin FROM siswa WHERE id_siswa = ?";
                 $stmt = $koneksi->prepare($sql);
-
                 if ($stmt) {
                     $stmt->bind_param("i", $siswa_id);
                     $stmt->execute();
                     $result = $stmt->get_result();
-
                     if ($result->num_rows > 0) {
                         $siswa_data = $result->fetch_assoc();
-                        $jenis_kelamin = strtolower(trim($siswa_data['jenis_kelamin'])); // Bersihkan dan kecilkan huruf
-
-                        // Logika penentuan avatar berdasarkan jenis kelamin yang sudah dibersihkan
+                        $jenis_kelamin = strtolower(trim($siswa_data['jenis_kelamin']));
+                        
                         if ($jenis_kelamin === 'l' || $jenis_kelamin === 'laki-laki') {
                             $userAvatar = 'assets/img/avatars/laki.jpg';
                         } elseif ($jenis_kelamin === 'p' || $jenis_kelamin === 'perempuan') {
                             $userAvatar = 'assets/img/avatars/perempuan.jpg';
                         }
-                        // Jika jenis kelamin tidak 'L'/'laki-laki' atau 'P'/'perempuan', tetap pakai default_siswa.png
                     }
                     $stmt->close();
                 } else {
-                    error_log("Failed to prepare statement for siswa gender: " . $koneksi->error);
-                    // Biarkan userAvatar tetap default jika query gagal
+                    error_log("Gagal menyiapkan statement untuk jenis kelamin siswa: " . $koneksi->error);
                 }
             } else {
-                error_log("Database connection failed for avatar lookup.");
-                // Biarkan userAvatar tetap default jika koneksi gagal
+                if(!$isDbConnected) error_log("Koneksi database gagal untuk lookup avatar.");
             }
             break;
 
         case 'guru_pendamping':
+            // [PERBAIKAN] Mengambil nama dari sesi spesifik guru
+            $userName = $_SESSION['nama_guru'] ?? 'Guru'; 
             $userRole = 'Guru Pembimbing';
-            $userAvatar = 'assets/img/avatars/guru.png';
+            $userAvatar = 'assets/img/avatars/guru.png'; // Avatar statis untuk guru
             break;
 
         case 'admin':
+            // [PERBAIKAN] Mengambil nama dari sesi umum yang diatur saat admin login
+            $userName = $_SESSION['user_name'] ?? 'Admin';
             $userRole = 'Administrator';
-            $userAvatar = 'assets/img/avatars/admin.png';
+            $userAvatar = 'assets/img/avatars/admin.png'; // Avatar statis untuk admin
             break;
 
         default:
-            $userRole = 'Pengguna';
+            // Jika role tidak dikenal, kembali ke default
+            $userName = 'Pengguna';
+            $userRole = 'Tidak Dikenal';
             $userAvatar = 'assets/img/avatars/default_user.png';
             break;
     }
-    // Pastikan koneksi ditutup setelah selesai digunakan di sini jika tidak digunakan lagi di bawah
-    // Namun, jika $koneksi juga digunakan di halaman utama yang memuat navbar,
-    // biarkan $koneksi tetap terbuka sampai akhir script halaman utama.
-    // Jika tidak ada operasi DB lain setelah navbar, bisa ditutup di sini.
-    // $koneksi->close(); 
 }
 ?>
 
@@ -160,7 +152,8 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['user_role'])) {
                     reverseButtons: true
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        window.location.href = "../logout.php";
+                        // [SARAN] Pastikan path logout ini benar dari lokasi file yang memuat navbar
+                        window.location.href = "../logout.php"; 
                     }
                 });
             });

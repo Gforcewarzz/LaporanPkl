@@ -162,7 +162,7 @@ $koneksi->close();
                                         <span class="text-muted fw-semibold d-block mb-1 fs-6">Total Siswa Bimbingan</span>
                                         <h3 class="card-title fw-bold mb-0 display-5 text-dark"><?= $total_siswa_bimbingan ?></h3>
                                         <small class="text-muted d-block mt-1" style="font-size: 0.85rem;">Siswa aktif di bawah bimbingan Anda</small>
-                                        <a href="data_siswa_bimbingan.php" class="btn btn-sm btn-outline-primary mt-3">Lihat Detail <i class="bx bx-chevron-right"></i></a>
+                                        <a href="master_data_siswa.php" class="btn btn-sm btn-outline-primary mt-3">Lihat Detail <i class="bx bx-chevron-right"></i></a>
                                     </div>
                                 </div>
                             </div>
@@ -176,7 +176,7 @@ $koneksi->close();
                                         <span class="text-muted fw-semibold d-block mb-1 fs-6">Absensi Siswa Hari Ini</span>
                                         <h3 class="card-title fw-bold mb-0 display-5 text-dark"><?= $total_absen_hari_ini ?></h3>
                                         <small class="text-muted d-block mt-1" style="font-size: 0.85rem;">Siswa yang telah melakukan absensi hari ini</small>
-                                        <a href="data_absensi_siswa.php" class="btn btn-sm btn-outline-success mt-3">Lihat Detail <i class="bx bx-chevron-right"></i></a>
+                                        <a href="master_data_absensi_siswa.php" class="btn btn-sm btn-outline-success mt-3">Lihat Detail <i class="bx bx-chevron-right"></i></a>
                                     </div>
                                 </div>
                             </div>

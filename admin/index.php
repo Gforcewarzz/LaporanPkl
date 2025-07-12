@@ -11,7 +11,7 @@ if (!$is_admin) {
         header('Location: dashboard_siswa.php');
         exit();
     } elseif ($is_guru) {
-        header('Location: ../halaman_guru.php');
+        header('Location: dashboard_guru.php');
         exit();
     } else {
         header('Location: ../login.php');

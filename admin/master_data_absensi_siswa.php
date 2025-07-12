@@ -1,40 +1,49 @@
 <?php
 session_start();
 
-// Keamanan: Hanya admin atau guru yang boleh mengakses halaman ini
+// Variabel status peran agar konsisten dan selalu terdefinisi
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
 $is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
+$is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
 
+// Keamanan: Hanya admin atau guru yang boleh mengakses halaman ini
 if (!$is_admin && !$is_guru) {
-    // Redirect ke halaman login jika tidak memiliki akses
-    header('Location: ../login.php'); // Asumsi login.php ada di luar folder admin
+    // Redirect jika tidak memiliki akses
+    if ($is_siswa) {
+        header('Location: dashboard_siswa.php');
+    } else {
+        header('Location: ../login.php');
+    }
     exit();
 }
 
 include 'partials/db.php'; // Sertakan file koneksi database
 
-// --- Filter dan Variabel Pagination untuk Tampilan Tabel Harian ---
+// --- Filter dan Variabel Pagination ---
 $limit = 10; // Jumlah data per halaman
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
 $filter_tanggal = $_GET['tanggal'] ?? date('Y-m-d'); // Default ke tanggal hari ini
-
-// Default filter status absen menjadi 'Hadir' saat pertama kali dimuat
-// PERUBAHAN DI SINI: Jika default ingin menampilkan 'Semua', ubah di sini
-$filter_status = $_GET['status'] ?? 'Semua'; // Defaultkan ke 'Semua'
-
+$filter_status = $_GET['status'] ?? 'Semua'; // Default ke 'Semua'
 $keyword = $_GET['keyword'] ?? ''; // Filter nama siswa/NISN/kelas
 
-
 // --- Filter untuk Cetak PDF (Rentang Tanggal) ---
-// Default tanggal mulai: tanggal 1 di bulan yang sama dengan $filter_tanggal
 $default_tanggal_mulai = date('Y-m-01', strtotime($filter_tanggal));
 $tanggal_mulai_pdf = $_GET['tanggal_mulai_pdf'] ?? $default_tanggal_mulai;
-
-// Default tanggal akhir: tanggal terakhir di bulan yang sama dengan $filter_tanggal
 $default_tanggal_akhir = date('Y-m-t', strtotime($filter_tanggal));
 $tanggal_akhir_pdf = $_GET['tanggal_akhir_pdf'] ?? $default_tanggal_akhir;
+
+// --- Siapkan kondisi dan parameter khusus untuk GURU ---
+$teacher_condition_sql = "";
+$teacher_params = [];
+$teacher_types = '';
+
+if ($is_guru) {
+    $teacher_condition_sql = " AND s.pembimbing_id = ?";
+    $teacher_params[] = $_SESSION['id_guru_pendamping'];
+    $teacher_types = 'i';
+}
 
 // --- Query untuk menghitung total data (untuk tabel harian) ---
 $count_base_query = "
@@ -47,22 +56,15 @@ $count_base_query = "
     LEFT JOIN jurusan j ON s.jurusan_id = j.id_jurusan
     LEFT JOIN tempat_pkl tp ON s.tempat_pkl_id = tp.id_tempat_pkl
     WHERE s.status = 'Aktif'
+    {$teacher_condition_sql}
 ";
 
-$count_params_base = [$filter_tanggal];
-$count_types_base = 's';
+$count_params_base = array_merge([$filter_tanggal], $teacher_params);
+$count_types_base = 's' . $teacher_types;
 
-// Tambahkan kondisi keyword ke base query untuk count
 if (!empty($keyword)) {
     $like_keyword_count = "%" . $keyword . "%";
-    $search_columns_count = [
-        's.nama_siswa',
-        's.no_induk',
-        's.nisn',
-        's.kelas',
-        'j.nama_jurusan',
-        'tp.nama_tempat_pkl'
-    ];
+    $search_columns_count = ['s.nama_siswa', 's.no_induk', 's.nisn', 's.kelas', 'j.nama_jurusan', 'tp.nama_tempat_pkl'];
     $search_conditions_count = [];
     foreach ($search_columns_count as $col) {
         $search_conditions_count[] = "$col LIKE ?";
@@ -72,31 +74,21 @@ if (!empty($keyword)) {
     $count_base_query .= " AND (" . implode(" OR ", $search_conditions_count) . ")";
 }
 
-// Subquery untuk menghitung total setelah apply HAVING (untuk filter status)
 $final_count_query = "SELECT COUNT(*) AS total_data FROM (" . $count_base_query . ") AS subquery";
 
-// Tambahkan filter status jika ada dan bukan 'Semua'
-if (!empty($filter_status) && $filter_status !== 'Semua') {
+if ($filter_status !== 'Semua') {
     $final_count_query .= " WHERE status_absensi_hari_ini = ?";
     $count_params_base[] = $filter_status;
     $count_types_base .= 's';
 }
 
-
 $stmt_count = $koneksi->prepare($final_count_query);
 if ($stmt_count === false) {
     die("Error preparing count query: " . $koneksi->error);
 }
-
-// Bind parameters dynamically for count query
-$bind_names_count = [];
-foreach ($count_params_base as $key => $value) {
-    $bind_name = 'bind_c_' . $key;
-    $$bind_name = $value;
-    $bind_names_count[] = &$$bind_name;
+if (!empty($count_params_base)) {
+    $stmt_count->bind_param($count_types_base, ...$count_params_base);
 }
-call_user_func_array([$stmt_count, 'bind_param'], array_merge([$count_types_base], $bind_names_count));
-
 $stmt_count->execute();
 $count_result = $stmt_count->get_result();
 $total_data = $count_result->fetch_assoc()['total_data'];
@@ -104,42 +96,27 @@ $total_pages = ceil($total_data / $limit);
 $stmt_count->close();
 
 
-// --- Query untuk mengambil data absensi siswa per halaman (untuk tabel harian) ---
+// --- Query untuk mengambil data absensi siswa per halaman ---
 $query_sql = "SELECT
-                s.id_siswa,
-                s.nama_siswa,
-                s.kelas,
-                s.no_induk,
-                s.nisn,
-                j.nama_jurusan,
-                tp.nama_tempat_pkl,
-                as_abs.id_absensi, 
+                s.id_siswa, s.nama_siswa, s.kelas, s.no_induk, s.nisn,
+                j.nama_jurusan, tp.nama_tempat_pkl, as_abs.id_absensi,
                 COALESCE(as_abs.status_absen, 'Alfa') AS status_absensi_hari_ini,
-                as_abs.keterangan,
-                as_abs.bukti_foto,
-                as_abs.waktu_input
+                as_abs.keterangan, as_abs.bukti_foto, as_abs.waktu_input
             FROM
                 siswa s
             LEFT JOIN absensi_siswa as_abs ON s.id_siswa = as_abs.siswa_id AND as_abs.tanggal_absen = ?
             LEFT JOIN jurusan j ON s.jurusan_id = j.id_jurusan
             LEFT JOIN tempat_pkl tp ON s.tempat_pkl_id = tp.id_tempat_pkl
-            WHERE s.status = 'Aktif'"; // Hanya siswa aktif
+            WHERE s.status = 'Aktif'
+            {$teacher_condition_sql}
+";
 
-// Parameter untuk query data per halaman
-$data_params = [$filter_tanggal];
-$data_types = 's';
+$data_params = array_merge([$filter_tanggal], $teacher_params);
+$data_types = 's' . $teacher_types;
 
-// Tambahkan kondisi keyword jika ada
 if (!empty($keyword)) {
     $like_keyword_data = "%" . $keyword . "%";
-    $search_columns_data = [
-        's.nama_siswa',
-        's.no_induk',
-        's.nisn',
-        's.kelas',
-        'j.nama_jurusan',
-        'tp.nama_tempat_pkl'
-    ];
+    $search_columns_data = ['s.nama_siswa', 's.no_induk', 's.nisn', 's.kelas', 'j.nama_jurusan', 'tp.nama_tempat_pkl'];
     $search_conditions_data = [];
     foreach ($search_columns_data as $col) {
         $search_conditions_data[] = "$col LIKE ?";
@@ -149,8 +126,7 @@ if (!empty($keyword)) {
     $query_sql .= " AND (" . implode(" OR ", $search_conditions_data) . ")";
 }
 
-// Tambahkan kondisi filter status jika ada dan bukan 'Semua'
-if (!empty($filter_status) && $filter_status !== 'Semua') {
+if ($filter_status !== 'Semua') {
     $query_sql .= " HAVING status_absensi_hari_ini = ?";
     $data_params[] = $filter_status;
     $data_types .= 's';
@@ -165,23 +141,15 @@ $stmt_data = $koneksi->prepare($query_sql);
 if ($stmt_data === false) {
     die("Error preparing data query: " . $koneksi->error);
 }
-
-// Bind parameters dynamically for data query
-$bind_names = [];
-foreach ($data_params as $key => $value) {
-    $bind_name = 'bind' . $key;
-    $$bind_name = $value;
-    $bind_names[] = &$$bind_name;
+if (!empty($data_params)) {
+    $stmt_data->bind_param($data_types, ...$data_params);
 }
-call_user_func_array([$stmt_data, 'bind_param'], array_merge([$data_types], $bind_names));
-
 $stmt_data->execute();
 $result_absensi = $stmt_data->get_result();
 $stmt_data->close();
-$koneksi->close(); // Tutup koneksi setelah semua data diambil
+$koneksi->close();
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="./assets/"
     data-template="vertical-menu-template-free">
@@ -200,31 +168,30 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                     <div class="container-xxl flex-grow-1 container-p-y">
 
                         <?php
-                        // SweetAlert pesan
-                        if (isset($_SESSION['alert_message'])) {
-                            $alert_icon = $_SESSION['alert_type'];
-                            $alert_title = $_SESSION['alert_title'];
-                            $alert_text = $_SESSION['alert_message'];
-                            echo "
+                            if (isset($_SESSION['alert_message'])) {
+                                $alert_icon = $_SESSION['alert_type'];
+                                $alert_title = $_SESSION['alert_title'];
+                                $alert_text = $_SESSION['alert_message'];
+                                echo "
                                 <script>
-                                    Swal.fire({
-                                        icon: '{$alert_icon}',
-                                        title: '{$alert_title}',
-                                        text: '{$alert_text}',
-                                        confirmButtonColor: '#696cff'
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        Swal.fire({
+                                            icon: '{$alert_icon}',
+                                            title: '{$alert_title}',
+                                            text: '{$alert_text}',
+                                            confirmButtonColor: '#696cff'
+                                        });
                                     });
                                 </script>
                                 ";
-                            unset($_SESSION['alert_message']);
-                            unset($_SESSION['alert_type']);
-                            unset($_SESSION['alert_title']);
-                        }
+                                unset($_SESSION['alert_message'], $_SESSION['alert_type'], $_SESSION['alert_title']);
+                            }
                         ?>
 
                         <div
                             class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom position-relative">
                             <h4 class="fw-bold mb-0 text-primary animate__animated animate__fadeInLeft">
-                                <span class="text-muted fw-light">Absensi /</span> Semua Siswa
+                                <span class="text-muted fw-light">Absensi /</span> <?= $is_guru ? 'Siswa Bimbingan' : 'Semua Siswa' ?>
                             </h4>
                             <i class="fas fa-clipboard-check fa-2x text-info animate__animated animate__fadeInRight"
                                 style="opacity: 0.6;"></i>
@@ -270,8 +237,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                         </div>
                                     </div>
                                     <div class="col-md-auto col-lg-2">
-                                        <?php if (!empty($keyword) || ($filter_status !== 'Semua') || $filter_tanggal !== date('Y-m-d')): // PERUBAHAN DI SINI: Ubah default ke 'Semua' 
-                                        ?>
+                                        <?php if (!empty($keyword) || ($filter_status !== 'Semua') || $filter_tanggal !== date('Y-m-d')): ?>
                                         <a href="master_data_absensi_siswa.php" class="btn btn-outline-secondary w-100">
                                             <i class="bx bx-x"></i> Reset Filter
                                         </a>
@@ -326,7 +292,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                 <h5 class="mb-0">Absensi Siswa Tanggal: <span
                                         class="text-primary"><?= date('d F Y', strtotime($filter_tanggal)) ?></span>
                                 </h5>
-                                <small class="text-muted">Total: <?= $total_data ?> siswa</small>
+                                <small class="text-muted">Total: <?= $total_data ?> siswa <?= $is_guru ? 'dalam bimbingan Anda' : '' ?></small>
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive text-nowrap d-none d-md-block"
@@ -347,38 +313,22 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                             </tr>
                                         </thead>
                                         <tbody class="table-border-bottom-0">
+                                            <?php if ($result_absensi->num_rows > 0): $no = $offset + 1; while ($row = $result_absensi->fetch_assoc()): ?>
                                             <?php
-                                            if ($result_absensi->num_rows > 0) {
-                                                $no = $offset + 1;
-                                                while ($row = $result_absensi->fetch_assoc()) {
-                                                    $badgeColor = '';
-                                                    switch ($row['status_absensi_hari_ini']) {
-                                                        case 'Hadir':
-                                                            $badgeColor = 'bg-label-success';
-                                                            break;
-                                                        case 'Sakit':
-                                                            $badgeColor = 'bg-label-warning';
-                                                            break;
-                                                        case 'Izin':
-                                                            $badgeColor = 'bg-label-info';
-                                                            break;
-                                                        case 'Alfa':
-                                                            $badgeColor = 'bg-label-danger';
-                                                            break;
-                                                        case 'Libur': // PERUBAHAN DI SINI
-                                                            $badgeColor = 'bg-label-secondary';
-                                                            break;
-                                                        default:
-                                                            $badgeColor = 'bg-label-secondary';
-                                                            break;
-                                                    }
-                                                    $keterangan_display = !empty($row['keterangan']) ? htmlspecialchars($row['keterangan']) : '-';
-
-                                                    $bukti_foto_display = !empty($row['bukti_foto']) ?
-                                                        "<a href='#' class='badge bg-primary view-image-btn' data-bs-toggle='modal' data-bs-target='#viewImageModal' data-image-url='image_absensi/" . htmlspecialchars($row['bukti_foto']) . "'>
-                                                            <i class='bx bx-image'></i> Lihat
-                                                        </a>" : '-';
-                                                    $waktu_input_display = !empty($row['waktu_input']) ? date('H:i', strtotime($row['waktu_input'])) : '-';
+                                                $badgeColor = match ($row['status_absensi_hari_ini']) {
+                                                    'Hadir' => 'bg-label-success',
+                                                    'Sakit' => 'bg-label-warning',
+                                                    'Izin'  => 'bg-label-info',
+                                                    'Alfa'  => 'bg-label-danger',
+                                                    'Libur' => 'bg-label-secondary',
+                                                    default => 'bg-label-secondary',
+                                                };
+                                                $keterangan_display = !empty($row['keterangan']) ? htmlspecialchars($row['keterangan']) : '-';
+                                                $bukti_foto_display = !empty($row['bukti_foto']) ?
+                                                    "<a href='#' class='badge bg-primary view-image-btn' data-bs-toggle='modal' data-bs-target='#viewImageModal' data-image-url='../image_absensi/" . htmlspecialchars($row['bukti_foto']) . "'>
+                                                        <i class='bx bx-image'></i> Lihat
+                                                    </a>" : '-';
+                                                $waktu_input_display = !empty($row['waktu_input']) ? date('H:i', strtotime($row['waktu_input'])) : '-';
                                             ?>
                                             <tr>
                                                 <td><?= $no++ ?></td>
@@ -403,8 +353,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                                                 href='master_data_absensi_siswa_edit.php?<?= !empty($row['id_absensi']) ? 'id=' . htmlspecialchars($row['id_absensi']) : 'siswa_id=' . htmlspecialchars($row['id_siswa']) . '&tanggal=' . urlencode($filter_tanggal) ?>'>
                                                                 <i class='bx bx-edit-alt me-1'></i> Edit
                                                             </a>
-                                                            <?php if (!empty($row['id_absensi'])): // Tombol Hapus hanya muncul jika record ada 
-                                                                    ?>
+                                                            <?php if (!empty($row['id_absensi'])): ?>
                                                             <a class='dropdown-item text-danger'
                                                                 href='javascript:void(0);'
                                                                 onclick="confirmDelete('<?= htmlspecialchars($row['id_absensi']) ?>', '<?= htmlspecialchars(addslashes($row['nama_siswa'])) ?>', '<?= htmlspecialchars($row['status_absensi_hari_ini']) ?>')">
@@ -415,56 +364,37 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                                     </div>
                                                 </td>
                                             </tr>
-                                            <?php
-                                                }
-                                            } else {
-                                                ?>
+                                            <?php endwhile; else: ?>
                                             <tr>
                                                 <td colspan='10' class='text-center py-4'>Tidak ada data absensi
                                                     ditemukan untuk tanggal ini atau filter yang diterapkan.</td>
                                             </tr>
-                                            <?php } ?>
+                                            <?php endif; ?>
                                         </tbody>
                                     </table>
                                 </div>
 
                                 <div class="d-md-none p-3">
                                     <?php
-                                    // Reset result pointer untuk tampilan mobile
                                     if ($result_absensi->num_rows > 0) {
-                                        $result_absensi->data_seek(0); // Set pointer kembali ke awal
-                                        $colors = ['primary', 'warning', 'info', 'success', 'danger', 'secondary']; // PERUBAHAN DI SINI: Tambahkan 'secondary'
+                                        $result_absensi->data_seek(0);
+                                        $colors = ['primary', 'warning', 'info', 'success', 'danger', 'secondary'];
                                         $color_index = 0;
                                         while ($row_mobile = $result_absensi->fetch_assoc()) {
                                             $current_color = $colors[$color_index % count($colors)];
                                             $color_index++;
 
-                                            $badgeColorMobile = '';
-                                            switch ($row_mobile['status_absensi_hari_ini']) {
-                                                case 'Hadir':
-                                                    $badgeColorMobile = 'bg-label-success';
-                                                    break;
-                                                case 'Sakit':
-                                                    $badgeColorMobile = 'bg-label-warning';
-                                                    break;
-                                                case 'Izin':
-                                                    $badgeColorMobile = 'bg-label-info';
-                                                    break;
-                                                case 'Alfa':
-                                                    $badgeColorMobile = 'bg-label-danger';
-                                                    break;
-                                                case 'Libur': // PERUBAHAN DI SINI
-                                                    $badgeColorMobile = 'bg-label-secondary';
-                                                    break;
-                                                default:
-                                                    $badgeColorMobile = 'bg-label-secondary';
-                                                    break;
-                                            }
+                                            $badgeColorMobile = match ($row_mobile['status_absensi_hari_ini']) {
+                                                'Hadir' => 'bg-label-success',
+                                                'Sakit' => 'bg-label-warning',
+                                                'Izin' => 'bg-label-info',
+                                                'Alfa' => 'bg-label-danger',
+                                                'Libur' => 'bg-label-secondary',
+                                                default => 'bg-label-secondary',
+                                            };
                                             $keterangan_display_mobile = !empty($row_mobile['keterangan']) ? htmlspecialchars($row_mobile['keterangan']) : 'Tidak ada keterangan';
-
-                                            // Tombol Lihat Bukti Foto Mobile
                                             $bukti_foto_display_mobile = !empty($row_mobile['bukti_foto']) ?
-                                                "<a href='#' class='btn btn-sm btn-outline-primary mt-2 view-image-btn' data-bs-toggle='modal' data-bs-target='#viewImageModal' data-image-url='image_absensi/" . htmlspecialchars($row_mobile['bukti_foto']) . "'>
+                                                "<a href='#' class='btn btn-sm btn-outline-primary mt-2 view-image-btn' data-bs-toggle='modal' data-bs-target='#viewImageModal' data-image-url='../image_absensi/" . htmlspecialchars($row_mobile['bukti_foto']) . "'>
                                                     <i class='bx bx-image'></i> Lihat Bukti
                                                 </a>" : 'Tidak ada bukti';
                                             $waktu_input_display_mobile = !empty($row_mobile['waktu_input']) ? date('H:i', strtotime($row_mobile['waktu_input'])) : '-';
@@ -520,10 +450,8 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                             </div>
                                         </div>
                                     </div>
-                                    <?php
-                                        }
-                                    } else {
-                                        ?>
+                                    <?php }
+                                    } else { ?>
                                     <div class="alert alert-info text-center mt-3 py-4 animate__animated animate__fadeInUp"
                                         role="alert" style="border-radius: 8px;">
                                         <h5 class="alert-heading mb-3"><i class="bx bx-info-circle bx-lg text-info"></i>
@@ -540,17 +468,15 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                     <ul class="pagination mb-0">
                                         <li class="page-item <?= ($page <= 1) ? 'disabled' : ''; ?>">
                                             <a class="page-link"
-                                                href="<?= ($page <= 1) ? '#' : '?page=' . ($page - 1) . '&tanggal=' . urlencode($filter_tanggal) . (!empty($keyword) ? '&keyword=' . urlencode($keyword) : '') . (!empty($filter_status) ? '&status=' . urlencode($filter_status) : ''); ?>">
+                                                href="<?= ($page <= 1) ? '#' : '?page=' . ($page - 1) . '&tanggal=' . urlencode($filter_tanggal) . (!empty($keyword) ? '&keyword=' . urlencode($keyword) : '') . ($filter_status !== "Semua" ? '&status=' . urlencode($filter_status) : ''); ?>">
                                                 <i class="tf-icon bx bx-chevrons-left"></i>
                                             </a>
                                         </li>
                                         <?php
-                                            // Logika Paginasi Terpotong
-                                            $num_links = 5; // Jumlah tautan halaman yang akan ditampilkan
+                                            $num_links = 5;
                                             $start_page_link = max(1, $page - floor($num_links / 2));
                                             $end_page_link = min($total_pages, $page + floor($num_links / 2));
 
-                                            // Sesuaikan start dan end jika di awal atau akhir
                                             if ($end_page_link - $start_page_link + 1 < $num_links) {
                                                 if ($start_page_link == 1) {
                                                     $end_page_link = min($total_pages, $num_links);
@@ -559,33 +485,30 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                                 }
                                             }
 
-                                            // Tampilkan link ke halaman 1 jika tidak termasuk dalam rentang
                                             if ($start_page_link > 1) {
-                                                echo '<li class="page-item"><a class="page-link" href="?page=1&tanggal=' . urlencode($filter_tanggal) . (!empty($keyword) ? '&keyword=' . urlencode($keyword) : '') . (!empty($filter_status) ? '&status=' . urlencode($filter_status) : '') . '">1</a></li>';
+                                                echo '<li class="page-item"><a class="page-link" href="?page=1&tanggal=' . urlencode($filter_tanggal) . (!empty($keyword) ? '&keyword=' . urlencode($keyword) : '') . ($filter_status !== "Semua" ? '&status=' . urlencode($filter_status) : '') . '">1</a></li>';
                                                 if ($start_page_link > 2) {
                                                     echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
                                                 }
                                             }
 
-                                            // Tampilkan link halaman di sekitar halaman saat ini
                                             for ($i = $start_page_link; $i <= $end_page_link; $i++) : ?>
                                         <li class="page-item <?= ($page == $i) ? 'active' : ''; ?>">
                                             <a class="page-link"
-                                                href="?page=<?= $i ?>&tanggal=<?= urlencode($filter_tanggal) ?><?= !empty($keyword) ? '&keyword=' . urlencode($keyword) : '' ?><?= !empty($filter_status) ? '&status=' . urlencode($filter_status) : '' ?>"><?= $i ?></a>
+                                                href="?page=<?= $i ?>&tanggal=<?= urlencode($filter_tanggal) ?><?= !empty($keyword) ? '&keyword=' . urlencode($keyword) : '' ?><?= $filter_status !== "Semua" ? '&status=' . urlencode($filter_status) : '' ?>"><?= $i ?></a>
                                         </li>
                                         <?php endfor;
 
-                                            // Tampilkan link ke halaman terakhir jika tidak termasuk dalam rentang
                                             if ($end_page_link < $total_pages) {
                                                 if ($end_page_link < $total_pages - 1) {
                                                     echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
                                                 }
-                                                echo '<li class="page-item"><a class="page-link" href="?page=' . $total_pages . '&tanggal=' . urlencode($filter_tanggal) . (!empty($keyword) ? '&keyword=' . urlencode($keyword) : '') . (!empty($filter_status) ? '&status=' . urlencode($filter_status) : '') . '">' . $total_pages . '</a></li>';
+                                                echo '<li class="page-item"><a class="page-link" href="?page=' . $total_pages . '&tanggal=' . urlencode($filter_tanggal) . (!empty($keyword) ? '&keyword=' . urlencode($keyword) : '') . ($filter_status !== "Semua" ? '&status=' . urlencode($filter_status) : '') . '">' . $total_pages . '</a></li>';
                                             }
-                                            ?>
+                                        ?>
                                         <li class="page-item <?= ($page >= $total_pages) ? 'disabled' : ''; ?>">
                                             <a class="page-link"
-                                                href="<?= ($page >= $total_pages) ? '#' : '?page=' . ($page + 1) . '&tanggal=' . urlencode($filter_tanggal) . (!empty($keyword) ? '&keyword=' . urlencode($keyword) : '') . (!empty($filter_status) ? '&status=' . urlencode($filter_status) : ''); ?>">
+                                                href="<?= ($page >= $total_pages) ? '#' : '?page=' . ($page + 1) . '&tanggal=' . urlencode($filter_tanggal) . (!empty($keyword) ? '&keyword=' . urlencode($keyword) : '') . ($filter_status !== "Semua" ? '&status=' . urlencode($filter_status) : '') ?>">
                                                 <i class="tf-icon bx bx-chevrons-right"></i>
                                             </a>
                                         </li>
@@ -603,80 +526,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
         </div>
         <div class="layout-overlay layout-menu-toggle"></div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <?php include './partials/script.php'; ?>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Inisialisasi Flatpickr untuk filter tabel harian
-        flatpickr("#tanggalFilter", {
-            dateFormat: "Y-m-d",
-            maxDate: "today",
-        });
-
-        // Inisialisasi Flatpickr untuk rentang tanggal PDF
-        const tanggalMulaiPdfPicker = flatpickr("#tanggalMulaiPdf", {
-            dateFormat: "Y-m-d",
-            maxDate: "today",
-            // Ketika tanggal mulai dipilih, set minDate untuk tanggal akhir
-            onChange: function(selectedDates, dateStr, instance) {
-                if (selectedDates.length > 0) {
-                    tanggalAkhirPdfPicker.set('minDate', selectedDates[0]);
-                } else {
-                    tanggalAkhirPdfPicker.set('minDate', null);
-                }
-            }
-        });
-
-        const tanggalAkhirPdfPicker = flatpickr("#tanggalAkhirPdf", {
-            dateFormat: "Y-m-d",
-            maxDate: "today",
-        });
-
-
-        // Logika untuk menampilkan gambar di modal
-        const viewImageModal = document.getElementById('viewImageModal');
-        const modalImage = document.getElementById('modalImage');
-        const downloadImageLink = document.getElementById('downloadImageLink');
-
-        viewImageModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const imageUrl = button.getAttribute('data-image-url');
-
-            modalImage.src = imageUrl;
-            downloadImageLink.href = imageUrl;
-            downloadImageLink.download = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
-        });
-
-        viewImageModal.addEventListener('hidden.bs.modal', function() {
-            modalImage.src = '';
-            downloadImageLink.href = '#';
-            downloadImageLink.removeAttribute('download');
-        });
-
-        // Fungsi SweetAlert untuk konfirmasi Hapus
-        function confirmDelete(id_absensi, nama_siswa, status_absen) {
-            Swal.fire({
-                title: 'Konfirmasi Hapus Absensi',
-                html: `Apakah Anda yakin ingin menghapus absensi <strong>${status_absen}</strong> untuk siswa <strong>${nama_siswa}</strong>?<br>Tindakan ini tidak dapat dibatalkan!`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc3545', // Merah untuk Hapus
-                cancelButtonColor: '#6c757d', // Abu-abu untuk Batal
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = 'master_data_absensi_siswa_delete.php?id=' + id_absensi;
-                }
-            });
-        }
-        // Jadikan fungsi global agar bisa diakses dari onclick HTML
-        window.confirmDelete = confirmDelete;
-    });
-    </script>
-
+    
     <div class="modal fade" id="viewImageModal" tabindex="-1" aria-labelledby="viewImageModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
@@ -695,6 +545,69 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <?php include './partials/script.php'; ?>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr("#tanggalFilter", { dateFormat: "Y-m-d", maxDate: "today" });
+
+        const tanggalMulaiPdfPicker = flatpickr("#tanggalMulaiPdf", {
+            dateFormat: "Y-m-d",
+            maxDate: "today",
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length > 0) {
+                    tanggalAkhirPdfPicker.set('minDate', selectedDates[0]);
+                } else {
+                    tanggalAkhirPdfPicker.set('minDate', null);
+                }
+            }
+        });
+
+        const tanggalAkhirPdfPicker = flatpickr("#tanggalAkhirPdf", {
+            dateFormat: "Y-m-d",
+            maxDate: "today",
+        });
+
+        const viewImageModal = document.getElementById('viewImageModal');
+        if(viewImageModal) {
+            const modalImage = document.getElementById('modalImage');
+            const downloadImageLink = document.getElementById('downloadImageLink');
+
+            viewImageModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const imageUrl = button.getAttribute('data-image-url');
+                modalImage.src = imageUrl;
+                downloadImageLink.href = imageUrl;
+                downloadImageLink.download = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+            });
+
+            viewImageModal.addEventListener('hidden.bs.modal', function() {
+                modalImage.src = '';
+                downloadImageLink.href = '#';
+                downloadImageLink.removeAttribute('download');
+            });
+        }
+    });
+
+    function confirmDelete(id_absensi, nama_siswa, status_absen) {
+        Swal.fire({
+            title: 'Konfirmasi Hapus Absensi',
+            html: `Apakah Anda yakin ingin menghapus absensi <strong>${status_absen}</strong> untuk siswa <strong>${nama_siswa}</strong>?<br>Tindakan ini tidak dapat dibatalkan!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = 'master_data_absensi_siswa_delete.php?id=' + id_absensi;
+            }
+        });
+    }
+    </script>
 </body>
 
 </html>

@@ -14,7 +14,7 @@
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
     <div class="app-brand demo">
-        <a href="<?php echo ($is_siswa ? 'dashboard_siswa.php' : ($is_admin ? 'index.php' : ($is_guru ? '../halaman_guru.php' : '../login.php'))); ?>"
+        <a href="<?php echo ($is_siswa ? 'dashboard_siswa.php' : ($is_admin ? 'index.php' : ($is_guru ? 'dashboard_guru.php' : '../login.php'))); ?>"
             class="app-brand-link">
             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
                 style="color: #696cff;">
@@ -42,7 +42,7 @@
 
     <ul class="menu-inner py-1">
         <li class="menu-item active">
-            <a href="<?php echo ($is_siswa ? 'dashboard_siswa.php' : ($is_admin ? 'index.php' : ($is_guru ? 'master_dashboard_guru.php' : '../login.php'))); ?>"
+            <a href="<?php echo ($is_siswa ? 'dashboard_siswa.php' : ($is_admin ? 'index.php' : ($is_guru ? 'dashboard_guru.php' : '../login.php'))); ?>"
                 class="menu-link">
                 <i class="menu-icon tf-icons bx bx-home-circle"></i>
                 <div data-i18n="Dashboard">Dashboard</div>

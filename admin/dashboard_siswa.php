@@ -12,7 +12,7 @@ if (!$is_siswa) {
         header('Location: index.php'); // Redirect admin ke dashboard admin
         exit();
     } elseif ($is_guru) {
-        header('Location: ../halaman_guru.php'); // Redirect guru ke halaman guru
+        header('Location: dashboard_guru.php'); // Redirect guru ke halaman guru
         exit();
     } else {
         header('Location: ../login.php'); // Jika tidak login sama sekali, redirect ke halaman login
