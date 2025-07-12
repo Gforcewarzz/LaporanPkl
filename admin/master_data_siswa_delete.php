@@ -2,22 +2,15 @@
 
 session_start();
 
-// Keamanan: Hanya admin yang boleh mengakses dashboard ini
-$is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
+// Standarisasi pengecekan peran
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
 $is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
+$is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
 
-if (!$is_admin) {
-    if ($is_siswa) {
-        header('Location: dashboard_siswa.php'); // Redirect siswa ke dashboard siswa
-        exit();
-    } elseif ($is_guru) {
-        header('Location: ../halaman_guru.php'); // Redirect guru ke halaman guru
-        exit();
-    } else {
-        header('Location: ../login.php'); // Jika tidak login sama sekali, redirect ke halaman login
-        exit();
-    }
+// Keamanan: Hanya admin atau guru yang boleh mengakses fungsi ini
+if (!$is_admin && !$is_guru) {
+    header('Location: ../login.php');
+    exit();
 }
 
 // 5. Jika lolos semua pemeriksaan di atas, maka dia adalah ADMIN yang sah.

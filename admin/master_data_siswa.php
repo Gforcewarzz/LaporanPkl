@@ -159,7 +159,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                             <div class="card-body p-3">
                                 <div class="row gy-3">
                                     
-                                    <?php if ($is_admin): ?>
+                                    <?php if ($is_admin || $is_guru): ?>
                                     <div class="col-md-auto">
                                         <a href="master_data_siswa_add.php" class="btn btn-primary w-100">
                                             <i class="bx bx-plus me-1"></i> Tambah Siswa
@@ -238,7 +238,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                                 <td><?= htmlspecialchars($row['nama_tempat_pkl'] ?? '-') ?></td>
                                                 <td><span class='badge <?= $badgeColor ?>'><?= htmlspecialchars($row['status']) ?></span></td>
                                                 
-                                                <?php if ($is_admin): ?>
+                                                <?php if ($is_admin || $is_guru): ?>
                                                 <td>
                                                     <div class='dropdown'>
                                                         <button class='btn p-0 dropdown-toggle hide-arrow' data-bs-toggle='dropdown'><i class='bx bx-dots-vertical-rounded'></i></button>

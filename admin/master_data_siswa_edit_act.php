@@ -1,190 +1,119 @@
 <?php
-
 session_start();
 
-// Keamanan: Hanya admin yang boleh mengakses dashboard ini
-$is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
+// Standarisasi pengecekan peran
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
 $is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
+$is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
 
-if (!$is_admin) {
-    if ($is_siswa) {
-        header('Location: dashboard_siswa.php'); // Redirect siswa ke dashboard siswa
-        exit();
-    } elseif ($is_guru) {
-        header('Location: ../halaman_guru.php'); // Redirect guru ke halaman guru
-        exit();
-    } else {
-        header('Location: ../login.php'); // Jika tidak login sama sekali, redirect ke halaman login
-        exit();
-    }
-}
-
-// Sertakan koneksi database
-include 'partials/db.php'; // Pastikan path ini benar!
-
-// --- Fungsi untuk sanitasi input agar aman di SQL ---
-// Fungsi ini HANYA untuk SQL, jangan ada htmlspecialchars di sini!
-function sanitize_for_sql($data) {
-    global $koneksi;
-    if ($koneksi) {
-        $data = trim($data); // Hapus spasi di awal/akhir
-        $data = stripslashes($data); // Hapus backslashes
-        $data = mysqli_real_escape_string($koneksi, $data); // Escaping untuk SQL
-    }
-    return $data;
-}
-
-// --- Ambil dan sanitasi semua input POST ---
-// TERAPKAN sanitize_for_sql() ke SEMUA input dari $_POST yang akan masuk ke query SQL
-$id_siswa        = sanitize_for_sql($_POST['id_siswa'] ?? ''); // Pastikan id_siswa selalu ada
-$nama_siswa      = sanitize_for_sql($_POST['nama_siswa'] ?? '');
-$jenis_kelamin   = sanitize_for_sql($_POST['jenis_kelamin'] ?? '');
-$nisn            = sanitize_for_sql($_POST['nisn'] ?? '');
-$no_induk        = sanitize_for_sql($_POST['no_induk'] ?? '');
-$kelas           = sanitize_for_sql($_POST['kelas'] ?? '');
-$status          = sanitize_for_sql($_POST['status'] ?? '');
-
-// Ambil nama relasi dari input (nama_jurusan, nama_pembimbing, nama_tempat_pkl)
-// Mereka juga perlu di-sanitize untuk query pencarian ID!
-$jurusan_nama    = sanitize_for_sql($_POST['jurusan_nama'] ?? '');
-$guru_nama       = sanitize_for_sql($_POST['guru_nama'] ?? '');
-$tempat_nama     = sanitize_for_sql($_POST['tempat_pkl_nama'] ?? '');
-
-// --- Validasi dasar sebelum melanjutkan (opsional tapi disarankan) ---
-$errors = [];
-if (empty($id_siswa)) $errors[] = "ID Siswa tidak ditemukan.";
-if (empty($nama_siswa)) $errors[] = "Nama Siswa tidak boleh kosong.";
-// Tambahkan validasi lain sesuai kebutuhan (misal: NISN harus 10 digit angka, dll.)
-
-if (!empty($errors)) {
-    $_SESSION['pesan_error'] = implode("<br>", $errors);
-    header("Location: master_data_siswa.php"); // Redirect ke halaman daftar siswa atau halaman edit
+// Keamanan: Hanya admin atau guru yang boleh mengakses fungsi ini
+if (!$is_admin && !$is_guru) {
+    header('Location: ../login.php');
     exit();
 }
 
-// --- Cari ID jurusan berdasarkan nama ---
-$jurusan_id = null;
-if (!empty($jurusan_nama)) {
-    $jurusan_q = mysqli_query($koneksi, "SELECT id_jurusan FROM jurusan WHERE nama_jurusan = '$jurusan_nama'");
-    if ($jurusan_q && mysqli_num_rows($jurusan_q) > 0) {
-        $jurusan_id = mysqli_fetch_assoc($jurusan_q)['id_jurusan'];
-    } else {
-        $errors[] = "Jurusan '" . htmlspecialchars($jurusan_nama) . "' tidak ditemukan. Data tidak diperbarui.";
-    }
-} else {
-    // Jika jurusan_nama kosong, mungkin atur jurusan_id menjadi NULL di database
-    // Tergantung pada desain tabel kamu
-    $jurusan_id = 'NULL'; // Gunakan string 'NULL' jika kolom bisa NULL
-}
-
-
-// --- Cari ID pembimbing berdasarkan nama ---
-$pembimbing_id = null;
-if (!empty($guru_nama)) {
-    $guru_q = mysqli_query($koneksi, "SELECT id_pembimbing FROM guru_pembimbing WHERE nama_pembimbing = '$guru_nama'");
-    if ($guru_q && mysqli_num_rows($guru_q) > 0) {
-        $pembimbing_id = mysqli_fetch_assoc($guru_q)['id_pembimbing'];
-    } else {
-        $errors[] = "Guru Pembimbing '" . htmlspecialchars($guru_nama) . "' tidak ditemukan. Data tidak diperbarui.";
-    }
-} else {
-    $pembimbing_id = 'NULL';
-}
-
-
-// --- Cari ID tempat PKL berdasarkan nama ---
-$tempat_pkl_id = null;
-if (!empty($tempat_nama)) {
-    $tempat_q = mysqli_query($koneksi, "SELECT id_tempat_pkl FROM tempat_pkl WHERE nama_tempat_pkl = '$tempat_nama'");
-    if ($tempat_q && mysqli_num_rows($tempat_q) > 0) {
-        $tempat_pkl_id = mysqli_fetch_assoc($tempat_q)['id_tempat_pkl'];
-    } else {
-        $errors[] = "Tempat PKL '" . htmlspecialchars($tempat_nama) . "' tidak ditemukan. Data tidak diperbarui.";
-    }
-} else {
-    $tempat_pkl_id = 'NULL';
-}
-
-// Jika ada error dari pencarian ID, tampilkan dan keluar
-if (!empty($errors)) {
-    $_SESSION['pesan_error'] = implode("<br>", $errors);
-    header("Location: master_data_siswa.php"); // Atau kembali ke halaman edit
+// Hanya proses jika ada request POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['submit'])) {
+    header('Location: master_data_siswa.php');
     exit();
 }
 
-// Cek jika password diisi
-$password_input = $_POST['password'] ?? ''; // Ambil langsung dari POST, lalu cek empty
-$password_query = "";
+require "partials/db.php";
 
-if (!empty($password_input)) {
-    // Hash password baru (tidak perlu sanitize_for_sql untuk $password_input sebelum hash,
-    // karena password_hash sudah aman, tapi kalau $_POST['password'] mau dipakai
-    // di tempat lain di query (sangat jarang), baru di sanitize)
-    $password_hashed = password_hash($password_input, PASSWORD_BCRYPT);
-    $password_query = ", password = '$password_hashed'";
+// 1. Ambil semua data dari POST
+$id_siswa = $_POST['id_siswa'] ?? 0;
+$nama_siswa = trim($_POST['nama_siswa'] ?? '');
+$jenis_kelamin = $_POST['jenis_kelamin'] ?? '';
+$nisn = trim($_POST['nisn'] ?? '');
+$no_induk = trim($_POST['no_induk'] ?? '');
+$kelas = trim($_POST['kelas'] ?? '');
+$status = $_POST['status'] ?? '';
+$password_baru = $_POST['password'] ?? '';
+
+// [DIUBAH] Ambil ID langsung dari form
+$id_jurusan = $_POST['jurusan_id'] ?? 0;
+$id_pembimbing = $_POST['pembimbing_id'] ?? 0;
+$id_tempat_pkl = $_POST['tempat_pkl_id'] ?? 0;
+
+// Validasi dasar
+if (empty($id_siswa) || empty($nama_siswa) || empty($no_induk) || empty($nisn)) {
+    $_SESSION['alert'] = ['type' => 'error', 'title' => 'Gagal', 'text' => 'Data wajib tidak boleh kosong.'];
+    header("Location: master_data_siswa_edit.php?id=$id_siswa");
+    exit();
 }
 
-// --- Update data siswa ---
-// Pastikan ID relasi yang ditemukan (atau NULL string) digunakan dengan benar
-$query = "UPDATE siswa SET
-            nama_siswa = '$nama_siswa',
-            jenis_kelamin = '$jenis_kelamin',
-            nisn = '$nisn',
-            no_induk = '$no_induk',
-            kelas = '$kelas',
-            status = '$status',
-            jurusan_id = " . ($jurusan_id === 'NULL' ? 'NULL' : "'$jurusan_id'") . ",
-            pembimbing_id = " . ($pembimbing_id === 'NULL' ? 'NULL' : "'$pembimbing_id'") . ",
-            tempat_pkl_id = " . ($tempat_pkl_id === 'NULL' ? 'NULL' : "'$tempat_pkl_id'") . "
-            $password_query
-          WHERE id_siswa = '$id_siswa'";
+// [PENTING] Langkah Otorisasi untuk Guru
+if ($is_guru) {
+    $auth_stmt = $koneksi->prepare("SELECT id_siswa FROM siswa WHERE id_siswa = ? AND pembimbing_id = ?");
+    $auth_stmt->bind_param("ii", $id_siswa, $_SESSION['id_guru_pendamping']);
+    $auth_stmt->execute();
+    $auth_result = $auth_stmt->get_result();
+    if ($auth_result->num_rows === 0) {
+        // Jika tidak ada hasil, berarti guru ini tidak berhak mengedit siswa ini
+        $_SESSION['alert'] = ['type' => 'error', 'title' => 'Akses Ditolak!', 'text' => 'Anda tidak memiliki izin untuk mengubah data siswa ini.'];
+        header('Location: master_data_siswa.php');
+        $auth_stmt->close();
+        $koneksi->close();
+        exit();
+    }
+    $auth_stmt->close();
+}
 
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Update Siswa</title>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
-<body>
-<?php
-if (mysqli_query($koneksi, $query)) {
-    echo "
-    <script>
-        Swal.fire({
-            icon: 'success',
-            title: 'Berhasil!',
-            text: 'Data siswa berhasil diperbarui!',
-            confirmButtonColor: '#3085d6',
-            confirmButtonText: 'OK'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = 'master_data_siswa.php';
-            }
-        });
-    </script>
-    ";
+// 2. Bangun query UPDATE secara dinamis dan aman
+$sql_parts = [];
+$params = [];
+$types = '';
+
+// Tambahkan field-field yang pasti diupdate
+array_push($sql_parts, "nama_siswa = ?", "jenis_kelamin = ?", "nisn = ?", "no_induk = ?", "kelas = ?", "status = ?", "jurusan_id = ?", "pembimbing_id = ?", "tempat_pkl_id = ?");
+array_push($params, $nama_siswa, $jenis_kelamin, $nisn, $no_induk, $kelas, $status, $id_jurusan, $id_pembimbing, $id_tempat_pkl);
+$types .= 'ssssssiii';
+
+// 3. Cek jika password diisi, maka tambahkan ke query
+if (!empty($password_baru)) {
+    if (strlen($password_baru) < 4) {
+        $_SESSION['alert'] = ['type' => 'warning', 'title' => 'Password Lemah', 'text' => 'Password baru minimal harus 4 karakter. Perubahan lain disimpan.'];
+        // Tetap lanjutkan update data lain, tapi beri peringatan soal password
+    } else {
+        $hashed_password = password_hash($password_baru, PASSWORD_DEFAULT);
+        $sql_parts[] = "password = ?";
+        $params[] = $hashed_password;
+        $types .= 's';
+    }
+}
+
+// Tambahkan ID siswa ke akhir parameter untuk WHERE clause
+$params[] = $id_siswa;
+$types .= 'i';
+
+// 4. Gabungkan dan jalankan query UPDATE
+$sql = "UPDATE siswa SET " . implode(", ", $sql_parts) . " WHERE id_siswa = ?";
+$stmt = $koneksi->prepare($sql);
+
+if ($stmt === false) {
+    $_SESSION['alert'] = ['type' => 'error', 'title' => 'Error Sistem', 'text' => 'Gagal mempersiapkan query update.'];
+    header('Location: master_data_siswa.php');
+    exit();
+}
+
+$stmt->bind_param($types, ...$params);
+
+if ($stmt->execute()) {
+    // Berhasil
+    $_SESSION['excel_message_type'] = 'success';
+    $_SESSION['excel_message_title'] = 'Berhasil!';
+    $_SESSION['excel_message'] = 'Data siswa berhasil diperbarui.';
 } else {
-    echo "
-    <script>
-        Swal.fire({
-            icon: 'error',
-            title: 'Gagal!',
-            text: 'Data gagal diperbarui: " . mysqli_error($koneksi) . ". Query: " . htmlspecialchars($query) . "', // Tampilkan query untuk debugging
-            confirmButtonColor: '#d33',
-            confirmButtonText: 'Coba Lagi'
-        }).then(() => {
-            window.history.back();
-        });
-    </script>
-    ";
+    // Gagal
+    $_SESSION['excel_message_type'] = 'error';
+    $_SESSION['excel_message_title'] = 'Gagal!';
+    $_SESSION['excel_message'] = 'Gagal memperbarui data siswa. Error: ' . $stmt->error;
 }
 
-// Tutup koneksi
-if (isset($koneksi)) {
-    $koneksi->close();
-}
+$stmt->close();
+$koneksi->close();
+
+header('Location: master_data_siswa.php');
+exit();
+
 ?>
-</body>
-</html>
