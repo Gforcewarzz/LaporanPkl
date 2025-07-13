@@ -48,22 +48,54 @@ if (isset($_SESSION['user_role'])) { // Cukup cek user_role karena ini yang utam
             }
             break;
 
+        // ===================================================================
+        // [UBAH] INI BAGIAN YANG DIMODIFIKASI
+        // ===================================================================
         case 'guru_pendamping':
-            // [PERBAIKAN] Mengambil nama dari sesi spesifik guru
             $userName = $_SESSION['nama_guru'] ?? 'Guru'; 
             $userRole = 'Guru Pembimbing';
-            $userAvatar = 'assets/img/avatars/guru.png'; // Avatar statis untuk guru
+            $userAvatar = 'assets/img/avatars/guru.png'; // Avatar default untuk guru
+
+            // Ambil ID guru dari sesi
+            $guru_id = $_SESSION['id_guru_pendamping'] ?? 0;
+
+            if ($isDbConnected && $guru_id > 0) {
+                // Query untuk mendapatkan jenis kelamin guru
+                $sql_guru = "SELECT jenis_kelamin FROM guru_pembimbing WHERE id_pembimbing = ?";
+                $stmt_guru = $koneksi->prepare($sql_guru);
+                if ($stmt_guru) {
+                    $stmt_guru->bind_param("i", $guru_id);
+                    $stmt_guru->execute();
+                    $result_guru = $stmt_guru->get_result();
+                    if ($result_guru->num_rows > 0) {
+                        $guru_data = $result_guru->fetch_assoc();
+                        // Bersihkan dan kecilkan huruf untuk perbandingan yang konsisten
+                        $jenis_kelamin_guru = strtolower(trim($guru_data['jenis_kelamin']));
+                        
+                        // Tentukan avatar berdasarkan jenis kelamin
+                        if ($jenis_kelamin_guru === 'l' || $jenis_kelamin_guru === 'laki-laki') {
+                            $userAvatar = 'assets/img/avatars/guru-laki.png'; // Ganti dengan path avatar pria Anda
+                        } elseif ($jenis_kelamin_guru === 'p' || $jenis_kelamin_guru === 'perempuan') {
+                            $userAvatar = 'assets/img/avatars/guru-perempuan.png'; // Ganti dengan path avatar wanita Anda
+                        }
+                    }
+                    $stmt_guru->close();
+                } else {
+                    error_log("Gagal menyiapkan statement untuk jenis kelamin guru: " . $koneksi->error);
+                }
+            }
             break;
+        // ===================================================================
+        // AKHIR BAGIAN YANG DIMODIFIKASI
+        // ===================================================================
 
         case 'admin':
-            // [PERBAIKAN] Mengambil nama dari sesi umum yang diatur saat admin login
             $userName = $_SESSION['user_name'] ?? 'Admin';
             $userRole = 'Administrator';
             $userAvatar = 'assets/img/avatars/admin.png'; // Avatar statis untuk admin
             break;
 
         default:
-            // Jika role tidak dikenal, kembali ke default
             $userName = 'Pengguna';
             $userRole = 'Tidak Dikenal';
             $userAvatar = 'assets/img/avatars/default_user.png';
@@ -152,7 +184,6 @@ if (isset($_SESSION['user_role'])) { // Cukup cek user_role karena ini yang utam
                     reverseButtons: true
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // [SARAN] Pastikan path logout ini benar dari lokasi file yang memuat navbar
                         window.location.href = "../logout.php"; 
                     }
                 });
