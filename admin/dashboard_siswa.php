@@ -1,5 +1,6 @@
 <?php
 session_start();
+date_default_timezone_set('Asia/Jakarta'); // <-- Tambahkan baris ini di sini
 
 // Logika Keamanan Halaman
 $is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
@@ -42,7 +43,7 @@ $sudah_absen_hari_ini = false;
 $status_absen_hari_ini = ''; // Inisialisasi dengan string kosong untuk menghindari null
 $keterangan_absen_lengkap = true; // Untuk Sakit/Izin, apakah keterangan dan bukti sudah ada
 
-$current_date = date('Y-m-d');
+$current_date = date('Y-m-d'); // Ini akan menggunakan zona waktu 'Asia/Jakarta'
 
 // Query menggunakan nama tabel dan kolom yang benar: absensi_siswa, status_absen, tanggal_absen, siswa_id
 $query_check_absen = "SELECT status_absen, keterangan, bukti_foto FROM absensi_siswa WHERE siswa_id = ? AND tanggal_absen = ?";
@@ -88,7 +89,7 @@ if ($stmt_harian) {
     $data_harian = $result_harian->fetch_assoc();
     $total_laporan_harian = $data_harian['total'] ?? 0;
     if ($data_harian['last_date']) {
-        $last_report_date = date('d F Y', strtotime($data_harian['last_date']));
+        $last_report_date = date('d F Y', strtotime($data_harian['last_date'])); // Ini akan menggunakan zona waktu 'Asia/Jakarta'
     }
     $stmt_harian->close();
 } else {
@@ -111,7 +112,7 @@ if ($stmt_proyek) {
 
 // Logika untuk menghitung minggu PKL (Contoh, sesuaikan dengan tanggal mulai PKL sebenarnya)
 $start_pkl_date_example = '2025-01-01'; // Ganti dengan tanggal mulai PKL siswa yang sebenarnya
-$today = new DateTime();
+$today = new DateTime(); // Ini akan menggunakan zona waktu 'Asia/Jakarta'
 $total_minggu_pkl = 0; // Default value
 $start_date_obj = new DateTime($start_pkl_date_example);
 if ($start_date_obj <= $today) {
@@ -223,9 +224,9 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                                         <?= htmlspecialchars($status_absen_hari_ini ?? '') ?>)
                                                     </button>
                                                     <?php
-                                                        // PERUBAHAN DI SINI: Hanya tampilkan peringatan jika statusnya Sakit/Izin DAN belum lengkap
-                                                        if (($status_absen_hari_ini == 'Sakit' || $status_absen_hari_ini == 'Izin') && !$keterangan_absen_lengkap):
-                                                        ?>
+                                                    // PERUBAHAN DI SINI: Hanya tampilkan peringatan jika statusnya Sakit/Izin DAN belum lengkap
+                                                    if (($status_absen_hari_ini == 'Sakit' || $status_absen_hari_ini == 'Izin') && !$keterangan_absen_lengkap):
+                                                    ?>
                                                     <p class="text-warning mt-2 mb-0 fw-bold">
                                                         <i class="bx bx-error-circle me-1"></i> Absensi Sakit/Izin Anda
                                                         belum lengkap. Mohon lengkapi!
@@ -376,7 +377,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="absenModalLabel"><i
-                            class="bx bx-calendar-check me-2 text-success"></i>Formulir Absensi PKL</h5>
+                                class="bx bx-calendar-check me-2 text-success"></i>Formulir Absensi PKL</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <form id="formAbsen" action="process_absen.php" method="POST" enctype="multipart/form-data">
@@ -385,7 +386,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                             <label class="form-label fw-bold">Pilih Status Absensi Anda Hari Ini:</label>
                             <div class="form-check mt-2">
                                 <input class="form-check-input" type="radio" name="statusAbsen" id="radioHadir"
-                                    value="Hadir" checked>
+                                        value="Hadir" checked>
                                 <label class="form-check-label" for="radioHadir">
                                     <span class="badge bg-success"><i class="bx bx-check-circle me-1"></i> Hadir</span>
                                     - Anda masuk kerja/praktik hari ini.
@@ -393,7 +394,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                             </div>
                             <div class="form-check mt-2">
                                 <input class="form-check-input" type="radio" name="statusAbsen" id="radioSakit"
-                                    value="Sakit">
+                                        value="Sakit">
                                 <label class="form-check-label" for="radioSakit">
                                     <span class="badge bg-warning"><i class="bx bx-plus-medical me-1"></i> Sakit</span>
                                     - Anda tidak dapat masuk karena sakit.
@@ -401,7 +402,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                             </div>
                             <div class="form-check mt-2">
                                 <input class="form-check-input" type="radio" name="statusAbsen" id="radioIzin"
-                                    value="Izin">
+                                        value="Izin">
                                 <label class="form-check-label" for="radioIzin">
                                     <span class="badge bg-info"><i class="bx bx-receipt me-1"></i> Izin</span> - Anda
                                     tidak dapat masuk karena ada keperluan.
@@ -409,7 +410,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                             </div>
                             <div class="form-check mt-2">
                                 <input class="form-check-input" type="radio" name="statusAbsen" id="radioLibur"
-                                    value="Libur">
+                                        value="Libur">
                                 <label class="form-check-label" for="radioLibur">
                                     <span class="badge bg-secondary"><i class="bx bx-calendar-alt me-1"></i>
                                         Libur</span>
@@ -423,7 +424,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                 informasi berikut untuk status Sakit / Izin:</p>
                             <div class="mb-3">
                                 <label for="keterangan" class="form-label">Keterangan Tambahan <span
-                                        class="text-danger">*</span></label>
+                                            class="text-danger">*</span></label>
                                 <textarea class="form-control" id="keterangan" name="keterangan" rows="3"
                                     placeholder="Contoh: Sakit demam, Izin ada acara keluarga, dll."
                                     maxlength="255"></textarea>
@@ -431,7 +432,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                             </div>
                             <div class="mb-3">
                                 <label for="buktiFoto" class="form-label">Unggah Bukti Foto <span
-                                        class="text-danger">*</span></label>
+                                            class="text-danger">*</span></label>
                                 <input class="form-control" type="file" id="buktiFoto" name="buktiFoto"
                                     accept="image/jpeg,image/png">
                                 <div class="form-text">Unggah foto sebagai bukti (Contoh: Surat dokter, surat izin, dll.

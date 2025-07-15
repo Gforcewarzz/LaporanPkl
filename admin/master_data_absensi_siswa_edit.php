@@ -1,5 +1,6 @@
 <?php
 session_start();
+date_default_timezone_set('Asia/Jakarta'); // <-- Tambahkan baris ini di sini
 
 // Variabel status peran agar konsisten dan selalu terdefinisi
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
@@ -54,7 +55,15 @@ if ($is_editing) {
     $stmt = $koneksi->prepare($query);
     if (!$stmt) die("Error preparing query: " . $koneksi->error);
     
-    $stmt->bind_param($types, ...$params);
+    // Dynamic binding for multiple parameters
+    $bind_names = [$types];
+    for ($i = 0; $i < count($params); $i++) {
+        $bind_name = 'param_edit_' . $i;
+        $$bind_name = $params[$i];
+        $bind_names[] = &$$bind_name;
+    }
+    call_user_func_array([$stmt, 'bind_param'], $bind_names);
+
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -97,7 +106,15 @@ if ($is_editing) {
     $stmt_siswa = $koneksi->prepare($query_siswa);
     if (!$stmt_siswa) die("Error preparing siswa query: " . $koneksi->error);
 
-    $stmt_siswa->bind_param($types, ...$params);
+    // Dynamic binding for multiple parameters
+    $bind_names_siswa = [$types];
+    for ($i = 0; $i < count($params); $i++) {
+        $bind_name = 'param_add_siswa_' . $i;
+        $$bind_name = $params[$i];
+        $bind_names_siswa[] = &$$bind_name;
+    }
+    call_user_func_array([$stmt_siswa, 'bind_param'], $bind_names_siswa);
+
     $stmt_siswa->execute();
     $result_siswa = $stmt_siswa->get_result();
 
@@ -114,7 +131,7 @@ if ($is_editing) {
     $data_absensi = [
         'id_absensi' => null,
         'tanggal_absen' => $tanggal_new,
-        'status_absen' => 'Hadir', // Default 'Hadir' agar lebih mudah diubah
+        'status_absen' => 'Hadir', 
         'keterangan' => null,
         'bukti_foto' => null
     ];
@@ -277,14 +294,20 @@ $koneksi->close();
                 additionalFields.style.display = 'block';
                 keteranganInput.required = true;
                 
-                const hasExistingPhoto = "<?= !empty($data_absensi['bukti_foto']) ?>";
-                if (!hasExistingPhoto) {
+                // Pastikan foto wajib HANYA jika statusnya sakit/izin dan BELUM ada foto lama ATAU foto baru diupload
+                const hasExistingPhoto = "<?= !empty($data_absensi['bukti_foto']) ? 'true' : 'false' ?>"; 
+                if (hasExistingPhoto === 'false' || fotoInput.files.length === 0) {
                     fotoInput.required = true;
+                } else {
+                    fotoInput.required = false; // Jika sudah ada foto lama, atau akan diupload foto baru, tidak perlu required
                 }
             } else {
                 additionalFields.style.display = 'none';
                 keteranganInput.required = false;
                 fotoInput.required = false;
+                // Kosongkan nilai field saat disembunyikan
+                keteranganInput.value = ''; 
+                fotoInput.value = ''; 
             }
         }
 

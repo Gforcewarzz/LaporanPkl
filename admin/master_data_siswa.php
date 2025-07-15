@@ -159,13 +159,12 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                             <div class="card-body p-3">
                                 <div class="row gy-3">
                                     
-                                    <?php if ($is_admin || $is_guru): ?>
+                                    <?php if ($is_admin): ?>
                                     <div class="col-md-auto">
                                         <a href="master_data_siswa_add.php" class="btn btn-primary w-100">
                                             <i class="bx bx-plus me-1"></i> Tambah Siswa
                                         </a>
                                     </div>
-                                    <?php endif; ?>
 
                                     <div class="col-md-auto">
                                         <a href="generate_siswa_pdf.php<?= !empty($keyword) ? '?keyword=' . urlencode($keyword) : '' ?>"
@@ -179,6 +178,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                             <i class="bx bxs-file-excel me-1"></i> Excel
                                         </a>
                                     </div>
+                                  <?php endif; ?>
                                     <div class="col-md-auto">
                                         <a href="<?= $is_guru ? 'dashboard_guru.php' : 'index.php' ?>" class="btn btn-outline-secondary w-100">
                                             <i class="bx bx-arrow-back me-1"></i> Kembali
@@ -217,7 +217,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                                 <th>Guru</th>
                                                 <th>Tempat PKL</th>
                                                 <th>Status</th>
-                                                <?php if ($is_admin): ?><th>Aksi</th><?php endif; ?>
+                                                <?php if ($is_admin || $is_guru): ?><th>Aksi</th><?php endif; ?>
                                             </tr>
                                         </thead>
                                         <tbody class="table-border-bottom-0">
@@ -251,7 +251,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                                 <?php endif; ?>
                                             </tr>
                                             <?php endwhile; else: ?>
-                                            <tr><td colspan='<?= $is_admin ? 10 : 9 ?>' class='text-center'>Tidak ada data siswa ditemukan.</td></tr>
+                                            <tr><td colspan='<?= $is_admin || $is_guru ? 10 : 9 ?>' class='text-center'>Tidak ada data siswa ditemukan.</td></tr>
                                             <?php endif; ?>
                                         </tbody>
                                     </table>
@@ -267,7 +267,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                             <div class="d-flex justify-content-between align-items-start mb-2">
                                                 <h6 class="mb-1"><strong><?= $no_mobile++ . '. ' . htmlspecialchars($row_mobile['nama_siswa']) ?></strong></h6>
                                                 
-                                                <?php if ($is_admin): ?>
+                                                <?php if ($is_admin || $is_guru): ?>
                                                 <div class="dropdown">
                                                     <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown"><i class="bx bx-dots-vertical-rounded"></i></button>
                                                     <div class="dropdown-menu dropdown-menu-end">
@@ -297,11 +297,30 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                         <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
                                             <a class="page-link" href="<?= ($page <= 1) ? '#' : '?page=' . ($page - 1) . (!empty($keyword) ? '&keyword=' . urlencode($keyword) : '') ?>"><i class="tf-icon bx bx-chevrons-left"></i></a>
                                         </li>
-                                        <?php for ($i = 1; $i <= $total_pages; $i++) : ?>
+                                        <?php
+                                        $start_page = max(1, $page - 2);
+                                        $end_page = min($total_pages, $page + 2);
+
+                                        if ($start_page > 1) {
+                                            echo '<li class="page-item"><a class="page-link" href="?page=1' . (!empty($keyword) ? '&keyword=' . urlencode($keyword) : '') . '">1</a></li>';
+                                            if ($start_page > 2) {
+                                                echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                                            }
+                                        }
+
+                                        for ($i = $start_page; $i <= $end_page; $i++) : ?>
                                         <li class="page-item <?= ($page == $i) ? 'active' : '' ?>">
                                             <a class="page-link" href="?page=<?= $i ?><?= !empty($keyword) ? '&keyword=' . urlencode($keyword) : '' ?>"><?= $i ?></a>
                                         </li>
-                                        <?php endfor; ?>
+                                        <?php endfor;
+
+                                        if ($end_page < $total_pages) {
+                                            if ($end_page < $total_pages - 1) {
+                                                echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                                            }
+                                            echo '<li class="page-item"><a class="page-link" href="?page=' . $total_pages . (!empty($keyword) ? '&keyword=' . urlencode($keyword) : '') . '">' . $total_pages . '</a></li>';
+                                        }
+                                        ?>
                                         <li class="page-item <?= ($page >= $total_pages) ? 'disabled' : '' ?>">
                                             <a class="page-link" href="<?= ($page >= $total_pages) ? '#' : '?page=' . ($page + 1) . (!empty($keyword) ? '&keyword=' . urlencode($keyword) : '') ?>"><i class="tf-icon bx bx-chevrons-right"></i></a>
                                         </li>

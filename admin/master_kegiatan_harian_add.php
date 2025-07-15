@@ -142,7 +142,7 @@ if ($is_admin) {
                                             <i class="bx bx-calendar me-1"></i> Hari/Tanggal Kegiatan:
                                         </label>
                                         <input type="date" class="form-control" id="tanggal_kegiatan" name="tanggal"
-                                            required value="<?php echo date('Y-m-d'); ?>">
+                                            required value="<?php echo date('Y-m-d'); ?>" readonly>
                                     </div>
 
                                     <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-3s">

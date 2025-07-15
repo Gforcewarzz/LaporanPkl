@@ -325,7 +325,7 @@ $koneksi->close();
                                                 };
                                                 $keterangan_display = !empty($row['keterangan']) ? htmlspecialchars($row['keterangan']) : '-';
                                                 $bukti_foto_display = !empty($row['bukti_foto']) ?
-                                                    "<a href='#' class='badge bg-primary view-image-btn' data-bs-toggle='modal' data-bs-target='#viewImageModal' data-image-url='../image_absensi/" . htmlspecialchars($row['bukti_foto']) . "'>
+                                                    "<a href='#' class='badge bg-primary view-image-btn' data-bs-toggle='modal' data-bs-target='#viewImageModal' data-image-url='image_absensi/" . htmlspecialchars($row['bukti_foto']) . "'>
                                                         <i class='bx bx-image'></i> Lihat
                                                     </a>" : '-';
                                                 $waktu_input_display = !empty($row['waktu_input']) ? date('H:i', strtotime($row['waktu_input'])) : '-';
@@ -394,7 +394,7 @@ $koneksi->close();
                                             };
                                             $keterangan_display_mobile = !empty($row_mobile['keterangan']) ? htmlspecialchars($row_mobile['keterangan']) : 'Tidak ada keterangan';
                                             $bukti_foto_display_mobile = !empty($row_mobile['bukti_foto']) ?
-                                                "<a href='#' class='btn btn-sm btn-outline-primary mt-2 view-image-btn' data-bs-toggle='modal' data-bs-target='#viewImageModal' data-image-url='../image_absensi/" . htmlspecialchars($row_mobile['bukti_foto']) . "'>
+                                                "<a href='#' class='btn btn-sm btn-outline-primary mt-2 view-image-btn' data-bs-toggle='modal' data-bs-target='#viewImageModal' data-image-url='image_absensi/" . htmlspecialchars($row_mobile['bukti_foto']) . "'>
                                                     <i class='bx bx-image'></i> Lihat Bukti
                                                 </a>" : 'Tidak ada bukti';
                                             $waktu_input_display_mobile = !empty($row_mobile['waktu_input']) ? date('H:i', strtotime($row_mobile['waktu_input'])) : '-';
