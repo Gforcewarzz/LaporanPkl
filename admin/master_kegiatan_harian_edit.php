@@ -150,7 +150,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                             <i class="bx bx-calendar me-1"></i> Hari/Tanggal Kegiatan:
                                         </label>
                                         <input type="date" class="form-control" id="tanggal_kegiatan" name="tanggal"
-                                            required value="<?php echo date('Y-m-d'); ?>" readonly>
+                                            required value="<?php echo date('Y-m-d'); ?>">
 
                                     </div>
 
