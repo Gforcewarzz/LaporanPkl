@@ -1,0 +1,36 @@
+
+Halaman Siswa :
+-Ketika edit jurnal Harian tanggal pengisian jurnal tidak usah di update ✅
+-Cetak PDF Jurnal Per Kegiatan siswa belum ada ✅
+
+
+Halaman Pembimbing :
+-Cetak PDF jurnal harian memakai rentang tanggal ✅
+-Cetak PDF Jurnal Per Kegiatan ✅
+
+---- in proccess ---- 
+
+-Menu Lembar Observasi yang di dalam halamannya ada
+-Download Format Lembar Observasi PKL sesuai format lampiran 4
+-Daftar siswa untuk di isi Nilai dan cetak Nilai sesuai format lampiraan 5
+
+---- ----- ---- -----
+
+Halaman Admin :
+
+-Master Data Siswa PKl pas cetak berdasarkan  pilihan kelas ✅
+-Master Data Tempat PKL Filed Kuota dan Jurusan hapus saja
+- Boleh di tampilkan menu lembar observasi siswa seperti tampilan pembimbing
+
+
+
+-Nama Kelas dan Jurusan sesuaikan dengan di bawah ini : ✅
+Kelas			Jurusan
+XII AK (1, 2, 3)	Akuntansi
+XII DKV	(1, 2)		Desain Komunikasi Visual
+XII DPIB (1, 2)		Desain Pemodelan dan Informasi Bangunan
+XII FI			Farmasi Industri
+XII RPL	(1, 2)		Rekayasa Perangkat Lunak
+XII TKR	(1, 2, 3)	Teknik Kendaraan Ringan
+XII TBKR		Teknik Bodi Kendaraan Ringan
+XII TP			Teknik Pengelasan
