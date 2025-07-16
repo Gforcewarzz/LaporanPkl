@@ -1,135 +1,154 @@
 <?php
-// Pastikan koneksi database tersedia
-include 'partials/db.php'; // Make sure this path is correct and db.php establishes $koneksi
+session_start();
+date_default_timezone_set('Asia/Jakarta'); // Pastikan zona waktu konsisten untuk cap waktu dan tanggal
 
-// Start the session (if not already started)
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
+// Sertakan file koneksi database
+include 'partials/db.php'; // Pastikan path ini benar dan $koneksi tersedia
 
-// Sertakan Dompdf Autoloader (sesuaikan path jika perlu)
-require_once 'vendor/autoload.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
-// --- Inisialisasi Peran Pengguna ---
+// --- LOGIKA KEAMANAN HALAMAN ---
 $is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
 $is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
 
-// --- Logika Keamanan: Redirect jika tidak ada peran yang diizinkan ---
+// Redirect jika tidak ada peran yang login
 if (!$is_siswa && !$is_admin && !$is_guru) {
     header('Location: ../login.php');
     exit();
 }
 
-// --- Inisialisasi Variabel Filter ---
+// --- INISIALISASI VARIABEL FILTER UNTUK QUERY SQL ---
 $id_siswa_filter = null;
 $guru_id_bimbingan = $_SESSION['id_guru_pendamping'] ?? null;
-$filter_keyword = "";
-$where_clauses = [];
-$params = [];
-$types = "";
 
-// --- Tentukan Kondisi WHERE Clause Berdasarkan Peran dan Parameter URL ---
+$where_clauses = []; // Array untuk menampung kondisi WHERE (e.g., "siswa_id = ?")
+$query_params = [];  // Array untuk menampung nilai parameter (e.g., $id_siswa_filter)
+$query_types = "";   // String untuk menampung tipe parameter (e.g., "isss")
+
+// Ambil nilai filter dari parameter URL (GET request)
+$keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
+$start_date = isset($_GET['start_date']) && !empty($_GET['start_date']) ? $_GET['start_date'] : '';
+$end_date = isset($_GET['end_date']) && !empty($_GET['end_date']) ? $_GET['end_date'] : '';
+
+// --- PENENTUAN HAK AKSES DAN FILTER UTAMA BERDASARKAN PERAN ---
 if ($is_siswa) {
+    // Siswa hanya bisa melihat data mereka sendiri
     $id_siswa_filter = $_SESSION['id_siswa'] ?? null;
     if ($id_siswa_filter) {
         $where_clauses[] = "jh.siswa_id = ?";
-        $params[] = $id_siswa_filter;
-        $types .= "i";
+        $query_params[] = $id_siswa_filter;
+        $query_types .= "i";
     }
 } elseif ($is_admin) {
-    // Admin bisa mencetak laporan siswa spesifik (jika ada siswa_id di URL)
+    // Admin bisa melihat semua atau spesifik siswa (jika siswa_id di URL)
     if (isset($_GET['siswa_id']) && !empty($_GET['siswa_id'])) {
         $id_siswa_filter = (int)$_GET['siswa_id'];
         $where_clauses[] = "jh.siswa_id = ?";
-        $params[] = $id_siswa_filter;
-        $types .= "i";
+        $query_params[] = $id_siswa_filter;
+        $query_types .= "i";
     }
-    // Jika tidak ada siswa_id di URL, admin melihat semua laporan (tidak perlu tambahan where_clause)
 } elseif ($is_guru) {
-    // Guru hanya bisa mencetak laporan siswa bimbingannya
+    // Guru hanya bisa melihat siswa bimbingannya
     if ($guru_id_bimbingan) {
         $where_clauses[] = "s.pembimbing_id = ?";
-        $params[] = $guru_id_bimbingan;
-        $types .= "i";
+        $query_params[] = $guru_id_bimbingan;
+        $query_types .= "i";
     }
-    // Jika guru ingin mencetak laporan siswa spesifik dari bimbingannya
+    // Jika guru ingin melihat siswa spesifik (dari bimbingannya)
     if (isset($_GET['siswa_id']) && !empty($_GET['siswa_id'])) {
         $id_siswa_filter = (int)$_GET['siswa_id'];
         $where_clauses[] = "jh.siswa_id = ?";
-        $params[] = $id_siswa_filter;
-        $types .= "i";
+        $query_params[] = $id_siswa_filter;
+        $query_types .= "i";
     }
 }
 
-// --- Tambahkan Filter Keyword jika ada ---
-if (isset($_GET['keyword']) && !empty($_GET['keyword'])) {
-    $keyword = trim($_GET['keyword']);
+// --- PENERAPAN FILTER KEYWORD (jika ada) ---
+if (!empty($keyword)) {
+    // Filter di kolom pekerjaan atau catatan
     $where_clauses[] = "(jh.pekerjaan LIKE ? OR jh.catatan LIKE ?)";
-    $params[] = "%" . $keyword . "%";
-    $params[] = "%" . $keyword . "%";
-    $types .= "ss";
+    $query_params[] = "%" . $keyword . "%";
+    $query_params[] = "%" . $keyword . "%";
+    $query_types .= "ss";
 }
 
-// --- Bangun Query Utama ---
-$query_base = "
-   SELECT
-    jh.id_jurnal_harian, jh.tanggal, jh.pekerjaan, jh.catatan,
-    s.nama_siswa, s.kelas, s.no_induk,
-    j.nama_jurusan, -- ← ini penting!
-    tp.nama_tempat_pkl, tp.nama_instruktur AS nama_instruktur_pkl,
-    gp.nama_pembimbing AS nama_guru_pembimbing
+// --- PENERAPAN FILTER RENTANG TANGGAL (jika ada) ---
+if (!empty($start_date)) {
+    $where_clauses[] = "jh.tanggal >= ?";
+    $query_params[] = $start_date;
+    $query_types .= "s";
+}
+if (!empty($end_date)) {
+    $where_clauses[] = "jh.tanggal <= ?";
+    $query_params[] = $end_date;
+    $query_types .= "s";
+}
 
-   FROM
-    jurnal_harian jh
-LEFT JOIN
-    siswa s ON jh.siswa_id = s.id_siswa
-LEFT JOIN
-    tempat_pkl tp ON s.tempat_pkl_id = tp.id_tempat_pkl
-LEFT JOIN
-    guru_pembimbing gp ON s.pembimbing_id = gp.id_pembimbing
-LEFT JOIN
-    jurusan j ON s.jurusan_id = j.id_jurusan
-";
+// --- BANGUN QUERY UTAMA UNTUK MENGAMBIL DATA LAPORAN ---
+$query_sql = "
+    SELECT
+        jh.id_jurnal_harian, jh.tanggal, jh.pekerjaan, jh.catatan,
+        s.nama_siswa, s.kelas, s.no_induk,
+        j.nama_jurusan,
+        tp.nama_tempat_pkl, tp.nama_instruktur AS nama_instruktur_pkl,
+        gp.nama_pembimbing AS nama_guru_pembimbing
+    FROM
+        jurnal_harian jh
+    LEFT JOIN
+        siswa s ON jh.siswa_id = s.id_siswa
+    LEFT JOIN
+        tempat_pkl tp ON s.tempat_pkl_id = tp.id_tempat_pkl
+    LEFT JOIN
+        guru_pembimbing gp ON s.pembimbing_id = gp.id_pembimbing
+    LEFT JOIN
+        jurusan j ON s.jurusan_id = j.id_jurusan";
 
-// Tambahkan WHERE clause
+// Tambahkan klausa WHERE jika ada filter
 if (!empty($where_clauses)) {
-    $query_base .= " WHERE " . implode(" AND ", $where_clauses);
+    $query_sql .= " WHERE " . implode(" AND ", $where_clauses);
 }
 
-$query_base .= " ORDER BY jh.tanggal DESC, jh.id_jurnal_harian DESC";
+// Urutkan data berdasarkan tanggal dan ID jurnal (ascending untuk laporan)
+$query_sql .= " ORDER BY jh.tanggal ASC, jh.id_jurnal_harian ASC";
 
-$stmt = $koneksi->prepare($query_base);
+$stmt = $koneksi->prepare($query_sql);
 
+// Cek jika prepared statement gagal
 if ($stmt === false) {
-    die("Error preparing statement: " . $koneksi->error);
+    error_log("Error preparing statement: " . $koneksi->error);
+    die("Terjadi kesalahan sistem saat menyiapkan laporan.");
 }
 
-// Bind parameter jika ada
-if (!empty($params)) {
-    $stmt->bind_param($types, ...$params);
+// Bind parameter ke prepared statement jika ada
+if (!empty($query_params)) {
+    // Menggunakan call_user_func_array untuk bind_param dengan array dinamis
+    $stmt->bind_param($query_types, ...$query_params);
 }
 
 $stmt->execute();
 $result = $stmt->get_result();
 $laporan_harian_data = []; // Inisialisasi array untuk menampung semua data laporan
+
+// Ambil semua hasil query
 if ($result) {
     while ($row = $result->fetch_assoc()) {
         $laporan_harian_data[] = $row;
     }
 }
-$stmt->close();
+$stmt->close(); // Tutup statement
 
-// --- Tentukan Info Header PDF Berdasarkan Data yang Diperoleh ---
+// --- Tentukan Informasi Header PDF (diambil dari data atau sesi) ---
 $nama_peserta_didik_header = '-';
 $dunia_kerja_tempat_pkl_header = '-';
 $nama_instruktur_header = '-';
 $nama_guru_pembimbing_header = '-';
+$info_tambahan_pdf = []; // Untuk menampilkan info filter di PDF
 
-// Jika ada data laporan, ambil info dari baris pertama (asumsi info header sama untuk semua baris)
+// Atur info header berdasarkan data yang diambil atau peran
 if (!empty($laporan_harian_data)) {
     $first_row = $laporan_harian_data[0];
     $nama_peserta_didik_header = htmlspecialchars($first_row['nama_siswa'] ?? '-');
@@ -137,26 +156,26 @@ if (!empty($laporan_harian_data)) {
     $nama_instruktur_header = htmlspecialchars($first_row['nama_instruktur_pkl'] ?? '-');
     $nama_guru_pembimbing_header = htmlspecialchars($first_row['nama_guru_pembimbing'] ?? '-');
 
-    // Jika admin melihat semua data, ubah nama peserta menjadi "Seluruh Siswa"
-    if ($is_admin && $id_siswa_filter === null) {
+    // Jika admin melihat semua data, ganti header spesifik siswa
+    if ($is_admin && !isset($_GET['siswa_id'])) {
         $nama_peserta_didik_header = 'Seluruh Siswa';
-        $dunia_kerja_tempat_pkl_header = 'Beragam'; // Atau biarkan kosong/default
-        $nama_instruktur_header = 'Beragam'; // Atau biarkan kosong/default
-        $nama_guru_pembimbing_header = 'Beragam'; // Atau biarkan kosong/default
-    } elseif ($is_guru && $id_siswa_filter === null) {
+        $dunia_kerja_tempat_pkl_header = 'Beragam';
+        $nama_instruktur_header = 'Beragam';
+        $nama_guru_pembimbing_header = 'Beragam';
+    } elseif ($is_guru && !isset($_GET['siswa_id'])) {
+        // Jika guru melihat semua siswa bimbingan
         $nama_peserta_didik_header = 'Siswa Bimbingan Anda';
-        $dunia_kerja_tempat_pkl_header = 'Beragam'; // Atau biarkan kosong/default
-        $nama_instruktur_header = 'Beragam'; // Atau biarkan kosong/default
+        $dunia_kerja_tempat_pkl_header = 'Beragam';
+        $nama_instruktur_header = 'Beragam';
     }
 } else {
-    // Jika tidak ada data ditemukan, sesuaikan header
-    if ($is_siswa) {
+    // Jika tidak ada data laporan, coba ambil info dasar dari sesi/database
+    if ($is_siswa && ($id_siswa = $_SESSION['id_siswa'] ?? null)) {
         $nama_peserta_didik_header = $_SESSION['siswa_nama'] ?? '-';
-        // Coba ambil detail PKL siswa jika tidak ada laporan
         $query_siswa_detail = "SELECT s.nama_siswa, tp.nama_tempat_pkl, tp.nama_instruktur AS nama_instruktur_pkl, gp.nama_pembimbing AS nama_guru_pembimbing FROM siswa s LEFT JOIN tempat_pkl tp ON s.tempat_pkl_id = tp.id_tempat_pkl LEFT JOIN guru_pembimbing gp ON s.pembimbing_id = gp.id_pembimbing WHERE s.id_siswa = ?";
         $stmt_siswa_detail = $koneksi->prepare($query_siswa_detail);
-        if ($stmt_siswa_detail && ($_SESSION['id_siswa'] ?? null)) {
-            $stmt_siswa_detail->bind_param("i", $_SESSION['id_siswa']);
+        if ($stmt_siswa_detail) {
+            $stmt_siswa_detail->bind_param("i", $id_siswa);
             $stmt_siswa_detail->execute();
             $res_siswa_detail = $stmt_siswa_detail->get_result()->fetch_assoc();
             $dunia_kerja_tempat_pkl_header = htmlspecialchars($res_siswa_detail['nama_tempat_pkl'] ?? '-');
@@ -164,38 +183,51 @@ if (!empty($laporan_harian_data)) {
             $nama_guru_pembimbing_header = htmlspecialchars($res_siswa_detail['nama_guru_pembimbing'] ?? '-');
             $stmt_siswa_detail->close();
         }
-    } elseif ($is_admin && $id_siswa_filter === null) {
-        $nama_peserta_didik_header = 'Seluruh Siswa (Tidak Ada Laporan)';
-    } elseif ($is_admin && $id_siswa_filter !== null) {
+    } elseif ($is_admin && isset($_GET['siswa_id']) && ($id_siswa_from_get = (int)$_GET['siswa_id'])) {
         $query_siswa_detail = "SELECT nama_siswa FROM siswa WHERE id_siswa = ?";
         $stmt_siswa_detail = $koneksi->prepare($query_siswa_detail);
-        if ($stmt_siswa_detail && $id_siswa_filter) {
-            $stmt_siswa_detail->bind_param("i", $id_siswa_filter);
+        if ($stmt_siswa_detail) {
+            $stmt_siswa_detail->bind_param("i", $id_siswa_from_get);
             $stmt_siswa_detail->execute();
             $res_siswa_detail = $stmt_siswa_detail->get_result()->fetch_assoc();
             $nama_peserta_didik_header = htmlspecialchars($res_siswa_detail['nama_siswa'] ?? '-') . ' (Tidak Ada Laporan)';
             $stmt_siswa_detail->close();
         }
-    } elseif ($is_guru && $id_siswa_filter === null) { // Guru melihat semua siswa bimbingan
-        $nama_peserta_didik_header = 'Siswa Bimbingan Anda (Tidak Ada Laporan)';
-    } elseif ($is_guru && $id_siswa_filter !== null) { // Guru melihat siswa bimbingan spesifik
+    } elseif ($is_guru && isset($_GET['siswa_id']) && ($id_siswa_from_get = (int)$_GET['siswa_id'])) {
         $query_siswa_detail = "SELECT nama_siswa FROM siswa WHERE id_siswa = ?";
         $stmt_siswa_detail = $koneksi->prepare($query_siswa_detail);
-        if ($stmt_siswa_detail && $id_siswa_filter) {
-            $stmt_siswa_detail->bind_param("i", $id_siswa_filter);
+        if ($stmt_siswa_detail) {
+            $stmt_siswa_detail->bind_param("i", $id_siswa_from_get);
             $stmt_siswa_detail->execute();
             $res_siswa_detail = $stmt_siswa_detail->get_result()->fetch_assoc();
             $nama_peserta_didik_header = htmlspecialchars($res_siswa_detail['nama_siswa'] ?? '-') . ' (Tidak Ada Laporan)';
             $stmt_siswa_detail->close();
         }
+    } else {
+        // Default jika tidak ada data dan tidak ada spesifik siswa
+        $nama_peserta_didik_header = 'Tidak Ada Data Laporan';
     }
 }
 
+// Tambahkan info filter ke header PDF
+if (!empty($keyword)) {
+    $info_tambahan_pdf[] = '<strong>Kata Kunci:</strong> "' . htmlspecialchars($keyword) . '"';
+}
+if (!empty($start_date) && !empty($end_date)) {
+    $info_tambahan_pdf[] = '<strong>Rentang Tanggal:</strong> ' . date('d F Y', strtotime($start_date)) . ' - ' . date('d F Y', strtotime($end_date));
+} elseif (!empty($start_date)) {
+    $info_tambahan_pdf[] = '<strong>Dari Tanggal:</strong> ' . date('d F Y', strtotime($start_date));
+} elseif (!empty($end_date)) {
+    $info_tambahan_pdf[] = '<strong>Sampai Tanggal:</strong> ' . date('d F Y', strtotime($end_date));
+}
 
-// --- Hasilkan Konten HTML untuk PDF ---
+
+$koneksi->close(); // Tutup koneksi database setelah semua data dan header disiapkan
+
+// --- GENERASI KONTEN HTML untuk PDF ---
 $html = '
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -203,8 +235,8 @@ $html = '
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 25px; /* Slightly larger margins for a formal look */
-            font-size: 9pt; /* Slightly larger base font */
+            margin: 25px; /* Sedikit lebih besar untuk tampilan formal */
+            font-size: 9pt; /* Ukuran font dasar */
             color: #333;
         }
         h1 {
@@ -233,7 +265,7 @@ $html = '
         }
         .header-info strong {
             display: inline-block;
-            width: 180px; /* Lebar tetap untuk teks label */
+            width: 180px; /* Lebar tetap untuk label */
             font-weight: bold;
             color: #555;
         }
@@ -289,21 +321,22 @@ $html = '
             <p><strong>Dunia Kerja Tempat PKL</strong> ' . $dunia_kerja_tempat_pkl_header . '</p>
             <p><strong>Nama Instruktur</strong> ' . $nama_instruktur_header . '</p>
             <p><strong>Nama Guru Pembimbing</strong> ' . $nama_guru_pembimbing_header . '</p>
+            ' . (!empty($info_tambahan_pdf) ? '<p>' . implode('<br>', $info_tambahan_pdf) . '</p>' : '') . '
         </div>
     </div>
 
     <table>
-    <thead>
-        <tr>
-            <th>No</th>
-            <th>Nama Siswa</th>
-            <th>Jurusan</th>
-            <th>Hari/Tanggal</th>
-            <th>Unit Kerja/Pekerjaan</th>
-            <th>Catatan*</th>
-        </tr>
-    </thead>
-    <tbody>';
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Nama Siswa</th>
+                <th>Jurusan</th>
+                <th>Hari/Tanggal</th>
+                <th>Unit Kerja/Pekerjaan</th>
+                <th>Catatan*</th>
+            </tr>
+        </thead>
+        <tbody>';
 
 $no = 1;
 if (!empty($laporan_harian_data)) {
@@ -322,11 +355,11 @@ if (!empty($laporan_harian_data)) {
 
         $html .= "<tr>
             <td>{$no}</td>
-            <td>" . htmlspecialchars($row['nama_siswa']) . "</td>
-            <td>" . htmlspecialchars($row['nama_jurusan']) . "</td>
+            <td>" . htmlspecialchars($row['nama_siswa'] ?? '-') . "</td>
+            <td>" . htmlspecialchars($row['nama_jurusan'] ?? '-') . "</td>
             <td>" . htmlspecialchars($formatted_date_id) . "</td>
-            <td>" . nl2br(htmlspecialchars($row['pekerjaan'])) . "</td>
-            <td>" . nl2br(htmlspecialchars($row['catatan'])) . "</td>
+            <td>" . nl2br(htmlspecialchars($row['pekerjaan'] ?? '-')) . "</td>
+            <td>" . nl2br(htmlspecialchars($row['catatan'] ?? '-')) . "</td>
           </tr>";
         $no++;
     }
@@ -348,33 +381,32 @@ $html .= '
 </body>
 </html>';
 
-// --- INISIALISASI DOMPDF DISINI, SETELAH SEMUA HTML SIAP ---
-// Inisiasi Dompdf dengan opsi
+// --- INISIALISASI DOMPDF DAN GENERASI PDF ---
 $options = new Options();
 $options->set('isHtml5ParserEnabled', true);
-$options->set('isRemoteEnabled', true); // Aktifkan jika ada gambar eksternal atau CSS
-$options->set('defaultFont', 'Arial'); // Set a default font
+$options->set('isRemoteEnabled', true); // Aktifkan jika Anda punya gambar/CSS dari URL
+$options->set('defaultFont', 'Arial'); // Atur font default
 
-// Jika gambar Anda ada di folder 'images' yang relatif terhadap generate_laporan_harian_pdf.php
-// Pastikan path ini benar agar gambar bisa dimuat di PDF
-// Misalnya, jika 'images' ada di folder yang sama dengan file PDF ini (admin/)
+// Set base path untuk memuat sumber daya relatif (misal: gambar di folder yang sama)
+// __DIR__ adalah direktori tempat file PHP saat ini berada
 $options->set('chroot', realpath(__DIR__));
 
-
 $dompdf = new Dompdf($options);
-
-
-// Muat HTML ke Dompdf
 $dompdf->loadHtml($html);
-
-// (Opsional) Atur ukuran dan orientasi kertas
-$dompdf->setPaper('A4', 'portrait');
-
-// Render HTML sebagai PDF
+$dompdf->setPaper('A4', 'portrait'); // Ukuran kertas A4, orientasi portrait
 $dompdf->render();
 
-// Keluarkan PDF yang dihasilkan ke Browser (untuk preview di tab baru)
-$dompdf->stream("jurnal_kegiatan_pkl_harian.pdf", array("Attachment" => false));
+// --- OUTPUT PDF ---
+$filename = "Jurnal_Kegiatan_PKL_Harian_" . date('Ymd_His');
+if (!empty($id_siswa_filter)) {
+    $filename .= "_Siswa_" . $id_siswa_filter;
+}
+if (!empty($start_date) || !empty($end_date)) {
+    $filename .= "_Periode";
+    if (!empty($start_date)) $filename .= "_" . str_replace('-', '', $start_date);
+    if (!empty($end_date)) $filename .= "_" . str_replace('-', '', $end_date);
+}
+$filename .= ".pdf";
 
-// Tutup koneksi database
-mysqli_close($koneksi);
+$dompdf->stream($filename, ["Attachment" => false]); // Tampilkan di browser, tidak langsung diunduh
+exit();
