@@ -51,33 +51,36 @@ $result = mysqli_query($koneksi, $query);
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <title>Proses Tambah Tempat PKL</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
+
 <body>
-<?php if ($result): ?>
-<script>
-    Swal.fire({
-        icon: 'success',
-        title: 'Berhasil!',
-        text: 'Data tempat PKL berhasil ditambahkan.',
-        confirmButtonText: 'OK'
-    }).then(() => {
-        window.location.href = 'master_tempat_pkl.php';
-    });
-</script>
-<?php else: ?>
-<script>
-    Swal.fire({
-        icon: 'error',
-        title: 'Gagal!',
-        html: 'Data gagal disimpan.<br><?= addslashes(mysqli_error($koneksi)) ?>',
-        confirmButtonText: 'Kembali'
-    }).then(() => {
-        window.history.back();
-    });
-</script>
-<?php endif; ?>
+    <?php if ($result): ?>
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: 'Data tempat PKL berhasil ditambahkan.',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                window.location.href = 'master_tempat_pkl.php';
+            });
+        </script>
+    <?php else: ?>
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                html: 'Data gagal disimpan.<br><?= addslashes(mysqli_error($koneksi)) ?>',
+                confirmButtonText: 'Kembali'
+            }).then(() => {
+                window.history.back();
+            });
+        </script>
+    <?php endif; ?>
 </body>
+
 </html>

@@ -53,33 +53,36 @@ $hapus = mysqli_query($koneksi, "DELETE FROM tempat_pkl WHERE id_tempat_pkl = '$
 ?>
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Hapus Tempat PKL</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
+
 <body>
-<?php if ($hapus): ?>
-    <script>
-        Swal.fire({
-            title: 'Berhasil Dihapus!',
-            text: 'Data tempat PKL telah dihapus.',
-            icon: 'success',
-            confirmButtonText: 'OK'
-        }).then(() => {
-            window.location.href = 'master_tempat_pkl.php';
-        });
-    </script>
-<?php else: ?>
-    <script>
-        Swal.fire({
-            title: 'Gagal Menghapus!',
-            text: 'Terjadi kesalahan: <?= mysqli_error($koneksi) ?>',
-            icon: 'error',
-            confirmButtonText: 'Kembali'
-        }).then(() => {
-            window.location.href = 'master_tempat_pkl.php';
-        });
-    </script>
-<?php endif; ?>
+    <?php if ($hapus): ?>
+        <script>
+            Swal.fire({
+                title: 'Berhasil Dihapus!',
+                text: 'Data tempat PKL telah dihapus.',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                window.location.href = 'master_tempat_pkl.php';
+            });
+        </script>
+    <?php else: ?>
+        <script>
+            Swal.fire({
+                title: 'Gagal Menghapus!',
+                text: 'Terjadi kesalahan: <?= mysqli_error($koneksi) ?>',
+                icon: 'error',
+                confirmButtonText: 'Kembali'
+            }).then(() => {
+                window.location.href = 'master_tempat_pkl.php';
+            });
+        </script>
+    <?php endif; ?>
 </body>
+
 </html>
