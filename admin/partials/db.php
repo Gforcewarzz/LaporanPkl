@@ -1,7 +1,7 @@
 <?php
 $host = "localhost";
-$user = "u673945095_pkl";
-$password = "1n1P@ssw0rd";
+$user = "root";
+$password = "";
 $database = "u673945095_db_laporanpkl";
 
 // Membuat koneksi
