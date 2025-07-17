@@ -1,7 +1,7 @@
 <?php
 session_start();
 // Pastikan path ini benar menuju file koneksi database Anda
-include 'admin/partials/db.php'; 
+include 'admin/partials/db.php';
 
 // Jika akses bukan melalui metode POST, hentikan dan kembalikan ke form
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -48,7 +48,6 @@ switch ($role_selected) {
 }
 
 // 3. Gunakan Prepared Statement untuk mencari pengguna dengan aman
-// Mengambil semua kolom yang dibutuhkan sekaligus
 $stmt = mysqli_prepare($koneksi, "SELECT $id_column, $name_column, password FROM $table_name WHERE $identifier_column = ?");
 
 if ($stmt) {
@@ -61,25 +60,23 @@ if ($stmt) {
     // 4. Verifikasi pengguna dan password
     if ($user_data && password_verify($password_input, $user_data['password'])) {
         // --- LOGIN BERHASIL ---
-        
-        // Atur sesi umum
+
+        // PENTING: ATUR VARIABEL SESI UNIVERSAL INI UNTUK SEMUA PERAN
+        $_SESSION['user_id'] = $user_data[$id_column];
         $_SESSION['user_role'] = $role_selected;
-        
-        // Atur sesi spesifik berdasarkan peran
+        $_SESSION['user_name'] = $user_data[$name_column];
+
+        // Atur sesi spesifik yang mungkin masih digunakan di beberapa tempat
         if ($role_selected === 'admin') {
             $_SESSION['admin_status_login'] = 'logged_in';
-            $_SESSION['admin'] = 'login';
-            $_SESSION['user_id'] = $user_data[$id_column];
-            $_SESSION['user_name'] = $user_data[$name_column]; // Nama admin
+            $_SESSION['admin'] = 'login'; // Pertahankan jika masih digunakan di tempat lain
         } elseif ($role_selected === 'guru_pendamping') {
             $_SESSION['guru_pendamping_status_login'] = 'logged_in';
-            $_SESSION['guru_pendamping'] = 'login';
-            
-            // [PERBAIKAN 1] Ambil nilai ID guru dari array $user_data, bukan dari variabel $id_column
-            $_SESSION['id_guru_pendamping'] = $user_data[$id_column]; 
+            $_SESSION['guru_pendamping'] = 'login'; // Pertahankan jika masih digunakan di tempat lain
 
-            // [PERBAIKAN 2] Atur juga nama guru agar tampil di dasbornya, sesuai dengan yg diharapkan oleh dashboard_guru.php
-            $_SESSION['nama_guru'] = $user_data[$name_column]; 
+            // Variabel sesi spesifik guru (pertahankan jika masih digunakan)
+            $_SESSION['id_guru_pendamping'] = $user_data[$id_column];
+            $_SESSION['nama_guru'] = $user_data[$name_column];
         }
 
         // Tutup koneksi dan alihkan ke dashboard yang sesuai

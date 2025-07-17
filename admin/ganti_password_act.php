@@ -1,5 +1,5 @@
 <?php
-session_start(); // Pastikan session dimulai PALING AWAL di setiap skrip yang menggunakan sesi
+session_start(); // Pastikan session dimulai paling awal di setiap skrip yang menggunakan sesi
 
 // Pastikan path ke db.php benar relatif dari lokasi file ini
 include 'partials/db.php'; // File ini diharapkan menginisialisasi $koneksi
@@ -7,7 +7,7 @@ include 'partials/db.php'; // File ini diharapkan menginisialisasi $koneksi
 // --- DEBUGGING MODE KONFIGURASI ---
 // Ubah ke TRUE untuk melihat output debugging di browser.
 // Ubah ke FALSE saat kode sudah siap untuk produksi.
-const DEBUG_MODE = true; // <--- TETAPKAN INI TRUE UNTUK DEBUGGING
+const DEBUG_MODE = false; // <--- SUDAH DIUBAH MENJADI FALSE
 
 if (DEBUG_MODE) {
     error_reporting(E_ALL); // Laporkan semua error PHP
@@ -15,43 +15,18 @@ if (DEBUG_MODE) {
     echo "<h3>[DEBUG] ganti_password_act.php - Mulai Eksekusi</h3>";
     echo "Metode Request: " . htmlspecialchars($_SERVER['REQUEST_METHOD']) . "<br>";
     echo "POST Data Diterima: <pre>" . htmlspecialchars(print_r($_POST, true)) . "</pre><br>";
-    echo "Sesi Global (\\$_SESSION) Saat Ini: <pre>" . htmlspecialchars(print_r($_SESSION, true)) . "</pre><br>";
+    echo "Sesi Global (\$_SESSION) Saat Ini: <pre>" . htmlspecialchars(print_r($_SESSION, true)) . "</pre><br>";
     echo "<hr>";
 }
 // --- AKHIR DEBUGGING MODE KONFIGURASI ---
 
 
-// --- Ambil data sesi universal dari pengguna yang sedang login ---
-// Logika yang lebih fleksibel untuk memastikan user_id dan user_role terbaca dari sesi mana pun
-$loggedInUserId = null;
-$loggedInUserRole = null;
-$loggedInUserName = null; // Tambahkan ini untuk debugging
+// Ambil data sesi universal dari pengguna yang sedang login
+// Variabel-variabel ini harus diatur secara konsisten di semua alur login Anda (admin, guru, siswa).
+$loggedInUserId = $_SESSION['user_id'] ?? null;
+$loggedInUserRole = $_SESSION['user_role'] ?? null;
 
-// Prioritas 1: Sesi universal sudah ada (ideal)
-if (isset($_SESSION['user_id']) && isset($_SESSION['user_role'])) {
-    $loggedInUserId = $_SESSION['user_id'];
-    $loggedInUserRole = $_SESSION['user_role'];
-    $loggedInUserName = $_SESSION['user_name'] ?? 'Pengguna';
-}
-// Prioritas 2: Fallback ke sesi spesifik peran jika sesi universal tidak ada
-else {
-    if (isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in') {
-        $loggedInUserId = $_SESSION['id_admin'] ?? null;
-        $loggedInUserRole = 'admin';
-        $loggedInUserName = $_SESSION['nama_admin'] ?? 'Admin';
-    } elseif (isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in') {
-        $loggedInUserId = $_SESSION['id_guru_pendamping'] ?? null; // Cek ini!
-        $loggedInUserRole = 'guru_pendamping';
-        $loggedInUserName = $_SESSION['nama_guru'] ?? 'Guru'; // Cek ini!
-    } elseif (isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in') {
-        $loggedInUserId = $_SESSION['id_siswa'] ?? null;
-        $loggedInUserRole = 'siswa';
-        $loggedInUserName = $_SESSION['siswa_nama'] ?? 'Siswa';
-    }
-}
-
-
-// --- Ambil data dari form POST ---
+// Ambil data dari form POST (data dari hidden input dan field password)
 $form_user_id = $_POST['user_id'] ?? '';
 $form_user_role = $_POST['user_role'] ?? '';
 $current_password = $_POST['current_password'] ?? '';
@@ -64,14 +39,13 @@ $message_type = '';
 $message_title = '';
 
 if (DEBUG_MODE) {
-    echo "Variabel Sesi Setelah Inisialisasi Fleksibel:<br>";
+    echo "Variabel Sesi Diambil:<br>";
     echo "  \$loggedInUserId: " . htmlspecialchars(var_export($loggedInUserId, true)) . " (Tipe: " . gettype($loggedInUserId) . ")<br>";
     echo "  \$loggedInUserRole: " . htmlspecialchars(var_export($loggedInUserRole, true)) . " (Tipe: " . gettype($loggedInUserRole) . ")<br>";
-    echo "  \$loggedInUserName: " . htmlspecialchars(var_export($loggedInUserName, true)) . " (Tipe: " . gettype($loggedInUserName) . ")<br>";
     echo "Variabel Form Diambil:<br>";
     echo "  \$form_user_id: " . htmlspecialchars(var_export($form_user_id, true)) . " (Tipe: " . gettype($form_user_id) . ")<br>";
     echo "  \$form_user_role: " . htmlspecialchars(var_export($form_user_role, true)) . " (Tipe: " . gettype($form_user_role) . ")<br>";
-    echo "<hr>Validasi Akses dan Sesi Awal:<br>";
+    echo "<hr>";
 }
 
 // --- A. VALIDASI AKSES AWAL & SESI UTAMA ---
@@ -134,7 +108,8 @@ elseif (strlen($new_password) < 6) {
 }
 // --- Jika semua validasi di atas lolos, lanjutkan ke proses database ---
 else {
-    // Tentukan nama tabel database dan kolom ID yang sesuai berdasarkan peran pengguna yang sedang login (dari sesi).
+    // Tentukan nama tabel database dan kolom ID yang sesuai
+    // Berdasarkan peran pengguna yang sedang login (dari sesi).
     $table_name = '';
     $id_column = '';
     $password_column = 'password'; // Asumsi nama kolom password adalah 'password' di semua tabel
@@ -248,10 +223,11 @@ $_SESSION['ganti_password_message_title'] = $message_title;
 
 mysqli_close($koneksi); // Tutup koneksi database
 
+// Jika DEBUG_MODE aktif, skrip akan berhenti di sini dan tidak melakukan redirect
 if (DEBUG_MODE) {
     echo "<hr>[DEBUG] Pesan Disimpan ke Sesi: <pre>" . htmlspecialchars(print_r($_SESSION, true)) . "</pre>";
     echo "Redirecting to ganti_password.php... (Skrip berhenti di sini jika DEBUG_MODE aktif)";
-    exit(); // Hentikan eksekusi jika DEBUG_MODE aktif agar Anda bisa melihat output
+    exit();
 }
 
 header('Location: ganti_password.php'); // REDIRECT UTAMA KEMBALI KE HALAMAN FORM GANTI PASSWORD
