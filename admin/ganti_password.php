@@ -1,5 +1,5 @@
 <?php
-session_start(); // Pastikan session sudah dimulai
+session_start(); // Pastikan session sudah dimulai paling awal
 
 // Pastikan path ke db.php benar relatif dari lokasi file ini
 include 'partials/db.php';
@@ -19,29 +19,32 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['user_role'])) {
 } else {
     // Fallback/kompatibilitas dengan setup sesi lama jika sesi universal belum diterapkan konsisten
     // Admin
-    if (isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in' && isset($_SESSION['id_admin'])) {
-        $loggedInUserId = $_SESSION['id_admin']; // Asumsi id_admin adalah id universal untuk admin
+    if (isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in') {
+        $loggedInUserId = $_SESSION['id_admin'] ?? null;
         $loggedInUserRole = 'admin';
-        $loggedInUserName = $_SESSION['nama_admin'] ?? 'Admin'; // Asumsi nama admin ada di sini
+        $loggedInUserName = $_SESSION['nama_admin'] ?? 'Admin';
     }
     // Guru Pendamping
-    elseif (isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in' && isset($_SESSION['id_guru_pendamping'])) {
-        $loggedInUserId = $_SESSION['id_guru_pendamping']; // Asumsi id_guru_pendamping adalah id universal untuk guru
+    elseif (isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in') {
+        $loggedInUserId = $_SESSION['id_guru_pendamping'] ?? null; // Cek ini! Pastikan ID guru ada di sesi ini
         $loggedInUserRole = 'guru_pendamping';
-        $loggedInUserName = $_SESSION['nama_guru'] ?? 'Guru'; // Asumsi nama guru ada di sini
+        $loggedInUserName = $_SESSION['nama_guru'] ?? 'Guru'; // Cek ini! Pastikan nama guru ada di sesi ini
     }
     // Siswa
-    elseif (isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in' && isset($_SESSION['id_siswa'])) {
-        $loggedInUserId = $_SESSION['id_siswa']; // Asumsi id_siswa adalah id universal untuk siswa
+    elseif (isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in') {
+        $loggedInUserId = $_SESSION['id_siswa'] ?? null;
         $loggedInUserRole = 'siswa';
-        $loggedInUserName = $_SESSION['siswa_nama'] ?? 'Siswa'; // Asumsi nama siswa ada di sini
+        $loggedInUserName = $_SESSION['siswa_nama'] ?? 'Siswa';
     }
 }
 
-
-// Verifikasi apakah ada user yang login (setelah mencoba semua kemungkinan sesi)
+// Verifikasi akhir: Jika masih belum ada ID atau peran, redirect ke login
 if (!$loggedInUserId || !$loggedInUserRole) {
-    header('Location: login.php'); // Redirect ke halaman login jika belum login
+    // Set pesan alert untuk login agar lebih jelas
+    $_SESSION['ganti_password_message'] = 'Sesi Anda tidak valid. Silakan login kembali.';
+    $_SESSION['ganti_password_message_type'] = 'error';
+    $_SESSION['ganti_password_message_title'] = 'Sesi Tidak Ditemukan!';
+    header('Location: login.php'); // Sesuaikan ke halaman login utama Anda
     exit();
 }
 
@@ -58,14 +61,14 @@ switch ($loggedInUserRole) {
         $formTitle .= " Admin";
         break;
     default:
-        $formTitle .= " Pengguna"; // Fallback jika peran tidak dikenali
+        $formTitle .= " Pengguna";
         break;
 }
 
 // Ambil pesan notifikasi (misal dari ganti_password_act.php) dari session
 $message = $_SESSION['ganti_password_message'] ?? '';
 $message_type = $_SESSION['ganti_password_message_type'] ?? '';
-$message_title_swal = $_SESSION['ganti_password_message_title'] ?? ''; // Ambil juga judul SweetAlert
+$message_title_swal = $_SESSION['ganti_password_message_title'] ?? '';
 
 // Hapus pesan dari session agar tidak muncul lagi setelah refresh halaman
 unset($_SESSION['ganti_password_message']);
