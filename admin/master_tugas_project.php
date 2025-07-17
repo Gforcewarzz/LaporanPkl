@@ -4,40 +4,35 @@ session_start();
 include 'partials/db.php'; // Ensure this path is correct and db.php establishes $koneksi
 
 // --- PAGE SECURITY LOGIC ---
-
 $is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
 $is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
 
-// Redirect if no authorized role is logged in
 if (!$is_siswa && !$is_admin && !$is_guru) {
     header('Location: ../login.php');
     exit();
 }
 
 // --- INITIALIZE FILTERS AND DISPLAY NAMES ---
-
 $current_siswa_id_filter = null;
 $display_siswa_name = "";
-$guru_session_id = $_SESSION['id_guru_pendamping'] ?? null; // Get supervisor ID from session if available
+$guru_session_id = $_SESSION['id_guru_pendamping'] ?? null;
 
-// Parameters for building WHERE clauses
 $queryParams = [];
 $queryTypes = "";
 $whereClauses = [];
 
-// Get keyword from GET request, trim whitespace
 $keyword = trim($_GET['keyword'] ?? '');
 
-// Function to build URL query strings, useful for pagination and actions
-function buildUrlQuery(array $paramsToKeep = []): string
+// Helper function to build URL query strings
+function buildUrlQuery(array $paramsToOverride = []): string
 {
     $currentParams = $_GET;
-    // Add or override parameters with new values
-    foreach ($paramsToKeep as $key => $value) {
+    // Merge current GET params with any overrides
+    foreach ($paramsToOverride as $key => $value) {
         $currentParams[$key] = $value;
     }
-    // Remove 'page' parameter if it's the first page (cleaner URLs)
+    // Remove 'page' if it's 1 for cleaner URLs
     if (isset($currentParams['page']) && $currentParams['page'] <= 1) {
         unset($currentParams['page']);
     }
@@ -45,7 +40,6 @@ function buildUrlQuery(array $paramsToKeep = []): string
 }
 
 // --- DETERMINE FILTERS BASED ON USER ROLE AND URL PARAMETERS ---
-
 if ($is_siswa) {
     $current_siswa_id_filter = $_SESSION['id_siswa'] ?? null;
     $display_siswa_name = $_SESSION['siswa_nama'] ?? "Saya";
@@ -61,7 +55,6 @@ if ($is_siswa) {
         $queryParams[] = $current_siswa_id_filter;
         $queryTypes .= "i";
 
-        // Fetch student name for display
         $stmt_get_siswa_name = $koneksi->prepare("SELECT nama_siswa FROM siswa WHERE id_siswa = ?");
         if ($stmt_get_siswa_name) {
             $stmt_get_siswa_name->bind_param("i", $current_siswa_id_filter);
@@ -81,7 +74,6 @@ if ($is_siswa) {
         $display_siswa_name = "Seluruh Siswa";
     }
 } elseif ($is_guru) {
-    // If a supervisor is logged in, filter by their supervised students
     if ($guru_session_id !== null) {
         $whereClauses[] = "s.pembimbing_id = ?";
         $queryParams[] = $guru_session_id;
@@ -91,10 +83,8 @@ if ($is_siswa) {
         $display_siswa_name = "Siswa Bimbingan (ID Guru Tidak Ditemukan)";
     }
 
-    // If supervisor views a specific student via GET, add student_id filter
     if (isset($_GET['siswa_id']) && !empty($_GET['siswa_id'])) {
         $temp_siswa_id_from_get = (int)$_GET['siswa_id'];
-        // Security check: Ensure the student ID belongs to this supervisor
         $stmt_check_siswa_ownership = $koneksi->prepare("SELECT 1 FROM siswa WHERE id_siswa = ? AND pembimbing_id = ?");
         if ($stmt_check_siswa_ownership) {
             $stmt_check_siswa_ownership->bind_param("ii", $temp_siswa_id_from_get, $guru_session_id);
@@ -103,7 +93,6 @@ if ($is_siswa) {
                 $whereClauses[] = "jk.siswa_id = ?";
                 $queryParams[] = $temp_siswa_id_from_get;
                 $queryTypes .= "i";
-                // Fetch student name for display
                 $stmt_get_siswa_name_guru_view = $koneksi->prepare("SELECT nama_siswa FROM siswa WHERE id_siswa = ?");
                 if ($stmt_get_siswa_name_guru_view) {
                     $stmt_get_siswa_name_guru_view->bind_param("i", $temp_siswa_id_from_get);
@@ -115,8 +104,7 @@ if ($is_siswa) {
                     $stmt_get_siswa_name_guru_view->close();
                 }
             } else {
-                // If student doesn't belong to this supervisor, clear filter and log
-                $temp_siswa_id_from_get = null; // Clear filter to prevent showing wrong data
+                $temp_siswa_id_from_get = null;
                 error_log("Security alert: Guru (ID: $guru_session_id) attempted to view unauthorized siswa ID: " . $_GET['siswa_id']);
             }
             $stmt_check_siswa_ownership->close();
@@ -124,29 +112,28 @@ if ($is_siswa) {
     }
 }
 
-// Add keyword filter if present
+// Add universal keyword filter
 if (!empty($keyword)) {
-    $whereClauses[] = "(jk.nama_pekerjaan LIKE ? OR jk.perencanaan_kegiatan LIKE ? OR jk.pelaksanaan_kegiatan LIKE ? OR jk.catatan_instruktur LIKE ?)";
+    // Add filtering on new columns
+    $whereClauses[] = "(jk.nama_pekerjaan LIKE ? OR jk.perencanaan_kegiatan LIKE ? OR jk.pelaksanaan_kegiatan LIKE ? OR jk.catatan_instruktur LIKE ? OR s.nama_siswa LIKE ?)";
     $queryParams[] = "%" . $keyword . "%";
     $queryParams[] = "%" . $keyword . "%";
     $queryParams[] = "%" . $keyword . "%";
     $queryParams[] = "%" . $keyword . "%";
-    $queryTypes .= "ssss";
+    $queryParams[] = "%" . $keyword . "%";
+    $queryTypes .= "sssss"; // 5 's' for 5 string parameters
 }
 
-// Construct the WHERE clause part of the SQL query
 $whereSql = "";
 if (!empty($whereClauses)) {
     $whereSql = " WHERE " . implode(" AND ", $whereClauses);
 }
 
 // --- PAGINATION LOGIC ---
-
 $records_per_page = 10;
 $current_page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($current_page - 1) * $records_per_page;
 
-// Query to get total records for pagination
 $sql_total_records = "SELECT COUNT(*) as total_records
                       FROM jurnal_kegiatan jk
                       LEFT JOIN siswa s ON jk.siswa_id = s.id_siswa" . $whereSql;
@@ -157,8 +144,7 @@ if ($stmt_total) {
         $stmt_total->bind_param($queryTypes, ...$queryParams);
     }
     $stmt_total->execute();
-    $result_total = $stmt_total->get_result();
-    $total_records = $result_total->fetch_assoc()['total_records'];
+    $total_records = $stmt_total->get_result()->fetch_assoc()['total_records'];
     $stmt_total->close();
 } else {
     error_log("Failed to prepare total records statement: " . $koneksi->error);
@@ -167,7 +153,6 @@ if ($stmt_total) {
 $total_pages = ceil($total_records / $records_per_page);
 
 // --- MAIN DATA QUERY ---
-
 $sql_project_journals = "SELECT jk.id_jurnal_kegiatan, jk.nama_pekerjaan, jk.perencanaan_kegiatan, 
                          jk.pelaksanaan_kegiatan, jk.catatan_instruktur, jk.gambar, 
                          jk.tanggal_laporan, jk.siswa_id, s.nama_siswa
@@ -239,11 +224,11 @@ $koneksi->close();
                                                 if ($is_siswa) {
                                                     echo 'dashboard_siswa.php';
                                                 } elseif ($is_admin) {
-                                                    echo 'admin/dashboard_admin.php'; // Back to admin dashboard
+                                                    echo 'admin/index.php'; // Corrected path for admin dashboard
                                                 } elseif ($is_guru) {
-                                                    echo 'dashboard_guru.php'; // Back to guru dashboard
+                                                    echo 'dashboard_guru.php';
                                                 } else {
-                                                    echo 'index.php'; // Fallback
+                                                    echo 'index.php';
                                                 }
                                                 ?>"
                                         class="btn btn-outline-secondary w-100 animate__animated animate__fadeInUp animate__delay-0-2s">
@@ -258,7 +243,7 @@ $koneksi->close();
                                 <form method="GET" action="">
                                     <div class="input-group">
                                         <input type="text" class="form-control" name="keyword"
-                                            placeholder="Cari laporan berdasarkan nama proyek..."
+                                            placeholder="Cari laporan (pekerjaan, perencanaan, pelaksanaan, catatan instruktur, nama siswa)..."
                                             value="<?= htmlspecialchars($keyword) ?>">
                                         <?php if ($is_admin && !empty($current_siswa_id_filter)): ?>
                                         <input type="hidden" name="siswa_id"
@@ -275,6 +260,10 @@ $koneksi->close();
                                         <button class="btn btn-primary" type="submit">
                                             <i class="bx bx-search"></i> Cari
                                         </button>
+                                        <a href="master_tugas_project.php<?= buildUrlQuery(['keyword' => null, 'page' => null]) ?>"
+                                            class="btn btn-outline-secondary">
+                                            <i class="bx bx-reset"></i> Reset
+                                        </a>
                                     </div>
                                 </form>
                             </div>
@@ -336,7 +325,6 @@ $koneksi->close();
                                                 </td>
                                                 <td><?= htmlspecialchars(mb_strimwidth($journal['catatan_instruktur'] ?? '', 0, 50, "...")) ?>
                                                 </td>
-
                                                 <td>
                                                     <div class="dropdown">
                                                         <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -391,14 +379,12 @@ $koneksi->close();
                                                             href="master_tugas_project_edit.php?id=<?= $journal['id_jurnal_kegiatan'] ?>">
                                                             <i class="bx bx-edit-alt me-1"></i> Edit
                                                         </a>
-                                                        <?php if ($is_siswa || $is_admin): // Only students and admins can delete 
-                                                                ?>
+                                                        <?php if ($is_siswa || $is_admin): ?>
                                                         <a class="dropdown-item text-danger" href="javascript:void(0);"
                                                             onclick="confirmDeleteProjectJournal('<?= $journal['id_jurnal_kegiatan'] ?>', '<?= htmlspecialchars(addslashes($journal['nama_pekerjaan'])) ?>')">
                                                             <i class="bx bx-trash me-1"></i> Hapus
                                                         </a>
                                                         <?php endif; ?>
-                                                        <div class="dropdown-divider"></div>
                                                         <a class="dropdown-item"
                                                             href="master_tugas_project_print.php?id=<?= $journal['id_jurnal_kegiatan'] ?>"
                                                             target="_blank">
@@ -476,11 +462,10 @@ $koneksi->close();
                                             </a>
                                         </li>
                                         <?php
-                                            $num_links = 5; // Number of page numbers to display
+                                            $num_links = 5;
                                             $start_page = max(1, $current_page - floor($num_links / 2));
                                             $end_page = min($total_pages, $current_page + floor($num_links / 2));
 
-                                            // Adjust range to ensure $num_links are always displayed if possible
                                             if ($end_page - $start_page + 1 < $num_links) {
                                                 if ($start_page == 1) {
                                                     $end_page = min($total_pages, $num_links);
@@ -489,7 +474,6 @@ $koneksi->close();
                                                 }
                                             }
 
-                                            // Ensure "1" is always shown if not in the range
                                             if ($start_page > 1) {
                                                 echo '<li class="page-item"><a class="page-link" href="' . buildUrlQuery(['page' => 1]) . '">1</a></li>';
                                                 if ($start_page > 2) {
@@ -504,7 +488,6 @@ $koneksi->close();
                                         </li>
                                         <?php endfor;
 
-                                            // Ensure last page is always shown if not in the range
                                             if ($end_page < $total_pages) {
                                                 if ($end_page < $total_pages - 1) {
                                                     echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
@@ -550,13 +533,14 @@ $koneksi->close();
             reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
-                let currentUrl = new URL(window.location.href);
                 let deleteUrl = 'master_tugas_project_delete.php?id=' + id;
 
-                // Pass current GET parameters as redirect parameters
-                currentUrl.searchParams.forEach((value, key) => {
-                    if (key !== 'id') { // Exclude the ID being deleted
-                        deleteUrl += '&redirect_' + key + '=' + value;
+                // Dynamically append all current GET parameters (excluding 'id')
+                let currentUrlParams = new URLSearchParams(window.location.search);
+                currentUrlParams.forEach((value, key) => {
+                    if (key !==
+                        'id') { // Ensure the 'id' of the current page is not passed as redirect_id
+                        deleteUrl += '&redirect_' + key + '=' + encodeURIComponent(value);
                     }
                 });
                 window.location.href = deleteUrl;

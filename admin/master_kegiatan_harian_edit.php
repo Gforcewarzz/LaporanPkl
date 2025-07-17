@@ -1,13 +1,13 @@
 <?php
 session_start();
-include 'partials/db.php';
+include 'partials/db.php'; // Pastikan path ini benar dan $koneksi terdefinisi
 
 $is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
 $is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
 
+// Security check: Guru cannot access this page directly if not an admin or student
 if (!$is_siswa && !$is_admin) {
-
     if ($is_guru) {
         header('Location: ../halaman_guru.php'); // Redirect guru ke halaman guru
         exit();
@@ -17,25 +17,26 @@ if (!$is_siswa && !$is_admin) {
     }
 }
 
-
 // Ambil ID laporan yang akan diedit dari URL
 $id_jurnal_harian = $_GET['id'] ?? null;
 
+// Jika tidak ada ID laporan, redirect atau tampilkan error
 if (empty($id_jurnal_harian)) {
-    // Jika tidak ada ID laporan, redirect atau tampilkan error
-    header('Location: master_kegiatan_harian.php'); // Atau halaman error
+    // Redirect ke halaman master laporan harian jika ID tidak ada
+    header('Location: master_kegiatan_harian.php');
     exit();
 }
 
-// Ambil data laporan dari database
+// Ambil data laporan dari database berdasarkan id_jurnal_harian
+// Sesuaikan nama kolom jika berbeda (misal: 'id_jurnal_harian' bukan 'id_jurnal')
 $query_laporan = "SELECT id_jurnal_harian, tanggal, pekerjaan, catatan, siswa_id FROM jurnal_harian WHERE id_jurnal_harian = ?";
 $stmt_laporan = $koneksi->prepare($query_laporan);
 
 if (!$stmt_laporan) {
     // Handle error prepare statement
     error_log("Failed to prepare statement for fetching data: " . $koneksi->error);
-    // Redirect ke halaman error atau tampilkan pesan
-    header('Location: master_kegiatan_harian.php'); // Atau halaman error
+    // Redirect ke halaman master laporan harian atau tampilkan pesan error
+    header('Location: master_kegiatan_harian.php');
     exit();
 }
 
@@ -47,19 +48,24 @@ $stmt_laporan->close();
 
 // Jika laporan tidak ditemukan
 if (!$laporan_data) {
-    header('Location: master_kegiatan_harian.php'); // Atau halaman error
+    // Redirect ke halaman master laporan harian jika data tidak ditemukan
+    header('Location: master_kegiatan_harian.php');
     exit();
 }
 
 // --- LOGIKA OTORISASI UNTUK EDIT ---
 // Siswa hanya bisa mengedit laporan miliknya sendiri
 if ($is_siswa && $laporan_data['siswa_id'] != ($_SESSION['id_siswa'] ?? null)) {
+    $_SESSION['alert_message'] = 'Anda tidak memiliki izin untuk mengedit laporan siswa lain.';
+    $_SESSION['alert_type'] = 'error';
+    $_SESSION['alert_title'] = 'Akses Ditolak!';
     header('Location: master_kegiatan_harian.php'); // Arahkan kembali jika bukan laporan mereka
     exit();
 }
 // Admin bisa mengedit laporan siapa saja, jadi tidak perlu cek siswa_id di sini
+// Guru pendamping tidak diizinkan di halaman ini secara langsung
 
-// Ambil data siswa terkait laporan (untuk ditampilkan di header jika admin)
+// Ambil data siswa terkait laporan (untuk ditampilkan di header jika admin melihat laporan siswa)
 $siswa_nama = "";
 if ($is_admin) {
     $query_siswa_nama = "SELECT nama_siswa FROM siswa WHERE id_siswa = ?";
@@ -141,8 +147,8 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                         value="<?= htmlspecialchars($laporan_data['siswa_id']) ?>">
                                     <?php if ($is_admin): // Tambahkan hidden input untuk redirect admin 
                                     ?>
-                                    <input type="hidden" name="redirect_siswa_id"
-                                        value="<?= htmlspecialchars($laporan_data['siswa_id']) ?>">
+                                        <input type="hidden" name="redirect_siswa_id"
+                                            value="<?= htmlspecialchars($laporan_data['siswa_id']) ?>">
                                     <?php endif; ?>
 
                                     <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-2s">
@@ -150,8 +156,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                             <i class="bx bx-calendar me-1"></i> Hari/Tanggal Kegiatan:
                                         </label>
                                         <input type="date" class="form-control" id="tanggal_kegiatan" name="tanggal"
-                                            required value="<?php echo date('Y-m-d'); ?>" readonly>
-
+                                            required value="<?= htmlspecialchars($laporan_data['tanggal']) ?>" readonly>
                                     </div>
 
                                     <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-3s">
@@ -197,8 +202,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
     </div>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-    <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <?php include './partials/script.php'; ?>
 </body>
 

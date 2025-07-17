@@ -1,15 +1,45 @@
 <?php
-// Pastikan path ke db.php benar relatif dari lokasi file ini
-// Jika db.php ada di partials/
-include 'partials/db.php';
 session_start(); // Pastikan session sudah dimulai
 
-// Ambil data sesi universal (user_id, user_role, user_name)
-$loggedInUserId = $_SESSION['user_id'] ?? null;
-$loggedInUserRole = $_SESSION['user_role'] ?? null;
-$loggedInUserName = $_SESSION['user_name'] ?? 'Pengguna'; // Default nama jika tidak ada
+// Pastikan path ke db.php benar relatif dari lokasi file ini
+include 'partials/db.php';
 
-// Verifikasi apakah ada user yang login dengan sesi universal
+// --- Inisialisasi Variabel Sesi Universal ---
+// Ini adalah logika yang diperbaiki untuk memastikan user_id, user_role, dan user_name
+// selalu terisi dengan benar dari berbagai kemungkinan setup sesi login.
+$loggedInUserId = null;
+$loggedInUserRole = null;
+$loggedInUserName = 'Pengguna'; // Default nama jika tidak ada
+
+// Prioritaskan sesi universal jika sudah ada (direkomendasikan setelah perbaikan di login_act)
+if (isset($_SESSION['user_id']) && isset($_SESSION['user_role'])) {
+    $loggedInUserId = $_SESSION['user_id'];
+    $loggedInUserRole = $_SESSION['user_role'];
+    $loggedInUserName = $_SESSION['user_name'] ?? 'Pengguna';
+} else {
+    // Fallback/kompatibilitas dengan setup sesi lama jika sesi universal belum diterapkan konsisten
+    // Admin
+    if (isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in' && isset($_SESSION['id_admin'])) {
+        $loggedInUserId = $_SESSION['id_admin']; // Asumsi id_admin adalah id universal untuk admin
+        $loggedInUserRole = 'admin';
+        $loggedInUserName = $_SESSION['nama_admin'] ?? 'Admin'; // Asumsi nama admin ada di sini
+    }
+    // Guru Pendamping
+    elseif (isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in' && isset($_SESSION['id_guru_pendamping'])) {
+        $loggedInUserId = $_SESSION['id_guru_pendamping']; // Asumsi id_guru_pendamping adalah id universal untuk guru
+        $loggedInUserRole = 'guru_pendamping';
+        $loggedInUserName = $_SESSION['nama_guru'] ?? 'Guru'; // Asumsi nama guru ada di sini
+    }
+    // Siswa
+    elseif (isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in' && isset($_SESSION['id_siswa'])) {
+        $loggedInUserId = $_SESSION['id_siswa']; // Asumsi id_siswa adalah id universal untuk siswa
+        $loggedInUserRole = 'siswa';
+        $loggedInUserName = $_SESSION['siswa_nama'] ?? 'Siswa'; // Asumsi nama siswa ada di sini
+    }
+}
+
+
+// Verifikasi apakah ada user yang login (setelah mencoba semua kemungkinan sesi)
 if (!$loggedInUserId || !$loggedInUserRole) {
     header('Location: login.php'); // Redirect ke halaman login jika belum login
     exit();
@@ -63,17 +93,17 @@ unset($_SESSION['ganti_password_message_title']);
 
                         <?php if ($message): // Tampilkan SweetAlert2 jika ada pesan 
                         ?>
-                        <script>
-                        document.addEventListener('DOMContentLoaded', function() {
-                            Swal.fire({
-                                icon: '<?= htmlspecialchars($message_type); ?>',
-                                title: '<?= htmlspecialchars($message_title_swal); ?>',
-                                text: '<?= htmlspecialchars($message); ?>',
-                                confirmButtonColor: '<?= ($message_type == "success") ? "#3085d6" : "#d33"; ?>',
-                                confirmButtonText: 'OK'
-                            });
-                        });
-                        </script>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    Swal.fire({
+                                        icon: '<?= htmlspecialchars($message_type); ?>',
+                                        title: '<?= htmlspecialchars($message_title_swal); ?>',
+                                        text: '<?= htmlspecialchars($message); ?>',
+                                        confirmButtonColor: '<?= ($message_type == "success") ? "#3085d6" : "#d33"; ?>',
+                                        confirmButtonText: 'OK'
+                                    });
+                                });
+                            </script>
                         <?php endif; ?>
 
                         <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">

@@ -58,33 +58,36 @@ $result = mysqli_query($koneksi, $query);
 <!-- Tambahkan ini di akhir file proses -->
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Update Tempat PKL</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
+
 <body>
-<?php if ($result): ?>
-    <script>
-        Swal.fire({
-            title: 'Berhasil!',
-            text: 'Data tempat PKL berhasil diperbarui.',
-            icon: 'success',
-            confirmButtonText: 'OK'
-        }).then(() => {
-            window.location.href = 'master_tempat_pkl.php';
-        });
-    </script>
-<?php else: ?>
-    <script>
-        Swal.fire({
-            title: 'Gagal!',
-            text: 'Terjadi kesalahan: <?= mysqli_error($koneksi) ?>',
-            icon: 'error',
-            confirmButtonText: 'Kembali'
-        }).then(() => {
-            window.history.back();
-        });
-    </script>
-<?php endif; ?>
+    <?php if ($result): ?>
+        <script>
+            Swal.fire({
+                title: 'Berhasil!',
+                text: 'Data tempat PKL berhasil diperbarui.',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                window.location.href = 'master_tempat_pkl.php';
+            });
+        </script>
+    <?php else: ?>
+        <script>
+            Swal.fire({
+                title: 'Gagal!',
+                text: 'Terjadi kesalahan: <?= mysqli_error($koneksi) ?>',
+                icon: 'error',
+                confirmButtonText: 'Kembali'
+            }).then(() => {
+                window.history.back();
+            });
+        </script>
+    <?php endif; ?>
 </body>
+
 </html>
