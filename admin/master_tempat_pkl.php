@@ -12,7 +12,7 @@ if (!$is_admin) {
         header('Location: dashboard_siswa.php'); // Redirect siswa ke dashboard siswa
         exit();
     } elseif ($is_guru) {
-        header('Location: ../halaman_guru.php'); // Redirect guru ke halaman guru
+        header('Location: dashboard_guru.php'); // Redirect guru ke halaman guru
         exit();
     } else {
         header('Location: ../login.php'); // Jika tidak login sama sekali, redirect ke halaman login
@@ -29,9 +29,8 @@ $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] :
 $offset = ($page - 1) * $limit;
 // --- End Pagination Variables ---
 
-$sql_base = "SELECT tp.*, j.nama_jurusan
-             FROM tempat_pkl tp
-             LEFT JOIN jurusan j ON tp.jurusan_id = j.id_jurusan";
+// --- CORRECTED SQL: Removed LEFT JOIN to 'jurusan' table ---
+$sql_base = "SELECT tp.* FROM tempat_pkl tp";
 
 $params = [];
 $types = "";
@@ -108,15 +107,6 @@ function ref_values($arr)
     }
     return $arr;
 }
-
-// Note: Closing $koneksi here would cause issues if it's used by other partials or later in the script.
-// It's usually better to close the connection once all database operations for the page are complete,
-// often at the very end of the main script or within a `finally` block if using try-catch.
-// For this script, since it's a standalone page, closing it at the end is fine.
-// Removed $koneksi->close() from here, as it's typically handled after all includes and rendering.
-// If your 'partials/db.php' handles connection closing at a later point, this is not needed here.
-// If it only opens the connection, then closing it after all DB operations in this script is appropriate.
-
 ?>
 
 <!DOCTYPE html>
@@ -221,7 +211,6 @@ function ref_values($arr)
                                                 <th>Alamat</th>
                                                 <th>Kontak</th>
                                                 <th>Instruktur</th>
-                                                
                                                 <th>Aksi</th>
                                             </tr>
                                         </thead>
@@ -303,13 +292,13 @@ function ref_values($arr)
 
                                 <div class="d-md-none p-3">
                                     <?php
-                                    if (!empty($data_tempat_pkl)) {
-                                        $colors = ['primary', 'warning', 'info', 'success', 'danger'];
-                                        $color_index = 0;
-                                        foreach ($data_tempat_pkl as $data) {
-                                            $current_color = $colors[$color_index % count($colors)];
-                                            $color_index++;
-                                    ?>
+                                        if (!empty($data_tempat_pkl)) {
+                                            $colors = ['primary', 'warning', 'info', 'success', 'danger'];
+                                            $color_index = 0;
+                                            foreach ($data_tempat_pkl as $data) {
+                                                $current_color = $colors[$color_index % count($colors)];
+                                                $color_index++;
+                                        ?>
                                     <div
                                         class="card mb-3 shadow-sm border-start border-4 border-<?= $current_color ?> rounded-3 animate__animated animate__fadeInUp">
                                         <div class="card-body">
@@ -318,11 +307,7 @@ function ref_values($arr)
                                                     <h6 class="mb-1 text-primary"><i class="bx bx-building me-1"></i>
                                                         <strong><?= htmlspecialchars($data['nama_tempat_pkl']) ?></strong>
                                                     </h6>
-                                                    <span class="badge bg-label-<?= $current_color ?>"><i
-                                                            class="bx bx-group me-1"></i>
-                                                        Kuota: <?= htmlspecialchars($data['kuota_siswa']) ?>
-                                                        Siswa</span>
-                                                </div>
+                                                    </div>
                                                 <div class="dropdown">
                                                     <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
                                                         data-bs-toggle="dropdown">
@@ -357,17 +342,12 @@ function ref_values($arr)
                                                     Instruktur:</strong><br>
                                                 <?= htmlspecialchars($data['nama_instruktur']) ?>
                                             </div>
-                                            <div class="mb-0">
-                                                <strong class="text-dark"><i class="bx bx-book-open me-1"></i>
-                                                    Jurusan:</strong><br>
-                                                <?= htmlspecialchars($data['nama_jurusan'] ?: '-') ?>
                                             </div>
-                                        </div>
                                     </div>
                                     <?php
-                                        }
-                                    } else {
-                                        ?>
+                                            }
+                                        } else {
+                                            ?>
                                     <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp"
                                         role="alert"
                                         style="border-radius: 8px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
@@ -381,8 +361,8 @@ function ref_values($arr)
                                         </p>
                                     </div>
                                     <?php
-                                    }
-                                    ?>
+                                        }
+                                        ?>
                                 </div>
 
                                 <div class="d-md-none">
