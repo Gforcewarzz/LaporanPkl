@@ -30,8 +30,8 @@ $nama         = $_POST['nama_tempat_pkl'];
 $alamat       = $_POST['alamat'];
 $kontak       = $_POST['alamat_kontak'];
 $instruktur   = $_POST['nama_instruktur'];
-$kuota        = $_POST['kuota_siswa'];
-$jurusan_id   = $_POST['jurusan_id'];
+$kuota        = 1;
+$jurusan_id   = 1;
 
 // Validasi dasar
 if (!$id || !$nama || !$alamat || !$kontak || !$kuota || !$jurusan_id) {

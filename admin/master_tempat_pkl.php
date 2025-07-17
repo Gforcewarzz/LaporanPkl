@@ -221,8 +221,7 @@ function ref_values($arr)
                                                 <th>Alamat</th>
                                                 <th>Kontak</th>
                                                 <th>Instruktur</th>
-                                                <th>Kuota</th>
-                                                <th>Jurusan</th>
+                                                
                                                 <th>Aksi</th>
                                             </tr>
                                         </thead>
@@ -238,9 +237,6 @@ function ref_values($arr)
                                                 <td><?= htmlspecialchars($data['alamat']) ?></td>
                                                 <td><?= htmlspecialchars($data['alamat_kontak'] ?? '') ?></td>
                                                 <td><?= htmlspecialchars($data['nama_instruktur']) ?></td>
-                                                <td><span class='badge bg-label-info me-1'><?= $data['kuota_siswa'] ?>
-                                                        Siswa</span></td>
-                                                <td><?= htmlspecialchars($data['nama_jurusan'] ?: '-') ?></td>
                                                 <td>
                                                     <div class='dropdown'>
                                                         <button type='button' class='btn p-0 dropdown-toggle hide-arrow'

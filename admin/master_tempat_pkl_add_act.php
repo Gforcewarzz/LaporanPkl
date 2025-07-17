@@ -31,9 +31,9 @@ include 'partials/db.php';
 $nama        = $_POST['nama_perusahaan'];
 $alamat      = $_POST['alamat'];
 $kontak      = $_POST['kontak'];
-$kuota       = $_POST['kuota_siswa'];
+$kuota       = 1;
 $instruktur  = $_POST['nama_instruktur_lapangan'];
-$jurusan_id  = $_POST['jurusan_id'];
+$jurusan_id  = 1;
 
 if (!$nama || !$alamat || !$kontak || !$kuota || !$jurusan_id) {
     echo "<script>

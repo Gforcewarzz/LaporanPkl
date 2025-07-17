@@ -95,25 +95,9 @@ while ($j = mysqli_fetch_assoc($jurusanResult)) {
                                         value="<?= htmlspecialchars($placeData['nama_instruktur']) ?>">
                                 </div>
 
-                                <div class="mb-3">
-                                    <label for="kuota_siswa" class="form-label">Kuota Siswa</label>
-                                    <input type="number" class="form-control" id="kuota_siswa" name="kuota_siswa" min="0"
-                                        value="<?= htmlspecialchars($placeData['kuota_siswa']) ?>" required>
-                                </div>
+                                
 
-                                <div class="mb-3">
-                                    <label for="jurusan_id" class="form-label">Jurusan</label>
-                                    <select name="jurusan_id" id="jurusan_id" class="form-select" required>
-                                        <option value="" disabled selected>Pilih jurusan...</option>
-                                        <?php foreach ($jurusanList as $jurusan): ?>
-                                            <option value="<?= $jurusan['id_jurusan'] ?>"
-                                                <?= ($placeData['jurusan_id'] == $jurusan['id_jurusan']) ? 'selected' : '' ?>>
-                                                <?= htmlspecialchars($jurusan['nama_jurusan']) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-
+                                
                                 <div class="d-flex justify-content-end">
                                     <a href="master_tempat_pkl.php" class="btn btn-secondary me-2">Batal</a>
                                     <button type="submit" class="btn btn-primary">Simpan Perubahan</button>

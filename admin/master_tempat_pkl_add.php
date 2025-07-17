@@ -99,13 +99,7 @@ $jurusanQuery = mysqli_query($koneksi, "SELECT id_jurusan, nama_jurusan FROM jur
                                             placeholder="Contoh: (022) 1234567" pattern="[0-9() -+]{7,20}" required>
                                     </div>
 
-                                    <div class="mb-3">
-                                        <label for="kuota_siswa" class="form-label fw-bold">
-                                            <i class="bx bx-user-plus me-1"></i> Kuota Siswa:
-                                        </label>
-                                        <input type="number" class="form-control" id="kuota_siswa" name="kuota_siswa"
-                                            min="0" required>
-                                    </div>
+                                    
 
                                     <div class="mb-3">
                                         <label for="nama_instruktur_lapangan" class="form-label fw-bold">
@@ -115,19 +109,7 @@ $jurusanQuery = mysqli_query($koneksi, "SELECT id_jurusan, nama_jurusan FROM jur
                                             name="nama_instruktur_lapangan" placeholder="Contoh: Bpk. Joni Iskandar">
                                     </div>
 
-                                    <div class="mb-3">
-                                        <label for="jurusan_id" class="form-label fw-bold">
-                                            <i class="bx bx-layer me-1"></i> Jurusan Terkait:
-                                        </label>
-                                        <select class="form-select" id="jurusan_id" name="jurusan_id" required>
-                                            <option value="" disabled selected>Pilih jurusan</option>
-                                            <?php while ($jurusan = mysqli_fetch_assoc($jurusanQuery)) : ?>
-                                                <option value="<?= $jurusan['id_jurusan'] ?>">
-                                                    <?= htmlspecialchars($jurusan['nama_jurusan']) ?>
-                                                </option>
-                                            <?php endwhile; ?>
-                                        </select>
-                                    </div>
+                                    
 
                                     <hr class="my-4">
 
