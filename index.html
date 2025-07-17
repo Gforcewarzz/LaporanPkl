@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Situs Sedang Dalam Pemeliharaan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+      /* Custom styles for colors, fonts, and animations */
+      body {
+        font-family: "Poppins", sans-serif;
+        background: radial-gradient(circle at center, #111111 0%, #000000 100%); /* Deep black background */
+        color: #e0e0e0; /* Off-white for general text */
+        overflow: hidden;
+        position: relative;
+      }
+
+      /* Subtle grid background */
+      body::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: linear-gradient(to right, rgba(255, 0, 0, 0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 0, 0, 0.08) 1px, transparent 1px);
+        background-size: 40px 40px; /* Adjust grid density */
+        opacity: 0.2;
+        z-index: 0;
+      }
+
+      .maintenance-container {
+        background-color: rgba(10, 10, 10, 0.9); /* Almost black, slightly transparent */
+        border: 2px solid #ff0000; /* ROG Red Border */
+        box-shadow: 0 0 40px rgba(255, 0, 0, 0.6); /* ROG Red Glow on container */
+        position: relative;
+        z-index: 10;
+        /* Aggressive angles for futuristic/gaming feel */
+        clip-path: polygon(0% 10%, 10% 0%, 100% 0%, 100% 90%, 90% 100%, 0% 100%);
+        animation: containerGlow 3s infinite alternate ease-in-out;
+      }
+
+      @keyframes containerGlow {
+        from {
+          box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+        }
+        to {
+          box-shadow: 0 0 50px rgba(255, 0, 0, 0.8);
+        }
+      }
+
+      h1 {
+        font-family: "Orbitron", sans-serif; /* Techy font */
+        color: #ffffff; /* Bright white for heading */
+        text-shadow: 0 0 20px rgba(255, 0, 0, 0.7); /* Red glow for heading */
+      }
+      p {
+        color: #c0c0c0; /* Slightly darker white for body text */
+      }
+
+      .countdown-item {
+        background-color: rgba(255, 0, 0, 0.2); /* Semi-transparent red */
+        color: #ffffff; /* White text for countdown numbers */
+        border: 1px solid #ff0000; /* Red border */
+        box-shadow: 0 0 10px rgba(255, 0, 0, 0.4); /* Subtle red glow */
+      }
+      .countdown-item span:first-child {
+        font-family: "Orbitron", sans-serif; /* Techy font for numbers */
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); /* White glow for numbers */
+      }
+      .countdown-item span:last-child {
+        color: #cccccc; /* Lighter grey for labels */
+      }
+
+      .icon-item {
+        color: #ff0000; /* ROG Red for icons */
+        background-color: rgba(255, 0, 0, 0.1); /* Lighter transparent red */
+        border: 1px solid #ff0000;
+        box-shadow: 0 0 15px rgba(255, 0, 0, 0.7); /* Stronger red glow for icons */
+      }
+
+      /* --- Keyframe Animations (unchanged) --- */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes slideInBottom {
+        from {
+          opacity: 0;
+          transform: translateY(50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes zoomIn {
+        from {
+          opacity: 0;
+          transform: scale(0.8);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.05);
+          opacity: 0.8;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      .animate-fadeIn {
+        animation: fadeIn 1s ease-out forwards;
+      }
+      .animate-slideInBottom {
+        animation: slideInBottom 1s ease-out forwards;
+      }
+      .animate-zoomIn {
+        animation: zoomIn 0.8s ease-out forwards;
+      }
+      .animate-pulse-subtle {
+        animation: pulse 2s infinite ease-in-out;
+      }
+
+      /* --- Responsive Adjustments (Mobile-First) --- */
+      /* Default values are for mobile (xs, sm screens) */
+      h1 {
+        font-size: 2rem; /* Reduced from 2.25rem for mobile */
+        line-height: 1.2;
+      }
+      p {
+        font-size: 0.9rem; /* Reduced from 0.95rem for mobile */
+        line-height: 1.5;
+      }
+      .countdown-item span:first-child {
+        font-size: 2.25rem; /* Significantly reduced for mobile countdown numbers */
+      }
+      .countdown-item span:last-child {
+        font-size: 0.65rem; /* Even smaller for mobile labels (text-xs) */
+      }
+      .icon-item {
+        font-size: 2rem; /* Reduced for mobile icons */
+        padding: 0.65rem; /* Smaller padding */
+      }
+
+      /* Adjustments for larger screens (md: tablets, lg: desktops) */
+      @media (min-width: 768px) {
+        /* md breakpoint in Tailwind */
+        h1 {
+          font-size: 3.5rem; /* Restore larger size for desktop */
+        }
+        p {
+          font-size: 1.1rem; /* Restore larger size for desktop */
+        }
+        .countdown-item span:first-child {
+          font-size: 3.25rem; /* Restore larger size for desktop countdown numbers */
+        }
+        .countdown-item span:last-child {
+          font-size: 0.8rem; /* Restore slightly larger for desktop labels */
+        }
+        .icon-item {
+          font-size: 3.5rem; /* Restore larger size for desktop icons */
+          padding: 0.8rem;
+        }
+      }
+      @media (min-width: 1024px) {
+        /* lg breakpoint in Tailwind */
+        h1 {
+          font-size: 4rem;
+        }
+        p {
+          font-size: 1.25rem;
+        }
+        .countdown-item span:first-child {
+          font-size: 4rem;
+        }
+        .countdown-item span:last-child {
+          font-size: 0.875rem; /* text-sm */
+        }
+        .icon-item {
+          font-size: 4rem;
+          padding: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body class="flex justify-center items-center min-h-screen text-center p-4">
+    <div class="maintenance-container p-6 md:p-8 lg:p-12 rounded-2xl shadow-xl max-w-2xl w-full animate-fadeIn">
+      <div class="mb-6 flex justify-center space-x-3 animate-fadeIn">
+        <i class="fas fa-desktop icon-item p-3 rounded-full animate-pulse-subtle"></i>
+        <i class="fas fa-cloud-upload-alt icon-item p-3 rounded-full animate-pulse-subtle" style="animation-delay: 0.3s"></i>
+        <i class="fas fa-code icon-item p-3 rounded-full animate-pulse-subtle" style="animation-delay: 0.6s"></i>
+      </div>
+
+      <h1 class="font-bold mb-4 animate-fadeIn">Sistem Sedang Dalam Pemeliharaan</h1>
+      <p class="leading-relaxed mb-8 animate-slideInBottom">Kami sedang melakukan pembaruan dan optimasi untuk meningkatkan kualitas layanan situs ini. Akses akan segera tersedia kembali.</p>
+
+      <div id="countdown" class="flex justify-center gap-3 md:gap-4 mb-8 flex-wrap">
+        <div class="countdown-item p-3 rounded-lg min-w-[70px] animate-zoomIn">
+          <span id="hours" class="block font-bold mb-1">00</span>
+          <span class="block uppercase opacity-80">Jam</span>
+        </div>
+        <div class="countdown-item p-3 rounded-lg min-w-[70px] animate-zoomIn" style="animation-delay: 0.1s">
+          <span id="minutes" class="block font-bold mb-1">00</span>
+          <span class="block uppercase opacity-80">Menit</span>
+        </div>
+        <div class="countdown-item p-3 rounded-lg min-w-[70px] animate-zoomIn" style="animation-delay: 0.2s">
+          <span id="seconds" class="block font-bold mb-1">00</span>
+          <span class="block uppercase opacity-80">Detik</span>
+        </div>
+      </div>
+
+      <p class="italic opacity-90 mt-8 animate-fadeIn">Terima kasih atas pengertian dan kesabaran Anda.</p>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        function getTargetDateWIB() {
+          const now = new Date();
+          let targetDate = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+
+          targetDate.setDate(targetDate.getDate() + 1); // Go to tomorrow
+          targetDate.setHours(6, 0, 0, 0); // Set to 06:00:00 AM
+
+          // If current time (in WIB) is already past 06:00 AM tomorrow,
+          // then set target to the day after tomorrow 06:00 AM WIB.
+          if (new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }) > targetDate.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })) {
+            targetDate.setDate(targetDate.getDate() + 1);
+          }
+
+          return targetDate.getTime();
+        }
+
+        let countDownDate = getTargetDateWIB();
+
+        const x = setInterval(function () {
+          const now = new Date().getTime();
+          let distance = countDownDate - now;
+
+          if (distance < 0) {
+            countDownDate = getTargetDateWIB();
+            distance = countDownDate - now;
+          }
+
+          if (distance < 0) {
+            clearInterval(x);
+            document.getElementById("countdown").innerHTML = '<span class="text-base md:text-xl font-bold text-primary">Situs Telah Kembali Normal!</span>';
+            // window.location.href = "/"; // Uncomment to redirect
+            return;
+          }
+
+          const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+          document.getElementById("hours").innerHTML = hours < 10 ? "0" + hours : hours;
+          document.getElementById("minutes").innerHTML = minutes < 10 ? "0" + minutes : minutes;
+          document.getElementById("seconds").innerHTML = seconds < 10 ? "0" + seconds : seconds;
+        }, 1000);
+      });
+    </script>
+  </body>
+</html>

@@ -1,281 +1,444 @@
 <?php
 session_start();
+date_default_timezone_set('Asia/Jakarta');
 
-$is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
-$is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
+include 'partials/db.php';
 
-if (!$is_admin && !$is_guru) {
-    header('Location: ../login.php');
-    exit();
-}
-
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
-include 'partials/db.php';
+// --- LOGIKA KEAMANAN HALAMAN ---
+$is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
+$is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
+$is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
 
-$debug_mode = false;
-
-if ($debug_mode) {
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
-    error_reporting(E_ALL);
-}
-
-$tanggal_mulai = $_GET['tanggal_mulai'] ?? date('Y-m-01');
-$tanggal_akhir = $_GET['tanggal_akhir'] ?? date('Y-m-t');
-$filter_status = $_GET['status'] ?? 'Semua';
-$keyword = $_GET['keyword'] ?? '';
-
-if (!strtotime($tanggal_mulai) || !strtotime($tanggal_akhir) || $tanggal_mulai > $tanggal_akhir) {
-    $_SESSION['alert_message'] = 'Rentang tanggal tidak valid.';
-    $_SESSION['alert_type'] = 'error';
-    $_SESSION['alert_title'] = 'Gagal Cetak!';
-    header('Location: master_data_absensi_siswa.php');
+if (!$is_admin && !$is_guru && !$is_siswa) {
+    header('Location: ../login.php');
     exit();
 }
 
-$start_date_obj = new DateTime($tanggal_mulai);
-$end_date_obj = new DateTime($tanggal_akhir);
-$today_date_obj = new DateTime(date('Y-m-d'));
+// --- INISIALISASI FILTER DARI URL ---
+$tanggal_mulai = $_GET['tanggal_mulai'] ?? date('Y-m-01');
+$tanggal_akhir = $_GET['tanggal_akhir'] ?? date('Y-m-t');
+$filter_status = $_GET['status'] ?? 'Hadir';
+$keyword = $_GET['keyword'] ?? '';
+$pembimbing_id_filter_url = $_GET['pembimbing_id'] ?? null;
+$siswa_id_filter_url = $_GET['siswa_id'] ?? null;
 
-$interval_filter = $start_date_obj->diff($end_date_obj);
-$total_days_in_filter_range = $interval_filter->days + 1;
+// --- INISIALISASI QUERY PARAMS DAN KONDISI ---
+$where_clauses = [];
+$query_params = [];
+$query_types = "";
+$report_title_suffix = "";
+$header_siswa_info = [];
 
-$effective_end_date_for_alfa_calc_obj = min($today_date_obj, $end_date_obj);
-$interval_for_alfa_calc = $start_date_obj->diff($effective_end_date_for_alfa_calc_obj);
-$total_days_for_alfa_calc_up_to_today_or_end_date = $interval_for_alfa_calc->days + 1;
+$target_siswa_id = null;
+$target_pembimbing_id = null;
 
+// --- LOGIKA FILTER BERDASARKAN PERAN YANG LOGIN ---
+if ($is_siswa) {
+    $target_siswa_id = $_SESSION['id_siswa'] ?? null;
+    if ($target_siswa_id) {
+        $where_clauses[] = 'as_abs.siswa_id = ?';
+        $query_params[] = $target_siswa_id;
+        $query_types .= 'i';
+    } else {
+        die("Siswa ID tidak ditemukan dalam sesi.");
+    }
+    $report_title_suffix = "Pribadi";
+} elseif ($is_guru) {
+    $loggedInGuruId = $_SESSION['id_guru_pendamping'] ?? null;
 
-$query_base = "
+    if ($siswa_id_filter_url !== null) {
+        $target_siswa_id = $siswa_id_filter_url;
+        $where_clauses[] = 'as_abs.siswa_id = ?';
+        $query_params[] = $target_siswa_id;
+        $query_types .= 'i';
+        $report_title_suffix = "Siswa Bimbingan";
+    } elseif ($loggedInGuruId !== null) {
+        $target_pembimbing_id = $loggedInGuruId;
+        $where_clauses[] = 's.pembimbing_id = ?';
+        $query_params[] = $target_pembimbing_id;
+        $query_types .= 'i';
+        $report_title_suffix = "Siswa Bimbingan";
+    } else {
+        die("ID Guru tidak ditemukan dalam sesi.");
+    }
+} elseif ($is_admin) {
+    $param_siswa_id = $_GET['siswa_id'] ?? null;
+    $param_pembimbing_id_from_url = $_GET['pembimbing_id'] ?? null;
+
+    if ($param_siswa_id !== null) {
+        $target_siswa_id = $param_siswa_id;
+        $where_clauses[] = 'as_abs.siswa_id = ?';
+        $query_params[] = $target_siswa_id;
+        $query_types .= 'i';
+        $report_title_suffix = "Siswa Spesifik";
+    } elseif ($param_pembimbing_id_from_url !== null) {
+        $target_pembimbing_id = $param_pembimbing_id_from_url;
+        $where_clauses[] = 's.pembimbing_id = ?';
+        $query_params[] = $target_pembimbing_id;
+        $query_types .= 'i';
+        $report_title_suffix = "Siswa Per Guru Pembimbing";
+    } else {
+        $report_title_suffix = "Seluruh Siswa";
+    }
+}
+
+// --- Filter Rentang Tanggal Absensi ---
+if (!strtotime($tanggal_mulai) || !strtotime($tanggal_akhir) || $tanggal_mulai > $tanggal_akhir) {
+    $_SESSION['alert_message'] = 'Rentang tanggal tidak valid untuk laporan PDF.';
+    $_SESSION['alert_type'] = 'error';
+    $_SESSION['alert_title'] = 'Gagal Cetak!';
+    if ($koneksi) {
+        $koneksi->close();
+    }
+    header('Location: master_data_absensi_siswa.php');
+    exit();
+}
+$where_clauses[] = 'as_abs.tanggal_absen BETWEEN ? AND ?';
+$query_params[] = $tanggal_mulai;
+$query_params[] = $tanggal_akhir;
+$query_types .= 'ss';
+
+// --- Filter Status Absensi ---
+if (!empty($filter_status) && $filter_status !== 'Semua') {
+    $where_clauses[] = 'as_abs.status_absen = ?';
+    $query_params[] = $filter_status;
+    $query_types .= 's';
+} else {
+    $where_clauses[] = 'as_abs.status_absen = "Hadir"';
+}
+
+// Filter Keyword (jika ada)
+if (!empty($keyword)) {
+    $like_keyword = "%" . $keyword . "%";
+    $searchable_columns = [
+        's.nama_siswa',
+        's.kelas',
+        'j.nama_jurusan',
+        'tp.nama_tempat_pkl',
+        'as_abs.status_absen'
+    ];
+    $search_conditions = [];
+    foreach ($searchable_columns as $column) {
+        $search_conditions[] = "$column LIKE ?";
+        $query_params[] = $like_keyword;
+        $query_types .= 's';
+    }
+    $where_clauses[] = "(" . implode(" OR ", $search_conditions) . ")";
+}
+
+// Bangun klausa WHERE akhir
+$filter_sql = "";
+if (!empty($where_clauses)) {
+    $filter_sql = " WHERE " . implode(" AND ", $where_clauses);
+}
+
+// --- QUERY UTAMA UNTUK MENGAMBIL DATA ABSENSI DETIL ---
+$query_sql = "
     SELECT
         s.id_siswa,
         s.nama_siswa,
         s.kelas,
-        s.no_induk,
         j.nama_jurusan,
         tp.nama_tempat_pkl,
-        SUM(CASE WHEN as_abs.status_absen = 'Hadir' THEN 1 ELSE 0 END) AS total_hadir,
-        SUM(CASE WHEN as_abs.status_absen = 'Sakit' THEN 1 ELSE 0 END) AS total_sakit,
-        SUM(CASE WHEN as_abs.status_absen = 'Izin' THEN 1 ELSE 0 END) AS total_izin,
-        SUM(CASE WHEN as_abs.status_absen = 'Libur' THEN 1 ELSE 0 END) AS total_libur,
-        SUM(CASE WHEN as_abs.status_absen = 'Alfa' THEN 1 ELSE 0 END) AS total_alfa_manual,
-        COUNT(as_abs.id_absensi) AS total_recorded_entries
+        as_abs.tanggal_absen,
+        as_abs.jam_datang,
+        as_abs.jam_pulang,
+        as_abs.status_absen
     FROM
-        siswa s
-    LEFT JOIN absensi_siswa as_abs ON s.id_siswa = as_abs.siswa_id
-                                   AND as_abs.tanggal_absen BETWEEN ? AND ?
+        absensi_siswa as_abs
+    JOIN siswa s ON as_abs.siswa_id = s.id_siswa
     LEFT JOIN jurusan j ON s.jurusan_id = j.id_jurusan
     LEFT JOIN tempat_pkl tp ON s.tempat_pkl_id = tp.id_tempat_pkl
-    WHERE s.status = 'Aktif'";
+    LEFT JOIN guru_pembimbing gp ON s.pembimbing_id = gp.id_pembimbing
+    $filter_sql
+    ORDER BY s.kelas ASC, s.nama_siswa ASC, as_abs.tanggal_absen ASC";
 
-$data_params = [$tanggal_mulai, $tanggal_akhir];
-$data_types = 'ss';
+$stmt = $koneksi->prepare($query_sql);
 
-// Guru-specific filter logic
-if ($is_guru) {
-    $guru_id_session = $_SESSION['id_guru_pendamping'] ?? null;
-    if ($guru_id_session) {
-        $query_base .= " AND s.pembimbing_id = ?";
-        $data_params[] = $guru_id_session;
-        $data_types .= 'i';
-    } else {
-        $query_base .= " AND 1 = 0"; // Prevent showing any data if guru ID is not set
-    }
+if ($stmt === false) {
+    error_log("Error preparing PDF data query: " . $koneksi->error);
+    die("Terjadi kesalahan sistem saat menyiapkan laporan PDF.");
 }
 
-// Keyword filter
-if (!empty($keyword)) {
-    $like_keyword = "%" . $keyword . "%";
-    $search_columns = [
-        's.nama_siswa',
-        's.no_induk',
-        's.nisn',
-        's.kelas',
-        'j.nama_jurusan',
-        'tp.nama_tempat_pkl'
-    ];
-    $search_conditions = [];
-    foreach ($search_columns as $col) {
-        $search_conditions[] = "$col LIKE ?";
-        $data_params[] = $like_keyword;
-        $data_types .= 's';
+if (!empty($query_params)) {
+    $bind_args = [];
+    $bind_args[] = $query_types;
+    foreach ($query_params as &$param) {
+        $bind_args[] = &$param;
     }
-    $query_base .= " AND (" . implode(" OR ", $search_conditions) . ")";
+    call_user_func_array([$stmt, 'bind_param'], $bind_args);
 }
 
-$query_base .= " GROUP BY s.id_siswa, s.nama_siswa, s.kelas, j.nama_jurusan, tp.nama_tempat_pkl";
-
-// Status filter
-if (!empty($filter_status) && $filter_status !== 'Semua') {
-    if ($filter_status !== 'Alfa') {
-        $query_base .= " HAVING SUM(CASE WHEN as_abs.status_absen = ? THEN 1 ELSE 0 END) > 0";
-        $data_params[] = $filter_status;
-        $data_types .= 's';
-    }
-    // 'Alfa' status is filtered in PHP after calculation
+$stmt->execute();
+$result = $stmt->get_result();
+$absensi_data = [];
+while ($row = $result->fetch_assoc()) {
+    $absensi_data[] = $row;
 }
-
-$query_base .= " ORDER BY s.kelas ASC, s.nama_siswa ASC";
-
-$stmt_data = $koneksi->prepare($query_base);
-if ($stmt_data === false) {
-    die("Error preparing data query: " . $koneksi->error);
-}
-
-if (!empty($data_params)) {
-    $bind_args = [$data_types];
-    foreach ($data_params as $key => $value) {
-        $bind_args[] = &$data_params[$key];
-    }
-    call_user_func_array([$stmt_data, 'bind_param'], $bind_args);
-}
-
-$stmt_data->execute();
-$result_absensi = $stmt_data->get_result();
-
-$final_rekap_data_for_pdf = [];
-while ($row = $result_absensi->fetch_assoc()) {
-    $days_to_be_accounted_for = max(0, $total_days_for_alfa_calc_up_to_today_or_end_date - $row['total_libur']);
-    $total_present_sick_izin_alfa_manual = $row['total_hadir'] + $row['total_sakit'] + $row['total_izin'] + $row['total_alfa_manual'];
-    $alfa_auto_calculated = max(0, $days_to_be_accounted_for - $total_present_sick_izin_alfa_manual);
-    $row['total_alfa_calculated'] = $alfa_auto_calculated;
-
-    $include_row_in_final_report = true;
-    if ($filter_status === 'Alfa' && $row['total_alfa_calculated'] == 0) {
-        $include_row_in_final_report = false;
-    } else if ($filter_status === 'Libur' && $row['total_libur'] == 0) {
-        $include_row_in_final_report = false;
-    }
-
-    if ($include_row_in_final_report) {
-        $final_rekap_data_for_pdf[] = $row;
-    }
-}
-
-$total_siswa_found_final = count($final_rekap_data_for_pdf);
-$stmt_data->close();
+$stmt->close();
 $koneksi->close();
+
+// --- PENGELOMPOKAN DATA UNTUK LAPORAN (Per Siswa) ---
+$grouped_absensi = [];
+$nama_sekolah = "SMKN 1 GANTAR";
+$tahun_pkl = "2025";
+
+$siswa_detail_for_header = [
+    'nama_peserta_didik' => '',
+    'dunia_kerja_tempat_pkl' => ''
+];
+
+if (!empty($absensi_data)) {
+    if ($is_siswa || ($is_guru && $target_siswa_id) || ($is_admin && $target_siswa_id)) {
+        $first_row_data = $absensi_data[0];
+        $siswa_detail_for_header['nama_peserta_didik'] = htmlspecialchars($first_row_data['nama_siswa']);
+        $siswa_detail_for_header['dunia_kerja_tempat_pkl'] = htmlspecialchars($first_row_data['nama_tempat_pkl'] ?? '-');
+    } elseif ($is_guru && !$target_siswa_id) {
+        $siswa_detail_for_header['nama_peserta_didik'] = "Siswa Bimbingan Anda";
+        $siswa_detail_for_header['dunia_kerja_tempat_pkl'] = "Beragam (Siswa Bimbingan)";
+    } elseif ($is_admin && !$siswa_id_filter_url && !$pembimbing_id_filter_url) {
+        $siswa_detail_for_header['nama_peserta_didik'] = "Seluruh Siswa";
+        $siswa_detail_for_header['dunia_kerja_tempat_pkl'] = "Beragam";
+    } elseif ($is_admin && $pembimbing_id_filter_url) {
+        $siswa_detail_for_header['nama_peserta_didik'] = "Siswa Bimbingan Guru (ID: " . htmlspecialchars($pembimbing_id_filter_url) . ")";
+        $siswa_detail_for_header['dunia_kerja_tempat_pkl'] = "Beragam";
+    }
+
+    foreach ($absensi_data as $row) {
+        $grouped_absensi[$row['id_siswa']][] = $row;
+    }
+} else {
+    if ($is_siswa) {
+        $siswa_detail_for_header['nama_peserta_didik'] = $_SESSION['siswa_nama'] ?? 'Tidak Ditemukan';
+        $koneksi_temp = new mysqli($host, $username, $password, $database);
+        if ($koneksi_temp && $koneksi_temp->connect_errno === 0) {
+            $stmt_tp = $koneksi_temp->prepare("SELECT tp.nama_tempat_pkl FROM siswa s LEFT JOIN tempat_pkl tp ON s.tempat_pkl_id = tp.id_tempat_pkl WHERE s.id_siswa = ?");
+            if ($stmt_tp) {
+                $stmt_tp->bind_param("i", $_SESSION['id_siswa']);
+                $stmt_tp->execute();
+                $tp_res = $stmt_tp->get_result()->fetch_assoc();
+                $siswa_detail_for_header['dunia_kerja_tempat_pkl'] = $tp_res['nama_tempat_pkl'] ?? '-';
+                $stmt_tp->close();
+            }
+            $koneksi_temp->close();
+        }
+    } elseif ($is_admin && $siswa_id_filter_url) {
+        $siswa_detail_for_header['nama_peserta_didik'] = "Siswa (ID: " . htmlspecialchars($siswa_id_filter_url) . ") - Tidak Ada Absensi";
+        $siswa_detail_for_header['dunia_kerja_tempat_pkl'] = "-";
+    }
+}
+
 
 $html = '
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Laporan Rekap Absensi Siswa - ' . date('d F Y', strtotime($tanggal_mulai)) . ' s.d. ' . date('d F Y', strtotime($tanggal_akhir)) . '</title>
+    <title>DAFTAR HADIR PRAKTIK KERJA LAPANGAN</title>
     <style>
-        body { font-family: Arial, sans-serif; font-size: 9pt; margin: 15mm; } /* Reduced margin and font size */
-        h1 { text-align: center; margin-bottom: 5px; font-size: 18pt; color: #34495e; } /* Reduced font size */
-        h2 { text-align: center; margin-bottom: 20px; font-size: 13pt; color: #7f8c8d; } /* Reduced font size and margin */
-        .info { margin-bottom: 15px; padding: 8px; background-color: #ecf0f1; border-radius: 6px; border: 1px solid #bdc3c7; } /* Reduced padding, margin, border-radius */
-        .info p { margin: 0; line-height: 1.5; color: #2c3e50; font-size: 8.5pt;} /* Reduced line-height and font size */
-        strong { color: #34495e; }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; } /* Reduced margin-top */
-        th, td { border: 1px solid #bdc3c7; padding: 8px 6px; text-align: left; vertical-align: middle; } /* Reduced padding */
-        th { background-color: #3498db; color: #ffffff; font-weight: bold; text-transform: uppercase; font-size: 8pt; text-align: center; } /* Reduced font size */
-        td { font-size: 8pt; color: #34495e; } /* Reduced font size */
-
-        .badge-container {
-            display: block; /* Changed to block to allow stacking if needed */
-            line-height: 1.2; /* Reduced line-height */
-            word-break: break-word;
+        body { 
+            font-family: \'Segoe UI\', Tahoma, Geneva, Verdana, sans-serif; /* Modern sans-serif font */
+            font-size: 10pt; /* Default font size */
+            margin: 15mm; /* Consistent margins around the page */
+            color: #333; /* Darker text for readability */
+            background-color: #ffffff; /* White background */
+            -webkit-print-color-adjust: exact; /* Ensure background colors are printed */
         }
-        .badge {
-            display: inline-block;
-            margin: 1px 2px 1px 0; /* Reduced margin */
-            padding: 3px 6px; /* Reduced padding */
-            font-size: 7.5pt; /* Reduced font size */
-            font-weight: 600;
-            color: #fff;
-            border-radius: 15px; /* Slightly smaller border-radius */
-            text-align: center;
-            white-space: nowrap;
-            background-color: #ccc;
-            box-shadow: 0 1px 1px rgba(0,0,0,0.1); /* Smaller shadow */
+        .header-title { 
+            text-align: center; 
+            font-size: 18pt; 
+            font-weight: bold; 
+            margin-bottom: 5px; 
+            color: #0056b3; /* Darker blue for title */
+            text-transform: uppercase;
         }
-        .badge.bg-success { background-color: #28a745 !important; }
-        .badge.bg-warning { background-color: #ffc107 !important; color: #343a40 !important; }
-        .badge.bg-info    { background-color: #17a2b8 !important; }
-        .badge.bg-danger  { background-color: #dc3545 !important; }
-        .badge.bg-secondary { background-color: #6c757d !important; }
+        .school-info { 
+            text-align: center; 
+            font-size: 12pt; 
+            margin-top: 5px; 
+            margin-bottom: 20px; 
+            color: #555; 
+            border-bottom: 1px solid #ddd; /* Subtle line below school info */
+            padding-bottom: 10px;
+        }
+        .student-info { 
+            font-size: 11pt; 
+            margin-bottom: 15px; 
+            line-height: 1.6; 
+            background-color: #f8f9fa; /* Light background for student info box */
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #e9ecef; /* Light border */
+        }
+        .student-info table { 
+            width: 100%; 
+            border-collapse: collapse; 
+        }
+        .student-info td { 
+            border: none; 
+            padding: 3px 0; 
+        }
+        .student-info td:first-child { 
+            width: 200px; 
+            font-weight: bold; 
+            color: #495057; 
+        }
 
-        .text-center { text-align: center; }
-        .text-left { text-align: left; }
-        .text-right { text-align: right; }
+        table.attendance { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 20px; 
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); /* More pronounced shadow */
+            border-radius: 8px; 
+            overflow: hidden; 
+            border: 1px solid #e0e0e0; /* Overall table border */
+        }
+        table.attendance th, 
+        table.attendance td { 
+            border: 1px solid #e0e0e0; /* Lighter borders for cells */
+            padding: 12px 8px; 
+            text-align: center; 
+            font-size: 9.5pt; /* Slightly larger for readability */
+            vertical-align: middle; 
+            line-height: 1.4; /* Better line spacing */
+        }
+        table.attendance th { 
+            background-color: #007bff; /* Primary blue header */
+            color: #fff; 
+            font-weight: bold; 
+            text-transform: uppercase; 
+        }
+        table.attendance td.left-align { 
+            text-align: left; 
+            padding-left: 15px; 
+        }
+        table.attendance tr:nth-child(even) { 
+            background-color: #f8f9fa; /* Lighter zebra striping */
+        }
+        table.attendance tbody tr:hover { 
+            background-color: #e9ecef; 
+        }
+
+        .page-break { page-break-before: always; }
         
-        /* Adjusted column widths for Portrait A4 */
+        /* Optimized Column Widths (Adjust as needed based on content) */
+        /* Total width should be 100% */
         .table-no { width: 5%; }
-        .table-nama { width: 25%; }
-        .table-kelas { width: 10%; }
-        .table-jurusan { width: 20%; } /* Slightly wider for jurusan name */
-        .table-tempat { width: 20%; } /* Slightly wider for place name */
-        .table-rekap { width: 20%; } /* Keep rekap compact */
+        .tanggal-column { width: 15%; }
+        .jam-column { width: 10%; } /* Both Jam Datang and Jam Pulang */
+        .para-column { width: 10%; }
+        .keterangan-column { width: 20%; } 
+        /* Pastikan total width pas 100% atau sedikit lebih jika ada padding/border */
+        /* Contoh: 5% + 15% + 10% + 10% + 10% + 20% = 70%. Sisanya terbagi rata atau disesuaikan */
 
-        .footer {
-            text-align: center;
-            font-size: 7.5pt; /* Reduced font size */
-            color: #7f8c8d;
-            margin-top: 25px; /* Reduced margin */
+
+        .footer-timestamp { 
+            text-align: right; 
+            font-size: 8pt; 
+            color: #6c757d; 
+            margin-top: 25px; 
         }
+
+        /* Styling untuk badge status di kolom Keterangan */
+        .status-badge {
+            display: inline-block; 
+            padding: 5px 10px; 
+            font-size: 9pt; 
+            font-weight: 500; 
+            color: #fff; 
+            border-radius: 5px; 
+            white-space: nowrap; 
+            min-width: 60px; /* Minimal width for better consistency */
+            text-align: center;
+        }
+        /* Warna berdasarkan status */
+        .status-Hadir { background-color: #28a745; } /* Green */
+        .status-Sakit { background-color: #ffc107; color: #212529; } /* Orange with dark text */
+        .status-Izin { background-color: #17a2b8; } /* Cyan */
+        .status-Alfa { background-color: #dc3545; } /* Red */
+        .status-Libur { background-color: #6c757d; } /* Gray */
+
     </style>
 </head>
-<body>
-    <h1>LAPORAN REKAPITULASI ABSENSI SISWA</h1>
-    <h2>Periode: ' . date('d F Y', strtotime($tanggal_mulai)) . ' s.d. ' . date('d F Y', strtotime($tanggal_akhir)) . '</h2>
-    
-    <div class="info">
-        <p><strong>Filter Status:</strong> ' . (empty($filter_status) ? 'Semua Status' : htmlspecialchars($filter_status)) . '</p>
-        <p><strong>Kata Kunci Pencarian:</strong> ' . (empty($keyword) ? 'Tidak Ada' : htmlspecialchars($keyword)) . '</p>
-        <p><strong>Total Siswa Ditemukan:</strong> ' . $total_siswa_found_final . ' siswa</p>
-        <p><strong>Periode Absensi yang Diperhitungkan (Untuk Menentukan Alfa):</strong> ' . date('d F Y', strtotime($tanggal_mulai)) . ' s.d. ' . date('d F Y', strtotime($effective_end_date_for_alfa_calc_obj->format('Y-m-d'))) . ' (' . $total_days_for_alfa_calc_up_to_today_or_end_date . ' Hari)</p>
-    </div>
-    
-    <table>
-        <thead>
-            <tr>
-                <th class="table-no">No</th>
-                <th class="table-nama">Nama Siswa</th>
-                <th class="table-kelas">Kelas</th>
-                <th class="table-jurusan">Jurusan</th>
-                <th class="table-tempat">Tempat PKL</th>
-                <th class="table-rekap">Rekap Absensi</th>
-            </tr>
-        </thead>
-        <tbody>';
+<body>';
 
-if ($total_siswa_found_final > 0) {
-    $no = 1;
-    foreach ($final_rekap_data_for_pdf as $row) {
-        $rekap_absen_html = '<div class="badge-container">';
-        $rekap_absen_html .= '<span class="badge bg-success">Hadir: ' . $row['total_hadir'] . '</span>';
-        $rekap_absen_html .= '<span class="badge bg-warning">Sakit: ' . $row['total_sakit'] . '</span>';
-        $rekap_absen_html .= '<span class="badge bg-info">Izin: ' . $row['total_izin'] . '</span>';
-        $rekap_absen_html .= '<span class="badge bg-secondary">Libur: ' . $row['total_libur'] . '</span>';
-        $rekap_absen_html .= '<span class="badge bg-danger">Alfa: ' . $row['total_alfa_calculated'] . '</span>';
-        $rekap_absen_html .= '</div>';
+$siswa_counter = 0;
 
-        $html .= '<tr>
-                    <td class="text-center">' . $no++ . '</td>
-                    <td>' . htmlspecialchars($row['nama_siswa']) . '</td>
-                    <td class="text-center">' . htmlspecialchars($row['kelas']) . '</td>
-                    <td>' . htmlspecialchars($row['nama_jurusan'] ?? '-') . '</td>
-                    <td>' . htmlspecialchars($row['nama_tempat_pkl'] ?? '-') . '</td>
-                    <td>' . $rekap_absen_html . '</td>
-                </tr>';
-    }
+if (empty($grouped_absensi)) {
+    // Tampilan jika TIDAK ADA DATA sama sekali
+    $html .= '<div class="header-title">DAFTAR HADIR PRAKTIK KERJA LAPANGAN</div>';
+    $html .= '<div class="school-info">' . htmlspecialchars($nama_sekolah) . ' TAHUN ' . htmlspecialchars($tahun_pkl) . '</div>';
+    $html .= '<div class="student-info">
+                <table>
+                    <tr><td>Nama Peserta Didik</td><td>: ' . htmlspecialchars($siswa_detail_for_header['nama_peserta_didik']) . '</td></tr>
+                    <tr><td>Dunia Kerja Tempat PKL</td><td>: ' . htmlspecialchars($siswa_detail_for_header['dunia_kerja_tempat_pkl']) . '</td></tr>
+                </table>
+              </div>';
+    $html .= '<p style="text-align: center; padding: 20px; color: #777;">Tidak ada data absensi ditemukan untuk kriteria ini.</p>';
 } else {
-    $html .= '<tr><td colspan="6" class="text-center" style="color: #888; padding: 20px;">Tidak ada data absensi ditemukan untuk filter ini.</td></tr>';
+    // Loop untuk setiap siswa
+    foreach ($grouped_absensi as $current_siswa_id => $absensi_records) {
+        if ($siswa_counter > 0) {
+            $html .= '<div class="page-break"></div>'; // Halaman baru untuk siswa berikutnya
+        }
+        $siswa_counter++;
+
+        $current_siswa_data = $absensi_records[0]; // Ambil data siswa dari record absensi pertama
+
+        $html .= '<div class="header-title">DAFTAR HADIR PRAKTIK KERJA LAPANGAN</div>';
+        $html .= '<div class="school-info">' . htmlspecialchars($nama_sekolah) . ' TAHUN ' . htmlspecialchars($tahun_pkl) . '</div>';
+
+        $html .= '<div class="student-info">
+                    <table>
+                        <tr><td>Nama Peserta Didik</td><td>: ' . htmlspecialchars($current_siswa_data['nama_siswa']) . '</td></tr>
+                        <tr><td>Dunia Kerja Tempat PKL</td><td>: ' . htmlspecialchars($current_siswa_data['nama_tempat_pkl'] ?? '-') . '</td></tr>
+                    </table>
+                  </div>';
+
+        $html .= '<table class="attendance">
+            <thead>
+                <tr>
+                    <th class="table-no">No</th>
+                    <th class="tanggal-column">Tanggal</th>
+                    <th class="jam-column">Jam Datang</th>
+                    <th class="jam-column">Jam Pulang</th>
+                    <th class="para-column">Paraf</th>
+                    <th class="keterangan-column">Keterangan</th>
+                </tr>
+            </thead>
+            <tbody>';
+
+        $record_no = 1;
+        foreach ($absensi_records as $record) {
+            $tanggal_display = date('d F Y', strtotime($record['tanggal_absen']));
+            $jam_datang_display = !empty($record['jam_datang']) ? date('H:i', strtotime($record['jam_datang'])) : '-';
+            $jam_pulang_display = !empty($record['jam_pulang']) ? date('H:i', strtotime($record['jam_pulang'])) : '-';
+
+            // Kolom Keterangan diambil dari status_absen dan ditambahi badge styling
+            $status_class = 'status-' . htmlspecialchars($record['status_absen']);
+            $keterangan_kolom_html = '<span class="status-badge ' . $status_class . '">' . htmlspecialchars($record['status_absen']) . '</span>';
+
+            $html .= '<tr>
+                        <td>' . $record_no++ . '</td>
+                        <td>' . $tanggal_display . '</td>
+                        <td>' . $jam_datang_display . '</td>
+                        <td>' . $jam_pulang_display . '</td>
+                        <td></td> <td class="left-align">' . $keterangan_kolom_html . '</td>
+                    </tr>';
+        }
+        $html .= '</tbody>
+        </table>';
+    }
 }
 
-$html .= '</tbody>
-    </table>
-
-    <div class="footer">
-        <p>Laporan ini dibuat secara otomatis pada ' . date('d F Y H:i:s') . ' WIB.</p>
-        <p>&copy; 2025 E-Jurnal PKL. Semua Hak Dilindungi.</p>
+$html .= '
+    <div class="footer-timestamp">
+        Laporan ini dibuat secara otomatis pada ' . date('d F Y H:i:s') . ' WIB.
     </div>
 </body>
 </html>';
@@ -283,17 +446,20 @@ $html .= '</tbody>
 $options = new Options();
 $options->set('isHtml5ParserEnabled', true);
 $options->set('isRemoteEnabled', true);
-$options->set('defaultFont', 'Arial');
-$options->set('chroot', realpath(__DIR__));
+$options->set('defaultFont', 'Segoe UI'); // Menggunakan Segoe UI, jika tidak ada akan fallback ke sans-serif
 
 $dompdf = new Dompdf($options);
-
 $dompdf->loadHtml($html);
-
-$dompdf->setPaper('A4', 'portrait'); // Set to portrait
-
+$dompdf->setPaper('A4', 'portrait');
 $dompdf->render();
 
-$filename = 'Rekap_Absensi_Siswa_' . date('Ymd', strtotime($tanggal_mulai)) . '_' . date('Ymd', strtotime($tanggal_akhir)) . '.pdf';
+$filename = "Daftar_Hadir_PKL_" . date('Ymd_His');
+if ($target_siswa_id && !empty($siswa_detail_for_header['nama_peserta_didik'])) {
+    $filename .= "_" . str_replace(' ', '_', $siswa_detail_for_header['nama_peserta_didik']);
+} elseif (!empty($report_title_suffix)) {
+    $filename .= "_" . str_replace(' ', '_', $report_title_suffix);
+}
+$filename .= ".pdf";
+
 $dompdf->stream($filename, ["Attachment" => false]);
 exit();

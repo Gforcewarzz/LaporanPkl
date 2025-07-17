@@ -1,52 +1,55 @@
 <?php
 session_start();
-date_default_timezone_set('Asia/Jakarta'); // <-- Tambahkan baris ini di sini
+date_default_timezone_set('Asia/Jakarta');
 
 // Logika Keamanan Halaman
 $is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
-$is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
+$is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_admin_status_login'] === 'logged_in';
 $is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
 
 // Hanya siswa yang boleh mengakses dashboard ini
 if (!$is_siswa) {
     if ($is_admin) {
-        header('Location: index.php'); // Redirect admin ke dashboard admin
+        header('Location: index.php');
         exit();
     } elseif ($is_guru) {
-        header('Location: dashboard_guru.php'); // Redirect guru ke halaman guru
+        header('Location: dashboard_guru.php');
         exit();
     } else {
-        header('Location: ../login.php'); // Jika tidak login sama sekali, redirect ke halaman login
+        header('Location: ../login.php');
         exit();
     }
 }
 
 // Pastikan id_siswa dan nama siswa tersedia dari sesi
 $siswa_id = $_SESSION['id_siswa'] ?? null;
-$siswa_nama = $_SESSION['siswa_nama'] ?? "Pengguna"; // Default nama jika tidak ada
+$siswa_nama = $_SESSION['siswa_nama'] ?? "Pengguna";
 
 // Jika siswa_id tidak ada, meskipun status login logged_in (kasus jarang, tapi untuk keamanan)
 if (empty($siswa_id)) {
-    session_destroy(); // Hancurkan sesi yang tidak valid
+    session_destroy();
     header('Location: ../login.php');
     exit();
 }
 
 // ========================================================
-// Perubahan: Sertakan koneksi database di sini untuk semua query
+// Sertakan koneksi database
 // Asumsi: partials/db.php ada di dalam folder yang sama dengan dashboard_siswa.php
 // ========================================================
 include 'partials/db.php';
 
 // --- Cek Absensi Harian dari Database (REAL) ---
 $sudah_absen_hari_ini = false;
-$status_absen_hari_ini = ''; // Inisialisasi dengan string kosong untuk menghindari null
-$keterangan_absen_lengkap = true; // Untuk Sakit/Izin, apakah keterangan dan bukti sudah ada
+$status_absen_hari_ini = '';
+$keterangan_absen_lengkap = true;
+$jam_datang_siswa = null;
+$jam_pulang_siswa = null;
 
-$current_date = date('Y-m-d'); // Ini akan menggunakan zona waktu 'Asia/Jakarta'
+$current_date = date('Y-m-d');
+$current_hour_minute = date('H:i'); // Waktu saat ini untuk perbandingan
 
 // Query menggunakan nama tabel dan kolom yang benar: absensi_siswa, status_absen, tanggal_absen, siswa_id
-$query_check_absen = "SELECT status_absen, keterangan, bukti_foto FROM absensi_siswa WHERE siswa_id = ? AND tanggal_absen = ?";
+$query_check_absen = "SELECT status_absen, keterangan, bukti_foto, jam_datang, jam_pulang FROM absensi_siswa WHERE siswa_id = ? AND tanggal_absen = ?";
 $stmt_check_absen = $koneksi->prepare($query_check_absen);
 
 if ($stmt_check_absen) {
@@ -57,20 +60,16 @@ if ($stmt_check_absen) {
     if ($result_check_absen->num_rows > 0) {
         $data_absen = $result_check_absen->fetch_assoc();
         $sudah_absen_hari_ini = true;
-        // Perbaikan: Mengakses key 'status_absen' sesuai nama kolom di DB
         $status_absen_hari_ini = $data_absen['status_absen'];
+        $jam_datang_siswa = $data_absen['jam_datang'];
+        $jam_pulang_siswa = $data_absen['jam_pulang'];
 
-        // Cek kelengkapan keterangan untuk Sakit/Izin
-        // PERUBAHAN DI SINI: Tambahkan kondisi untuk 'Libur'
         if (($status_absen_hari_ini == 'Sakit' || $status_absen_hari_ini == 'Izin') && (empty($data_absen['keterangan']) || empty($data_absen['bukti_foto']))) {
             $keterangan_absen_lengkap = false;
         }
-        // Jika statusnya 'Libur', maka otomatis dianggap lengkap (tidak perlu keterangan/bukti)
-        // Tidak perlu else if ($status_absen_hari_ini == 'Libur') karena $keterangan_absen_lengkap sudah true secara default
     }
     $stmt_check_absen->close();
 } else {
-    // Log error jika persiapan query gagal
     error_log("Error preparing check absen query: " . $koneksi->error);
 }
 
@@ -89,7 +88,7 @@ if ($stmt_harian) {
     $data_harian = $result_harian->fetch_assoc();
     $total_laporan_harian = $data_harian['total'] ?? 0;
     if ($data_harian['last_date']) {
-        $last_report_date = date('d F Y', strtotime($data_harian['last_date'])); // Ini akan menggunakan zona waktu 'Asia/Jakarta'
+        $last_report_date = date('d F Y', strtotime($data_harian['last_date']));
     }
     $stmt_harian->close();
 } else {
@@ -110,16 +109,15 @@ if ($stmt_proyek) {
     error_log("Error preparing proyek query: " . $koneksi->error);
 }
 
-// Logika untuk menghitung minggu PKL (Contoh, sesuaikan dengan tanggal mulai PKL sebenarnya)
-$start_pkl_date_example = '2025-01-01'; // Ganti dengan tanggal mulai PKL siswa yang sebenarnya
-$today = new DateTime(); // Ini akan menggunakan zona waktu 'Asia/Jakarta'
-$total_minggu_pkl = 0; // Default value
+// Logika untuk menghitung minggu PKL
+$start_pkl_date_example = '2024-01-01'; // Menggunakan tanggal hardcoded
+$today = new DateTime();
+$total_minggu_pkl = 0;
 $start_date_obj = new DateTime($start_pkl_date_example);
 if ($start_date_obj <= $today) {
     $interval = $today->diff($start_date_obj);
     $total_minggu_pkl = floor($interval->days / 7);
 }
-
 
 $quotes = [
     ["Setiap tugas kecil adalah langkah besar. Jangan takut bertanya, dan teruslah belajar dari setiap pengalaman!", "text-success"],
@@ -141,7 +139,7 @@ $quotes = [
     ["Manfaatkan umpan balik. Itu adalah hadiah untuk pertumbuhanmu.", "text-success"],
     ["Networking dimulai dari sekarang. Bangun jembatan profesionalmu.", "text-info"],
     ["Ketekunan mengalahkan segalanya. Teruslah bergerak maju selangkah demi selangkah.", "text-danger"],
-    ["Proyekmu adalah karyamu. Buatlah dengan bangga dan penuh dedikasi.", "text-primary"]
+    ["Proyekmu adalah karyamu. Buatlah dengan banggang dan penuh dedikasi.", "text-primary"]
 ];
 
 $random_quote = $quotes[array_rand($quotes)];
@@ -149,7 +147,7 @@ $quote_text = $random_quote[0];
 $quote_color_class = $random_quote[1];
 
 
-$koneksi->close(); // Tutup koneksi setelah semua data diambil
+$koneksi->close();
 
 ?>
 
@@ -169,7 +167,6 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                     <div class="container-xxl flex-grow-1 container-p-y">
 
                         <?php
-                        // Pesan SweetAlert. Penting: ini dipicu langsung, BUKAN di DOMContentLoaded
                         if (isset($_SESSION['alert_message'])) {
                             $alert_icon = $_SESSION['alert_type'];
                             $alert_title = $_SESSION['alert_title'];
@@ -224,9 +221,26 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                                         <?= htmlspecialchars($status_absen_hari_ini ?? '') ?>)
                                                     </button>
                                                     <?php
-                                                    // PERUBAHAN DI SINI: Hanya tampilkan peringatan jika statusnya Sakit/Izin DAN belum lengkap
-                                                    if (($status_absen_hari_ini == 'Sakit' || $status_absen_hari_ini == 'Izin') && !$keterangan_absen_lengkap):
-                                                    ?>
+                                                        $jam_datang_display = !empty($jam_datang_siswa) ? date('H:i', strtotime($jam_datang_siswa)) : '-';
+                                                        $jam_pulang_display = !empty($jam_pulang_siswa) ? date('H:i', strtotime($jam_pulang_siswa)) : 'Belum Pulang';
+                                                        ?>
+                                                    <p class="text-white-75 mt-2 mb-0" style="font-size: 0.9rem;">
+                                                        Jam Datang: <?= $jam_datang_display ?> WIB | Jam Pulang:
+                                                        <?= $jam_pulang_display ?> WIB
+                                                    </p>
+
+                                                    <?php if ($status_absen_hari_ini == 'Hadir' && empty($jam_pulang_siswa)): ?>
+                                                    <button type="button" id="absenPulangBtn"
+                                                        class="btn btn-warning mt-3">
+                                                        <i class="bx bx-log-out me-2"></i> Absen Pulang Sekarang!
+                                                    </button>
+                                                    <?php elseif ($status_absen_hari_ini == 'Hadir' && !empty($jam_pulang_siswa)): ?>
+                                                    <button type="button" class="btn btn-info mt-3" disabled>
+                                                        <i class="bx bx-check-double me-2"></i> Anda Sudah Absen Pulang
+                                                    </button>
+                                                    <?php endif; ?>
+
+                                                    <?php if (($status_absen_hari_ini == 'Sakit' || $status_absen_hari_ini == 'Izin') && !$keterangan_absen_lengkap): ?>
                                                     <p class="text-warning mt-2 mb-0 fw-bold">
                                                         <i class="bx bx-error-circle me-1"></i> Absensi Sakit/Izin Anda
                                                         belum lengkap. Mohon lengkapi!
@@ -372,12 +386,16 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <?php include './partials/script.php'; ?>
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">
+
+
     <div class="modal fade" id="absenModal" tabindex="-1" aria-labelledby="absenModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="absenModalLabel"><i
-                                class="bx bx-calendar-check me-2 text-success"></i>Formulir Absensi PKL</h5>
+                            class="bx bx-calendar-check me-2 text-success"></i>Formulir Absensi PKL</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <form id="formAbsen" action="process_absen.php" method="POST" enctype="multipart/form-data">
@@ -386,7 +404,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                             <label class="form-label fw-bold">Pilih Status Absensi Anda Hari Ini:</label>
                             <div class="form-check mt-2">
                                 <input class="form-check-input" type="radio" name="statusAbsen" id="radioHadir"
-                                        value="Hadir" checked>
+                                    value="Hadir" checked>
                                 <label class="form-check-label" for="radioHadir">
                                     <span class="badge bg-success"><i class="bx bx-check-circle me-1"></i> Hadir</span>
                                     - Anda masuk kerja/praktik hari ini.
@@ -394,7 +412,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                             </div>
                             <div class="form-check mt-2">
                                 <input class="form-check-input" type="radio" name="statusAbsen" id="radioSakit"
-                                        value="Sakit">
+                                    value="Sakit">
                                 <label class="form-check-label" for="radioSakit">
                                     <span class="badge bg-warning"><i class="bx bx-plus-medical me-1"></i> Sakit</span>
                                     - Anda tidak dapat masuk karena sakit.
@@ -402,7 +420,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                             </div>
                             <div class="form-check mt-2">
                                 <input class="form-check-input" type="radio" name="statusAbsen" id="radioIzin"
-                                        value="Izin">
+                                    value="Izin">
                                 <label class="form-check-label" for="radioIzin">
                                     <span class="badge bg-info"><i class="bx bx-receipt me-1"></i> Izin</span> - Anda
                                     tidak dapat masuk karena ada keperluan.
@@ -410,7 +428,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                             </div>
                             <div class="form-check mt-2">
                                 <input class="form-check-input" type="radio" name="statusAbsen" id="radioLibur"
-                                        value="Libur">
+                                    value="Libur">
                                 <label class="form-check-label" for="radioLibur">
                                     <span class="badge bg-secondary"><i class="bx bx-calendar-alt me-1"></i>
                                         Libur</span>
@@ -419,12 +437,18 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                             </div>
                         </div>
 
+                        <div class="mb-3" id="jamDatangField">
+                            <label for="jamDatang" class="form-label">Jam Datang:</label>
+                            <input type="text" class="form-control" id="jamDatang" name="jamDatang" readonly>
+                            <small class="form-text text-muted">Waktu Anda datang hari ini (otomatis terisi).</small>
+                        </div>
+
                         <div id="additionalFields" style="display: none;" class="mt-4 p-3 border rounded-3 bg-light">
                             <p class="text-danger fw-bold"><i class="bx bx-info-circle me-1"></i> Mohon lengkapi
                                 informasi berikut untuk status Sakit / Izin:</p>
                             <div class="mb-3">
                                 <label for="keterangan" class="form-label">Keterangan Tambahan <span
-                                            class="text-danger">*</span></label>
+                                        class="text-danger">*</span></label>
                                 <textarea class="form-control" id="keterangan" name="keterangan" rows="3"
                                     placeholder="Contoh: Sakit demam, Izin ada acara keluarga, dll."
                                     maxlength="255"></textarea>
@@ -432,7 +456,7 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                             </div>
                             <div class="mb-3">
                                 <label for="buktiFoto" class="form-label">Unggah Bukti Foto <span
-                                            class="text-danger">*</span></label>
+                                        class="text-danger">*</span></label>
                                 <input class="form-control" type="file" id="buktiFoto" name="buktiFoto"
                                     accept="image/jpeg,image/png">
                                 <div class="form-text">Unggah foto sebagai bukti (Contoh: Surat dokter, surat izin, dll.
@@ -448,50 +472,87 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Hapus Flatpickr untuk jamDatang karena kita akan mengisi manual dengan JS
+        // const jamDatangPicker = flatpickr("#jamDatang", {
+        //     enableTime: true,
+        //     noCalendar: true,
+        //     dateFormat: "H:i",
+        //     time_24hr: true,
+        //     defaultDate: "<?= date('H:i') ?>"
+        // });
+
         const radioHadir = document.getElementById('radioHadir');
         const radioSakit = document.getElementById('radioSakit');
         const radioIzin = document.getElementById('radioIzin');
-        const radioLibur = document.getElementById('radioLibur'); // Ambil elemen radio Libur
+        const radioLibur = document.getElementById('radioLibur');
         const additionalFields = document.getElementById('additionalFields');
         const keteranganField = document.getElementById('keterangan');
         const buktiFotoField = document.getElementById('buktiFoto');
         const formAbsen = document.getElementById('formAbsen');
         const absenModalElement = document.getElementById('absenModal');
         const absenModal = new bootstrap.Modal(absenModalElement);
+        const jamDatangField = document.getElementById('jamDatangField');
+        const jamDatangInput = document.getElementById('jamDatang'); // Ambil elemen input jamDatang
 
+        const absenPulangBtn = document.getElementById('absenPulangBtn');
 
         function toggleAdditionalFields() {
-            // PERUBAHAN DI SINI: additionalFields hanya muncul jika Sakit ATAU Izin
             if (radioSakit.checked || radioIzin.checked) {
                 additionalFields.style.display = 'block';
                 keteranganField.setAttribute('required', 'required');
                 buktiFotoField.setAttribute('required', 'required');
-            } else {
+                jamDatangField.style.display = 'none';
+                jamDatangInput.removeAttribute('required'); // Hapus required jika disembunyikan
+            } else if (radioHadir.checked) {
                 additionalFields.style.display = 'none';
                 keteranganField.removeAttribute('required');
                 buktiFotoField.removeAttribute('required');
-                keteranganField.value = ''; // Kosongkan field saat disembunyikan
-                buktiFotoField.value = ''; // Kosongkan input file saat disembunyikan
+                keteranganField.value = '';
+                buktiFotoField.value = '';
+                jamDatangField.style.display = 'block';
+                jamDatangInput.setAttribute('required', 'required'); // Tambahkan required jika terlihat
+                // Isi jam datang secara otomatis saat Hadir dipilih
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                jamDatangInput.value = `${hours}:${minutes}`;
+            } else if (radioLibur.checked) {
+                additionalFields.style.display = 'none';
+                keteranganField.removeAttribute('required');
+                buktiFotoField.removeAttribute('required');
+                keteranganField.value = '';
+                buktiFotoField.value = '';
+                jamDatangField.style.display = 'none';
+                jamDatangInput.removeAttribute('required'); // Hapus required jika disembunyikan
             }
         }
 
-        // Inisialisasi status saat halaman dimuat
+        // Panggil saat DOMContentLoaded dan saat modal dibuka
         toggleAdditionalFields();
 
-        // Tambahkan event listener untuk perubahan pada radio button
         radioHadir.addEventListener('change', toggleAdditionalFields);
         radioSakit.addEventListener('change', toggleAdditionalFields);
         radioIzin.addEventListener('change', toggleAdditionalFields);
-        radioLibur.addEventListener('change', toggleAdditionalFields); // Tambahkan listener untuk Libur
+        radioLibur.addEventListener('change', toggleAdditionalFields);
 
-        // Tangani pengiriman formulir TANPA SweetAlert Konfirmasi kedua
+        // Saat modal dibuka, pastikan jamDatang terisi otomatis jika Hadir terpilih
+        absenModalElement.addEventListener('show.bs.modal', function() {
+            if (radioHadir.checked) {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                jamDatangInput.value = `${hours}:${minutes}`;
+            }
+        });
+
+
         formAbsen.addEventListener('submit', function(event) {
-            // Validasi client-side tambahan untuk Sakit/Izin sebelum submit langsung
             if (radioSakit.checked || radioIzin.checked) {
                 if (keteranganField.value.trim() === '' || buktiFotoField.files.length === 0) {
-                    event.preventDefault(); // Hentikan submit jika tidak lengkap
+                    event.preventDefault();
                     Swal.fire({
                         icon: 'error',
                         title: 'Data Tidak Lengkap!',
@@ -500,19 +561,75 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                     });
                     return;
                 }
+            } else if (radioHadir.checked) {
+                // Pastikan jamDatang terisi, meskipun diisi otomatis
+                if (jamDatangInput.value.trim() === '') {
+                    event.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Jam Datang Kosong!',
+                        text: 'Terjadi kesalahan internal: Jam datang tidak terisi otomatis.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+                // TIDAK PERLU lagi ambil jam dari field, karena kita akan ambil langsung dari PHP (server-side)
+                // supaya jam masuk sama dengan waktu input transaksi.
+                // Namun, nilai di input tetap diperlukan untuk dikirim ke server.
             }
-            // Tidak ada validasi khusus untuk 'Libur' karena tidak memerlukan keterangan/bukti
 
-            // Jika validasi lolos, form akan langsung disubmit.
-            // Tutup modal secara manual sebelum submit form agar tidak terlihat aneh saat refresh
+            // Sembunyikan modal setelah submit (jika validasi JS lolos)
             absenModal.hide();
         });
 
-        // Reset form dan field tambahan saat modal ditutup
         absenModalElement.addEventListener('hidden.bs.modal', function() {
-            formAbsen.reset(); // Mengatur ulang semua input form
-            toggleAdditionalFields(); // Memastikan field tambahan tersembunyi
+            formAbsen.reset();
+            toggleAdditionalFields(); // Reset tampilan field tambahan
+            // Tidak perlu reset Flatpickr karena sudah tidak pakai
         });
+
+        // Logic for Absen Pulang button
+        // Hapus cutoffTimePulang karena absen pulang bebas waktu
+        // const cutoffTimePulang = "10:00"; 
+
+        function updateAbsenPulangButtonState() {
+            const isAbsenMasukHadir =
+                <?= $sudah_absen_hari_ini && $status_absen_hari_ini == 'Hadir' ? 'true' : 'false' ?>;
+            const isJamPulangEmpty = <?= empty($jam_pulang_siswa) ? 'true' : 'false' ?>;
+
+            if (absenPulangBtn) { // Ensure button exists before manipulating
+                if (isAbsenMasukHadir && isJamPulangEmpty) {
+                    // Tidak ada lagi batasan waktu di sini
+                    absenPulangBtn.disabled = false;
+                    absenPulangBtn.onclick = confirmAbsenPulang;
+                    absenPulangBtn.textContent = 'Absen Pulang Sekarang!';
+                    absenPulangBtn.classList.remove('btn-secondary');
+                    absenPulangBtn.classList.add('btn-warning');
+                } else {
+                    // Default state if not Hadir or already Pulang, button should be disabled from PHP initial state
+                    // No change needed here, as PHP already sets disabled state for "Anda Sudah Absen Pulang"
+                }
+            }
+        }
+
+        updateAbsenPulangButtonState(); // Set state on page load
+
+        function confirmAbsenPulang() {
+            Swal.fire({
+                title: 'Konfirmasi Absen Pulang',
+                html: 'Apakah Anda yakin ingin melakukan absen pulang sekarang?<br>Waktu pulang akan dicatat secara otomatis.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Absen Pulang!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'process_absen_pulang.php';
+                }
+            });
+        }
     });
     </script>
 </body>

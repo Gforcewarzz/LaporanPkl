@@ -2,7 +2,7 @@
 $host = "localhost";
 $user = "root";
 $password = "";
-$database = "u673945095_db_laporanpkl";
+$database = "db_laporanpkl";
 
 
 // Membuat koneksi

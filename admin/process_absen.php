@@ -14,6 +14,9 @@ if (!$is_siswa || empty($siswa_id)) {
     $_SESSION['alert_message'] = 'Anda harus login sebagai siswa untuk mengakses halaman ini.';
     $_SESSION['alert_type'] = 'error';
     $_SESSION['alert_title'] = 'Akses Ditolak!';
+    if ($koneksi) {
+        $koneksi->close();
+    } // Tutup koneksi sebelum redirect
     header('Location: ../login.php');
     exit();
 }
@@ -27,6 +30,9 @@ if ($current_time > $cutoff_time) {
     $_SESSION['alert_message'] = 'Absensi gagal! Anda hanya bisa absen hingga pukul 17:30 WIB.';
     $_SESSION['alert_type'] = 'error';
     $_SESSION['alert_title'] = 'Waktu Absen Habis';
+    if ($koneksi) {
+        $koneksi->close();
+    } // Tutup koneksi sebelum redirect
     header('Location: dashboard_siswa.php'); // Redirect kembali ke dashboard
     exit();
 }
@@ -38,11 +44,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $tanggal_absen = date('Y-m-d'); // Tanggal absensi hari ini
     $bukti_foto_path = null; // Default null untuk path bukti foto
 
+    // AWAL MODIFIKASI: Jam datang diambil langsung dari waktu server (sama dengan waktu_input transaksi)
+    $current_timestamp_wib = date('Y-m-d H:i:s'); // Tanggal dan waktu lengkap
+    $jam_datang = date('H:i:s', strtotime($current_timestamp_wib)); // Ambil hanya jam dari timestamp ini
+    $jam_pulang = null; // Jam pulang akan diisi nanti via process_absen_pulang.php
+    // AKHIR MODIFIKASI
+
     // Validasi status absensi yang diterima
     if (!in_array($statusAbsen, ['Hadir', 'Sakit', 'Izin', 'Libur'])) {
         $_SESSION['alert_message'] = 'Status absensi tidak valid.';
         $_SESSION['alert_type'] = 'error';
         $_SESSION['alert_title'] = 'Gagal Absen!';
+        if ($koneksi) {
+            $koneksi->close();
+        }
         header('Location: dashboard_siswa.php');
         exit();
     }
@@ -58,39 +73,44 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['alert_type'] = 'warning';
             $_SESSION['alert_title'] = 'Absen Ganda!';
             $check_stmt->close();
-            $koneksi->close();
+            if ($koneksi) {
+                $koneksi->close();
+            }
             header('Location: dashboard_siswa.php');
             exit();
         }
         $check_stmt->close();
     } else {
-        // Error jika persiapan query gagal
         error_log("Error preparing check_stmt: " . $koneksi->error);
         $_SESSION['alert_message'] = 'Terjadi kesalahan internal saat memeriksa absensi.';
         $_SESSION['alert_type'] = 'error';
         $_SESSION['alert_title'] = 'Error Database!';
-        $koneksi->close();
+        if ($koneksi) {
+            $koneksi->close();
+        }
         header('Location: dashboard_siswa.php');
         exit();
     }
 
     // --- Proses Upload Bukti Foto dan Validasi Keterangan (untuk Sakit/Izin) ---
+    // Pastikan keterangan/bukti foto wajib diisi untuk Sakit/Izin
     if ($statusAbsen === 'Sakit' || $statusAbsen === 'Izin') {
-        // Keterangan wajib diisi
         if (empty($keterangan)) {
             $_SESSION['alert_message'] = 'Keterangan wajib diisi untuk status ' . htmlspecialchars($statusAbsen) . '.';
             $_SESSION['alert_type'] = 'error';
             $_SESSION['alert_title'] = 'Gagal Absen!';
+            if ($koneksi) {
+                $koneksi->close();
+            }
             header('Location: dashboard_siswa.php');
             exit();
         }
 
-        $target_dir = "image_absensi/"; // Direktori penyimpanan bukti foto
+        $target_dir = "image_absensi/"; // Direktori penyimpanan bukti foto (pastikan path benar)
         if (!is_dir($target_dir)) { // Buat folder jika belum ada
             mkdir($target_dir, 0775, true);
         }
 
-        // Proses upload file
         if (isset($_FILES['buktiFoto']) && $_FILES['buktiFoto']['error'] === UPLOAD_ERR_OK) {
             $file_name = uniqid('bukti_') . '_' . basename($_FILES["buktiFoto"]["name"]);
             $target_file = $target_dir . $file_name;
@@ -104,6 +124,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION['alert_message'] = 'Hanya file JPG, JPEG, & PNG yang diizinkan.';
                 $_SESSION['alert_type'] = 'error';
                 $_SESSION['alert_title'] = 'Format File Tidak Valid!';
+                if ($koneksi) {
+                    $koneksi->close();
+                }
                 header('Location: dashboard_siswa.php');
                 exit();
             }
@@ -111,6 +134,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION['alert_message'] = 'Ukuran file terlalu besar. Maksimal 2MB.';
                 $_SESSION['alert_type'] = 'error';
                 $_SESSION['alert_title'] = 'Ukuran File Terlalu Besar!';
+                if ($koneksi) {
+                    $koneksi->close();
+                }
                 header('Location: dashboard_siswa.php');
                 exit();
             }
@@ -123,6 +149,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION['alert_type'] = 'error';
                 $_SESSION['alert_title'] = 'Gagal Upload!';
                 error_log("Error moving uploaded file: " . $_FILES["buktiFoto"]["error"]);
+                if ($koneksi) {
+                    $koneksi->close();
+                }
                 header('Location: dashboard_siswa.php');
                 exit();
             }
@@ -131,17 +160,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['alert_message'] = 'Bukti foto wajib diunggah untuk status ' . htmlspecialchars($statusAbsen) . '.';
             $_SESSION['alert_type'] = 'error';
             $_SESSION['alert_title'] = 'Bukti Tidak Ada!';
+            if ($koneksi) {
+                $koneksi->close();
+            }
             header('Location: dashboard_siswa.php');
             exit();
         }
     }
 
     // --- Simpan Data Absensi ke Database ---
-    $current_timestamp_wib = date('Y-m-d H:i:s'); // Timestamp saat data disimpan
-    $insert_stmt = $koneksi->prepare("INSERT INTO absensi_siswa (siswa_id, tanggal_absen, status_absen, keterangan, bukti_foto, waktu_input) VALUES (?, ?, ?, ?, ?, ?)");
+    // PERUBAHAN QUERY: Tambahkan jam_datang dan jam_pulang
+    // Pastikan kolom di DB juga bernama jam_datang dan jam_pulang
+    $insert_stmt = $koneksi->prepare("INSERT INTO absensi_siswa (siswa_id, tanggal_absen, status_absen, keterangan, bukti_foto, waktu_input, jam_datang, jam_pulang) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 
     if ($insert_stmt) {
-        $insert_stmt->bind_param("isssss", $siswa_id, $tanggal_absen, $statusAbsen, $keterangan, $bukti_foto_path, $current_timestamp_wib);
+        // PERUBAHAN BIND_PARAM: Sesuaikan tipe dan urutan
+        // "isssssss" -> integer, string, string, string, string, string, string, string
+        $insert_stmt->bind_param("isssssss", $siswa_id, $tanggal_absen, $statusAbsen, $keterangan, $bukti_foto_path, $current_timestamp_wib, $jam_datang, $jam_pulang);
 
         if ($insert_stmt->execute()) {
             $_SESSION['alert_message'] = 'Absensi ' . htmlspecialchars($statusAbsen) . ' berhasil dicatat!';
@@ -161,7 +196,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         error_log("Error preparing insert_stmt: " . $koneksi->error);
     }
 
-    $koneksi->close(); // Tutup koneksi database
+    if ($koneksi) {
+        $koneksi->close();
+    } // Tutup koneksi database
     header('Location: dashboard_siswa.php'); // Redirect ke dashboard setelah selesai
     exit();
 } else {
@@ -169,6 +206,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $_SESSION['alert_message'] = 'Akses tidak sah.';
     $_SESSION['alert_type'] = 'error';
     $_SESSION['alert_title'] = 'Akses Ditolak!';
+    if ($koneksi) {
+        $koneksi->close();
+    }
     header('Location: dashboard_siswa.php');
     exit();
 }
