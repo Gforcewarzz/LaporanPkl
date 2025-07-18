@@ -40,18 +40,26 @@ if ($current_time > $cutoff_time) {
 // --- Proses Form Absensi Jika Metode POST ---
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $statusAbsen = $_POST['statusAbsen'] ?? '';
+    // Variabel $keterangan diambil dari POST
     $keterangan = !empty($_POST['keterangan']) ? trim($_POST['keterangan']) : null;
     $tanggal_absen = date('Y-m-d'); // Tanggal absensi hari ini
     $bukti_foto_path = null; // Default null untuk path bukti foto
 
-    // AWAL MODIFIKASI: Jam datang diambil langsung dari waktu server (sama dengan waktu_input transaksi)
-    $current_timestamp_wib = date('Y-m-d H:i:s'); // Tanggal dan waktu lengkap
-    $jam_datang = date('H:i:s', strtotime($current_timestamp_wib)); // Ambil hanya jam dari timestamp ini
-    $jam_pulang = null; // Jam pulang akan diisi nanti via process_absen_pulang.php
-    // AKHIR MODIFIKASI
+    $current_timestamp_full = date('Y-m-d H:i:s'); // Timestamp lengkap untuk waktu_input
+
+    // PERUBAHAN KRITIS DI SINI: Inisialisasi jam_datang_auto dan jam_pulang berdasarkan statusAbsen
+    $jam_datang_auto = null; // Defaultkan ke NULL
+    $jam_pulang = null; // Defaultkan ke NULL
+
+    if ($statusAbsen == 'Hadir') {
+        $jam_datang_auto = date('H:i:s'); // Ambil waktu saat ini hanya jika status Hadir
+        // jam_pulang tetap NULL, akan diisi terpisah oleh process_absen_pulang.php
+    }
+    // Untuk status selain Hadir (Sakit, Izin, Libur, Alfa), jam_datang_auto dan jam_pulang tetap NULL
+
 
     // Validasi status absensi yang diterima
-    if (!in_array($statusAbsen, ['Hadir', 'Sakit', 'Izin', 'Libur'])) {
+    if (!in_array($statusAbsen, ['Hadir', 'Sakit', 'Izin', 'Libur', 'Alfa'])) { // Tambahkan 'Alfa' ke validasi
         $_SESSION['alert_message'] = 'Status absensi tidak valid.';
         $_SESSION['alert_type'] = 'error';
         $_SESSION['alert_title'] = 'Gagal Absen!';
@@ -93,7 +101,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // --- Proses Upload Bukti Foto dan Validasi Keterangan (untuk Sakit/Izin) ---
-    // Pastikan keterangan/bukti foto wajib diisi untuk Sakit/Izin
+    // Pastikan keterangan DAN bukti foto wajib diisi untuk Sakit/Izin
     if ($statusAbsen === 'Sakit' || $statusAbsen === 'Izin') {
         if (empty($keterangan)) {
             $_SESSION['alert_message'] = 'Keterangan wajib diisi untuk status ' . htmlspecialchars($statusAbsen) . '.';
@@ -166,17 +174,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             header('Location: dashboard_siswa.php');
             exit();
         }
+    } else {
+        // Jika status bukan Sakit/Izin, pastikan keterangan dan bukti foto adalah null
+        $keterangan = null; // Set keterangan menjadi null jika tidak relevan
+        $bukti_foto_path = null;
     }
 
     // --- Simpan Data Absensi ke Database ---
-    // PERUBAHAN QUERY: Tambahkan jam_datang dan jam_pulang
-    // Pastikan kolom di DB juga bernama jam_datang dan jam_pulang
+    // Kolom 'keterangan' dikembalikan ke INSERT statement
     $insert_stmt = $koneksi->prepare("INSERT INTO absensi_siswa (siswa_id, tanggal_absen, status_absen, keterangan, bukti_foto, waktu_input, jam_datang, jam_pulang) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 
     if ($insert_stmt) {
-        // PERUBAHAN BIND_PARAM: Sesuaikan tipe dan urutan
+        // PERUBAHAN BIND_PARAM: 's' untuk keterangan dikembalikan
         // "isssssss" -> integer, string, string, string, string, string, string, string
-        $insert_stmt->bind_param("isssssss", $siswa_id, $tanggal_absen, $statusAbsen, $keterangan, $bukti_foto_path, $current_timestamp_wib, $jam_datang, $jam_pulang);
+        $stmt_bind_params = [];
+        $stmt_bind_params[] = $siswa_id;
+        $stmt_bind_params[] = $tanggal_absen;
+        $stmt_bind_params[] = $statusAbsen;
+        $stmt_bind_params[] = $keterangan;
+        $stmt_bind_params[] = $bukti_foto_path;
+        $stmt_bind_params[] = $current_timestamp_full;
+        $stmt_bind_params[] = $jam_datang_auto; // Akan NULL jika status bukan Hadir
+        $stmt_bind_params[] = $jam_pulang;     // Akan NULL selalu saat INSERT awal
+
+        $insert_stmt->bind_param("isssssss", ...$stmt_bind_params);
 
         if ($insert_stmt->execute()) {
             $_SESSION['alert_message'] = 'Absensi ' . htmlspecialchars($statusAbsen) . ' berhasil dicatat!';
@@ -198,11 +219,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($koneksi) {
         $koneksi->close();
-    } // Tutup koneksi database
-    header('Location: dashboard_siswa.php'); // Redirect ke dashboard setelah selesai
+    }
+    header('Location: dashboard_siswa.php');
     exit();
 } else {
-    // Jika akses bukan melalui metode POST, redirect ke dashboard
     $_SESSION['alert_message'] = 'Akses tidak sah.';
     $_SESSION['alert_type'] = 'error';
     $_SESSION['alert_title'] = 'Akses Ditolak!';

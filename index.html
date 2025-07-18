@@ -210,6 +210,7 @@
       </div>
 
       <h1 class="font-bold mb-4 animate-fadeIn">Sistem Sedang Dalam Pemeliharaan</h1>
+      <p class="leading-relaxed mb-4 text-primary animate-slideInBottom">Mohon maaf atas keterlambatan. Kami membutuhkan sedikit tambahan waktu untuk memastikan semua optimal.</p>
       <p class="leading-relaxed mb-8 animate-slideInBottom">Kami sedang melakukan pembaruan dan optimasi untuk meningkatkan kualitas layanan situs ini. Akses akan segera tersedia kembali.</p>
 
       <div id="countdown" class="flex justify-center gap-3 md:gap-4 mb-8 flex-wrap">
@@ -234,15 +235,19 @@
       document.addEventListener("DOMContentLoaded", function () {
         function getTargetDateWIB() {
           const now = new Date();
-          let targetDate = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+          // Get current date components in Asia/Jakarta timezone
+          const nowInJakarta = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
 
-          targetDate.setDate(targetDate.getDate() + 1); // Go to tomorrow
-          targetDate.setHours(6, 0, 0, 0); // Set to 06:00:00 AM
+          let targetDate = new Date(nowInJakarta); // Start with today's date in WIB
+          const targetHour = 8; // Target 08:45 AM
+          const targetMinute = 45; // Target 08:45 AM
 
-          // If current time (in WIB) is already past 06:00 AM tomorrow,
-          // then set target to the day after tomorrow 06:00 AM WIB.
-          if (new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }) > targetDate.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })) {
-            targetDate.setDate(targetDate.getDate() + 1);
+          targetDate.setHours(targetHour, targetMinute, 0, 0); // Set to 08:45:00 AM WIB
+
+          // If the target time (08:45 AM today) has already passed,
+          // then set it for tomorrow at 08:45 AM.
+          if (nowInJakarta.getTime() > targetDate.getTime()) {
+            targetDate.setDate(targetDate.getDate() + 1); // Go to tomorrow
           }
 
           return targetDate.getTime();
@@ -254,22 +259,27 @@
           const now = new Date().getTime();
           let distance = countDownDate - now;
 
+          // If the countdown is finished for some reason (e.g., page left open overnight)
+          // then recalculate for the next 08:45 AM WIB
           if (distance < 0) {
-            countDownDate = getTargetDateWIB();
-            distance = countDownDate - now;
+            countDownDate = getTargetDateWIB(); // Get target for next 08:45 AM
+            distance = countDownDate - now; // Recalculate distance
           }
 
+          // If after recalculation distance is still negative, it means we passed the very latest target,
+          // so we display the "online" message
           if (distance < 0) {
             clearInterval(x);
             document.getElementById("countdown").innerHTML = '<span class="text-base md:text-xl font-bold text-primary">Situs Telah Kembali Normal!</span>';
-            // window.location.href = "/"; // Uncomment to redirect
-            return;
+            // window.location.href = "/"; // Uncomment to redirect to the main site
+            return; // Exit to prevent updating negative numbers
           }
 
           const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
           const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
           const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
+          // Add leading zero if less than 10
           document.getElementById("hours").innerHTML = hours < 10 ? "0" + hours : hours;
           document.getElementById("minutes").innerHTML = minutes < 10 ? "0" + minutes : minutes;
           document.getElementById("seconds").innerHTML = seconds < 10 ? "0" + seconds : seconds;

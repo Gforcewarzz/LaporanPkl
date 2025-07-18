@@ -1,6 +1,6 @@
 <?php
 session_start();
-date_default_timezone_set('Asia/Jakarta'); // <-- Tambahkan baris ini di sini
+date_default_timezone_set('Asia/Jakarta');
 
 // Variabel status peran agar konsisten dan selalu terdefinisi
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
@@ -20,8 +20,8 @@ if (!$is_admin && !$is_guru) {
 include 'partials/db.php';
 
 $id_absensi_exist = $_GET['id'] ?? null;
-$siswa_id_new = $_GET['siswa_id'] ?? null;
-$tanggal_new = $_GET['tanggal'] ?? null;
+$siswa_id_new = $_GET['siswa_id'] ?? null; // Digunakan jika mode ADD
+$tanggal_new = $_GET['tanggal'] ?? null; // Digunakan jika mode ADD
 
 $is_editing = !empty($id_absensi_exist);
 
@@ -34,18 +34,18 @@ if ($is_editing) {
     // ===============================
     // Mode EDIT
     // ===============================
-    // [DIUBAH] Tambahkan s.pembimbing_id untuk pengecekan otorisasi
+    // PERUBAHAN: abs.keterangan dikembalikan ke SELECT
     $query = "SELECT
                 abs.id_absensi, abs.tanggal_absen, abs.status_absen, abs.keterangan, abs.bukti_foto,
                 s.id_siswa, s.nama_siswa, s.kelas, s.no_induk, s.pembimbing_id
               FROM absensi_siswa abs
               JOIN siswa s ON abs.siswa_id = s.id_siswa
               WHERE abs.id_absensi = ?";
-    
+
     $params = [$id_absensi_exist];
     $types = "i";
-    
-    // [PENTING] OTORISASI GURU
+
+    // OTORISASI GURU
     if ($is_guru) {
         $query .= " AND s.pembimbing_id = ?";
         $params[] = $_SESSION['id_guru_pendamping'];
@@ -54,7 +54,7 @@ if ($is_editing) {
 
     $stmt = $koneksi->prepare($query);
     if (!$stmt) die("Error preparing query: " . $koneksi->error);
-    
+
     // Dynamic binding for multiple parameters
     $bind_names = [$types];
     for ($i = 0; $i < count($params); $i++) {
@@ -75,13 +75,12 @@ if ($is_editing) {
         exit();
     }
     $data_absensi = $result->fetch_assoc();
-    $data_siswa = $data_absensi;
+    $data_siswa = $data_absensi; // Data siswa ada di $data_absensi karena JOIN
     $page_title = "Edit Absensi Siswa";
     $stmt->close();
-
 } else {
     // ===============================
-    // Mode ADD
+    // Mode ADD (via link dari master_data_absensi_siswa.php untuk siswa tertentu pada tanggal tertentu)
     // ===============================
     if (empty($siswa_id_new) || empty($tanggal_new)) {
         $_SESSION['alert_message'] = 'Parameter tidak lengkap untuk menambah absensi.';
@@ -91,18 +90,17 @@ if ($is_editing) {
         exit();
     }
 
-    // [DIUBAH] Tambahkan pembimbing_id untuk pengecekan otorisasi
     $query_siswa = "SELECT id_siswa, nama_siswa, kelas, no_induk, pembimbing_id FROM siswa WHERE id_siswa = ?";
     $params = [$siswa_id_new];
     $types = "i";
-    
-    // [PENTING] OTORISASI GURU
+
+    // OTORISASI GURU
     if ($is_guru) {
         $query_siswa .= " AND pembimbing_id = ?";
         $params[] = $_SESSION['id_guru_pendamping'];
         $types .= "i";
     }
-    
+
     $stmt_siswa = $koneksi->prepare($query_siswa);
     if (!$stmt_siswa) die("Error preparing siswa query: " . $koneksi->error);
 
@@ -128,12 +126,15 @@ if ($is_editing) {
     $data_siswa = $result_siswa->fetch_assoc();
     $stmt_siswa->close();
 
+    // Data default untuk form ADD
     $data_absensi = [
-        'id_absensi' => null,
+        'id_absensi' => null, // Ini akan null untuk ADD
         'tanggal_absen' => $tanggal_new,
-        'status_absen' => 'Hadir', 
-        'keterangan' => null,
-        'bukti_foto' => null
+        'status_absen' => 'Hadir',
+        'keterangan' => null, // Keterangan diinisialisasi null untuk ADD
+        'bukti_foto' => null,
+        'jam_datang' => null,
+        'jam_pulang' => null
     ];
     $page_title = "Tambah Absensi Siswa";
 }
@@ -160,15 +161,12 @@ $koneksi->close();
                         <?php
                         // Menampilkan SweetAlert jika ada pesan dari sesi
                         if (isset($_SESSION['alert_message'])) {
-                            $alert_icon = $_SESSION['alert_type'];
-                            $alert_title = $_SESSION['alert_title'];
-                            $alert_text = $_SESSION['alert_message'];
                             echo "<script>
                                 document.addEventListener('DOMContentLoaded', function() {
                                     Swal.fire({
-                                        icon: '{$alert_icon}',
-                                        title: '{$alert_title}',
-                                        text: '{$alert_text}',
+                                        icon: '{$_SESSION['alert_type']}',
+                                        title: '{$_SESSION['alert_title']}',
+                                        text: '{$_SESSION['alert_message']}',
                                         confirmButtonColor: '#696cff'
                                     });
                                 });
@@ -190,11 +188,15 @@ $koneksi->close();
                             <div class="card-body">
                                 <form action="master_data_absensi_siswa_edit_act.php" method="POST"
                                     enctype="multipart/form-data">
-                                    
-                                    <input type="hidden" name="id_absensi" value="<?= htmlspecialchars($data_absensi['id_absensi'] ?? '') ?>">
-                                    <input type="hidden" name="siswa_id" value="<?= htmlspecialchars($data_siswa['id_siswa']) ?>">
-                                    <input type="hidden" name="tanggal_absen" value="<?= htmlspecialchars($data_absensi['tanggal_absen']) ?>">
-                                    <input type="hidden" name="foto_lama" value="<?= htmlspecialchars($data_absensi['bukti_foto'] ?? '') ?>">
+
+                                    <input type="hidden" name="id_absensi"
+                                        value="<?= htmlspecialchars($data_absensi['id_absensi'] ?? '') ?>">
+                                    <input type="hidden" name="siswa_id"
+                                        value="<?= htmlspecialchars($data_siswa['id_siswa']) ?>">
+                                    <input type="hidden" name="tanggal_absen"
+                                        value="<?= htmlspecialchars($data_absensi['tanggal_absen']) ?>">
+                                    <input type="hidden" name="foto_lama"
+                                        value="<?= htmlspecialchars($data_absensi['bukti_foto'] ?? '') ?>">
 
                                     <div class="row mb-3">
                                         <label class="col-sm-3 col-form-label">Siswa:</label>
@@ -217,54 +219,90 @@ $koneksi->close();
                                         <label class="col-sm-3 col-form-label fw-bold">Status Absensi:</label>
                                         <div class="col-sm-9 d-flex flex-wrap align-items-center pt-2">
                                             <div class="form-check me-4 mb-2">
-                                                <input class="form-check-input" type="radio" name="statusAbsen" id="editRadioHadir" value="Hadir" <?= ($data_absensi['status_absen'] == 'Hadir') ? 'checked' : '' ?>>
-                                                <label class="form-check-label" for="editRadioHadir"><span class="badge bg-success"><i class="bx bx-check-circle me-1"></i> Hadir</span></label>
+                                                <input class="form-check-input" type="radio" name="statusAbsen"
+                                                    id="editRadioHadir" value="Hadir"
+                                                    <?= ($data_absensi['status_absen'] == 'Hadir') ? 'checked' : '' ?>>
+                                                <label class="form-check-label" for="editRadioHadir"><span
+                                                        class="badge bg-success"><i class="bx bx-check-circle me-1"></i>
+                                                        Hadir</span></label>
                                             </div>
                                             <div class="form-check me-4 mb-2">
-                                                <input class="form-check-input" type="radio" name="statusAbsen" id="editRadioSakit" value="Sakit" <?= ($data_absensi['status_absen'] == 'Sakit') ? 'checked' : '' ?>>
-                                                <label class="form-check-label" for="editRadioSakit"><span class="badge bg-warning"><i class="bx bx-plus-medical me-1"></i> Sakit</span></label>
+                                                <input class="form-check-input" type="radio" name="statusAbsen"
+                                                    id="editRadioSakit" value="Sakit"
+                                                    <?= ($data_absensi['status_absen'] == 'Sakit') ? 'checked' : '' ?>>
+                                                <label class="form-check-label" for="editRadioSakit"><span
+                                                        class="badge bg-warning"><i class="bx bx-plus-medical me-1"></i>
+                                                        Sakit</span></label>
                                             </div>
                                             <div class="form-check me-4 mb-2">
-                                                <input class="form-check-input" type="radio" name="statusAbsen" id="editRadioIzin" value="Izin" <?= ($data_absensi['status_absen'] == 'Izin') ? 'checked' : '' ?>>
-                                                <label class="form-check-label" for="editRadioIzin"><span class="badge bg-info"><i class="bx bx-receipt me-1"></i> Izin</span></label>
+                                                <input class="form-check-input" type="radio" name="statusAbsen"
+                                                    id="editRadioIzin" value="Izin"
+                                                    <?= ($data_absensi['status_absen'] == 'Izin') ? 'checked' : '' ?>>
+                                                <label class="form-check-label" for="editRadioIzin"><span
+                                                        class="badge bg-info"><i class="bx bx-receipt me-1"></i>
+                                                        Izin</span></label>
                                             </div>
                                             <div class="form-check me-4 mb-2">
-                                                <input class="form-check-input" type="radio" name="statusAbsen" id="editRadioLibur" value="Libur" <?= ($data_absensi['status_absen'] == 'Libur') ? 'checked' : '' ?>>
-                                                <label class="form-check-label" for="editRadioLibur"><span class="badge bg-secondary"><i class="bx bx-calendar-alt me-1"></i> Libur</span></label>
+                                                <input class="form-check-input" type="radio" name="statusAbsen"
+                                                    id="editRadioLibur" value="Libur"
+                                                    <?= ($data_absensi['status_absen'] == 'Libur') ? 'checked' : '' ?>>
+                                                <label class="form-check-label" for="editRadioLibur"><span
+                                                        class="badge bg-secondary"><i
+                                                            class="bx bx-calendar-alt me-1"></i> Libur</span></label>
                                             </div>
                                             <div class="form-check mb-2">
-                                                <input class="form-check-input" type="radio" name="statusAbsen" id="editRadioAlfa" value="Alfa" <?= ($data_absensi['status_absen'] == 'Alfa') ? 'checked' : '' ?>>
-                                                <label class="form-check-label" for="editRadioAlfa"><span class="badge bg-danger"><i class="bx bx-x-circle me-1"></i> Alfa</span></label>
+                                                <input class="form-check-input" type="radio" name="statusAbsen"
+                                                    id="editRadioAlfa" value="Alfa"
+                                                    <?= ($data_absensi['status_absen'] == 'Alfa') ? 'checked' : '' ?>>
+                                                <label class="form-check-label" for="editRadioAlfa"><span
+                                                        class="badge bg-danger"><i class="bx bx-x-circle me-1"></i>
+                                                        Alfa</span></label>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div id="editAdditionalFields" class="mt-4 p-3 border rounded-3 bg-light" style="display: none;">
-                                        <p class="text-danger fw-bold mb-3"><i class="bx bx-info-circle me-1"></i> Mohon lengkapi informasi berikut untuk status Sakit / Izin:</p>
+                                    <div id="editAdditionalFields" class="mt-4 p-3 border rounded-3 bg-light"
+                                        style="display: none;">
+                                        <p class="text-danger fw-bold mb-3"><i class="bx bx-info-circle me-1"></i> Mohon
+                                            lengkapi informasi berikut untuk status Sakit / Izin:</p>
+
                                         <div class="row mb-3">
-                                            <label for="editKeterangan" class="col-sm-3 col-form-label">Keterangan:</label>
+                                            <label for="editKeterangan"
+                                                class="col-sm-3 col-form-label">Keterangan:</label>
                                             <div class="col-sm-9">
-                                                <textarea class="form-control" id="editKeterangan" name="keterangan" rows="3" placeholder="Masukkan keterangan (misal: alasan sakit/izin)" maxlength="255"><?= htmlspecialchars($data_absensi['keterangan'] ?? '') ?></textarea>
+                                                <textarea class="form-control" id="editKeterangan" name="keterangan"
+                                                    rows="3"
+                                                    placeholder="Masukkan keterangan (misal: alasan sakit/izin)"
+                                                    maxlength="255"><?= htmlspecialchars($data_absensi['keterangan'] ?? '') ?></textarea>
                                             </div>
                                         </div>
+
                                         <div class="row mb-3">
-                                            <label for="editBuktiFoto" class="col-sm-3 col-form-label">Upload Bukti Foto:</label>
+                                            <label for="editBuktiFoto" class="col-sm-3 col-form-label">Upload Bukti
+                                                Foto:</label>
                                             <div class="col-sm-9">
                                                 <?php if (!empty($data_absensi['bukti_foto'])): ?>
                                                 <div class="mb-2">
-                                                    <img src="../image_absensi/<?= htmlspecialchars($data_absensi['bukti_foto']) ?>" alt="Bukti Lama" class="img-thumbnail" style="max-width: 150px;">
-                                                    <small class="text-muted d-block">File saat ini: <?= htmlspecialchars($data_absensi['bukti_foto']) ?></small>
+                                                    <img src="../image_absensi/<?= htmlspecialchars($data_absensi['bukti_foto']) ?>"
+                                                        alt="Bukti Lama" class="img-thumbnail"
+                                                        style="max-width: 150px;">
+                                                    <small class="text-muted d-block">File saat ini:
+                                                        <?= htmlspecialchars($data_absensi['bukti_foto']) ?></small>
                                                 </div>
                                                 <?php endif; ?>
-                                                <input class="form-control" type="file" id="editBuktiFoto" name="buktiFoto" accept="image/jpeg,image/png">
-                                                <div class="form-text">Unggah foto baru jika ingin mengganti bukti (Maks. 2MB).</div>
+                                                <input class="form-control" type="file" id="editBuktiFoto"
+                                                    name="buktiFoto" accept="image/jpeg,image/png">
+                                                <div class="form-text">Unggah foto baru jika ingin mengganti bukti
+                                                    (Maks. 2MB).</div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div class="mt-4 text-end">
-                                        <a href="master_data_absensi_siswa.php" class="btn btn-outline-secondary me-2">Batal</a>
-                                        <button type="submit" name="submit" class="btn btn-primary"><?= $is_editing ? 'Update Absensi' : 'Simpan Absensi' ?></button>
+                                        <a href="master_data_absensi_siswa.php"
+                                            class="btn btn-outline-secondary me-2">Batal</a>
+                                        <button type="submit" name="submit"
+                                            class="btn btn-primary"><?= $is_editing ? 'Update Absensi' : 'Simpan Absensi' ?></button>
                                     </div>
                                 </form>
                             </div>
@@ -284,41 +322,41 @@ $koneksi->close();
     document.addEventListener('DOMContentLoaded', function() {
         const statusRadios = document.querySelectorAll('input[name="statusAbsen"]');
         const additionalFields = document.getElementById('editAdditionalFields');
+        // PERUBAHAN: Keterangan input dikembalikan
         const keteranganInput = document.getElementById('editKeterangan');
         const fotoInput = document.getElementById('editBuktiFoto');
 
         function toggleAdditionalFields() {
-            const isSakitOrIzin = document.querySelector('input[name="statusAbsen"]:checked').value === 'Sakit' || document.querySelector('input[name="statusAbsen"]:checked').value === 'Izin';
-            
+            const isSakitOrIzin = document.querySelector('input[name="statusAbsen"]:checked').value ===
+                'Sakit' || document.querySelector('input[name="statusAbsen"]:checked').value === 'Izin';
+
             if (isSakitOrIzin) {
                 additionalFields.style.display = 'block';
-                keteranganInput.required = true;
-                
-                // Pastikan foto wajib HANYA jika statusnya sakit/izin dan BELUM ada foto lama ATAU foto baru diupload
-                const hasExistingPhoto = "<?= !empty($data_absensi['bukti_foto']) ? 'true' : 'false' ?>"; 
-                if (hasExistingPhoto === 'false' || fotoInput.files.length === 0) {
+                keteranganInput.required = true; // Keterangan wajib
+
+                const hasExistingPhoto = "<?= !empty($data_absensi['bukti_foto']) ? 'true' : 'false' ?>";
+                // Foto wajib jika tidak ada foto lama DAN tidak ada file baru diupload
+                if (hasExistingPhoto === 'false' && fotoInput.files.length === 0) {
                     fotoInput.required = true;
                 } else {
-                    fotoInput.required = false; // Jika sudah ada foto lama, atau akan diupload foto baru, tidak perlu required
+                    fotoInput.required = false;
                 }
             } else {
                 additionalFields.style.display = 'none';
                 keteranganInput.required = false;
                 fotoInput.required = false;
-                // Kosongkan nilai field saat disembunyikan
-                keteranganInput.value = ''; 
-                fotoInput.value = ''; 
+                keteranganInput.value = '';
+                fotoInput.value = '';
             }
         }
 
-        // Panggil saat halaman dimuat
         toggleAdditionalFields();
 
-        // Panggil setiap kali pilihan radio berubah
         statusRadios.forEach(radio => {
             radio.addEventListener('change', toggleAdditionalFields);
         });
     });
     </script>
 </body>
+
 </html>
