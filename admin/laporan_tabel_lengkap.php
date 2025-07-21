@@ -151,7 +151,7 @@ function tampilkan_baris_tabel_nilai($id_siswa, $id_induk, $level, $koneksi, $se
                                 <a href="laporan_penilaian_siswa.php" class="btn btn-outline-secondary">
                                     <i class="bx bx-arrow-back me-1"></i> Kembali
                                 </a>
-                                <a href="generate_laporan_pdf.php?siswa_id=<?= $siswa_id ?>" class="btn btn-danger" target="_blank">
+                                <a href="generate_laporan_nilai_pdf.php?siswa_id=<?= $siswa_id ?>" class="btn btn-danger" target="_blank">
                                     <i class="bx bxs-file-pdf me-1"></i> Cetak Detail
                                 </a>
                                 <a href="generate_rapor_pdf.php?siswa_id=<?= $siswa_id ?>" class="btn btn-success" target="_blank">
