@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once 'partials/db.php';
-require_once __DIR__ . '/vendor/autoload.php'; // Pastikan path ke Dompdf benar
+require_once __DIR__ . '/vendor/autoload.php';
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -43,6 +43,17 @@ while($row = $tp_result->fetch_assoc()){
     $semua_tp[$row['id_tp']] = $row;
     $tp_anak[$row['id_induk']][] = $row['id_tp'];
 }
+
+// --- PERUBAHAN DI SINI: Cari deskripsi untuk Pekerjaan/Proyek ---
+$pekerjaan_proyek = ''; // Default kosong
+foreach ($semua_tp as $tp) {
+    if (isset($tp['kode_tp']) && $tp['kode_tp'] === '3.1') {
+        $pekerjaan_proyek = $tp['deskripsi_tp'];
+        break; // Hentikan loop jika sudah ketemu
+    }
+}
+// --- AKHIR PERUBAHAN ---
+
 
 $cache_nilai = [];
 
@@ -145,7 +156,6 @@ $html = '
         .signature-section { margin-top: 40px; }
         .signature-section table { width: 100%; border: none; }
         .signature-section .signature-cell { width: 50%; text-align: center; border: none; }
-        /* --- PERUBAHAN DI SINI: text-decoration: underline; dihapus --- */
         .signature-name { font-weight: bold; }
     </style>
 </head>
@@ -156,7 +166,7 @@ $html = '
             <tr><td class="label">Dunia Kerja Tempat PKL</td><td>: ' . htmlspecialchars($siswa['nama_tempat_pkl'] ?? '-') . '</td></tr>
             <tr><td class="label">Nama Instruktur</td><td>: .....................................................</td></tr>
             <tr><td class="label">Nama Guru Pembimbing</td><td>: ' . htmlspecialchars($siswa['nama_pembimbing'] ?? '-') . '</td></tr>
-            <tr><td class="label">Pekerjaan/Proyek</td><td>: </td></tr>
+            <tr><td class="label">Pekerjaan/Proyek</td><td>: ' . htmlspecialchars($pekerjaan_proyek) . '</td></tr>
         </table>
     </div>
 
