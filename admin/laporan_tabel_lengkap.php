@@ -107,12 +107,15 @@ function tampilkan_baris_tabel_nilai($id_siswa, $id_induk, $level, $koneksi, $se
 
         if ($nilai > 0) {
             echo "<tr class='{$row_class}'>";
+            // Kolom 1: Tujuan Pembelajaran/Indikator
             echo "  <td style='padding-left: " . ($padding + 15) . "px;' class='{$fontWeight_class}'>";
             echo      htmlspecialchars($item['kode_tp']) . ". " . htmlspecialchars($item['deskripsi_tp']);
             echo "  </td>";
+            // Kolom 2: Nilai
             echo "  <td class='text-center {$fontWeight_class}'>";
             echo      number_format($nilai, 2);
             echo "  </td>";
+            // Kolom 3: Deskripsi (hanya untuk level utama)
             echo "  <td class='text-wrap'>";
             if ($level == 0) {
                 echo htmlspecialchars(generate_deskripsi_narasi($id_siswa, $id_tp, $koneksi, $semua_tp, $tp_anak));
@@ -148,8 +151,11 @@ function tampilkan_baris_tabel_nilai($id_siswa, $id_induk, $level, $koneksi, $se
                                 <a href="laporan_penilaian_siswa.php" class="btn btn-outline-secondary">
                                     <i class="bx bx-arrow-back me-1"></i> Kembali
                                 </a>
-                                <a href="generate_laporan_nilai_pdf.php?siswa_id=<?= $siswa_id ?>" class="btn btn-danger" target="_blank">
-                                    <i class="bx bxs-file-pdf me-1"></i> Cetak PDF
+                                <a href="generate_laporan_pdf.php?siswa_id=<?= $siswa_id ?>" class="btn btn-danger" target="_blank">
+                                    <i class="bx bxs-file-pdf me-1"></i> Cetak Detail
+                                </a>
+                                <a href="generate_rapor_pdf.php?siswa_id=<?= $siswa_id ?>" class="btn btn-success" target="_blank">
+                                    <i class="bx bxs-printer me-1"></i> Cetak Rapor
                                 </a>
                             </div>
                         </div>

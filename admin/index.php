@@ -210,7 +210,7 @@ $koneksi->close();
                                         <span class="text-muted fw-semibold d-block mb-1 fs-6">Siswa Sudah Dinilai</span>
                                         <h3 class="card-title fw-bold mb-0 display-5 text-dark"><?= $total_siswa_dinilai ?></h3>
                                         <small class="text-muted d-block mt-1" style="font-size: 0.85rem;">Jumlah siswa yang telah dinilai</small>
-                                        <a href="laporan_nilai.php" class="btn btn-sm btn-outline-info mt-3">Lihat Detail <i class="bx bx-chevron-right"></i></a>
+                                        <a href="laporan_penilaian_siswa.php" class="btn btn-sm btn-outline-info mt-3">Lihat Detail <i class="bx bx-chevron-right"></i></a>
                                     </div>
                                 </div>
                             </div>
