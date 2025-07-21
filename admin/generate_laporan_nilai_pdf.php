@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once 'partials/db.php';
-require_once __DIR__ . '/vendor/autoload.php'; // Pastikan path ke Dompdf benar
+require_once __DIR__ . '/vendor/autoload.php';
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -44,9 +44,20 @@ while($row = $tp_result->fetch_assoc()){
     $tp_anak[$row['id_induk']][] = $row['id_tp'];
 }
 
+// --- PERUBAHAN DI SINI: Cari deskripsi untuk Pekerjaan/Proyek ---
+$pekerjaan_proyek = ''; // Default kosong
+foreach ($semua_tp as $tp) {
+    if (isset($tp['kode_tp']) && $tp['kode_tp'] === '3.1') {
+        $pekerjaan_proyek = $tp['deskripsi_tp'];
+        break; // Hentikan loop jika sudah ketemu
+    }
+}
+// --- AKHIR PERUBAHAN ---
+
+
 $cache_nilai = [];
 
-// Fungsi-fungsi Logika (sama seperti di halaman laporan)
+// Fungsi-fungsi Logika
 function hitung_nilai($id_siswa, $id_tp, $koneksi, $tp_anak, &$cache_nilai) {
     $cache_key = "$id_siswa-$id_tp";
     if (isset($cache_nilai[$cache_key])) return $cache_nilai[$cache_key];
@@ -90,7 +101,6 @@ function generate_deskripsi_narasi($id_siswa, $id_tp_utama, $koneksi, $semua_tp,
     return "Peserta didik menunjukkan kompetensi yang baik dalam " . lcfirst(trim($tertinggi['deskripsi'])) . ", namun masih perlu bimbingan pada " . lcfirst(trim($terendah['deskripsi'])) . ".";
 }
 
-// Fungsi untuk membuat baris tabel HTML
 function generate_pdf_table_rows($id_siswa, $id_induk, $level, $koneksi, $semua_tp, $tp_anak, &$cache_nilai) {
     if (!isset($tp_anak[$id_induk])) {
         return '';
@@ -127,7 +137,6 @@ function generate_pdf_table_rows($id_siswa, $id_induk, $level, $koneksi, $semua_
 // Membuat Konten HTML untuk PDF
 $table_content = generate_pdf_table_rows($siswa_id, NULL, 0, $koneksi, $semua_tp, $tp_anak, $cache_nilai);
 
-// --- PERUBAHAN DI SINI: Tambahkan CSS dan HTML untuk tanda tangan ---
 $html = '
 <!DOCTYPE html>
 <html>
@@ -147,7 +156,7 @@ $html = '
         .signature-section { margin-top: 40px; }
         .signature-section table { width: 100%; border: none; }
         .signature-section .signature-cell { width: 50%; text-align: center; border: none; }
-        .signature-name { text-decoration: underline; font-weight: bold; }
+        .signature-name { font-weight: bold; }
     </style>
 </head>
 <body>
@@ -157,7 +166,7 @@ $html = '
             <tr><td class="label">Dunia Kerja Tempat PKL</td><td>: ' . htmlspecialchars($siswa['nama_tempat_pkl'] ?? '-') . '</td></tr>
             <tr><td class="label">Nama Instruktur</td><td>: .....................................................</td></tr>
             <tr><td class="label">Nama Guru Pembimbing</td><td>: ' . htmlspecialchars($siswa['nama_pembimbing'] ?? '-') . '</td></tr>
-            <tr><td class="label">Pekerjaan/Proyek</td><td>: </td></tr>
+            <tr><td class="label">Pekerjaan/Proyek</td><td>: ' . htmlspecialchars($pekerjaan_proyek) . '</td></tr>
         </table>
     </div>
 
@@ -197,7 +206,6 @@ $html = '
     </div>
 </body>
 </html>';
-// --- AKHIR PERUBAHAN ---
 
 // Proses Generate PDF dengan Dompdf
 $options = new Options();
