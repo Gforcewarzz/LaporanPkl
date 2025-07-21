@@ -99,12 +99,10 @@ function generate_pdf_table_rows($id_siswa, $id_induk, $level, $koneksi, $semua_
     foreach ($tp_anak[$id_induk] as $id_tp) {
         $item = $semua_tp[$id_tp];
         $nilai = hitung_nilai($id_siswa, $id_tp, $koneksi, $tp_anak, $cache_nilai);
-        $punya_anak = isset($tp_anak[$id_tp]);
         $padding = $level * 20;
 
         if ($nilai > 0) {
             $html_rows .= "<tr>";
-            // Kolom 1: No (hanya untuk level 1) & Tujuan Pembelajaran
             if($level == 0){
                 $html_rows .= "<td style='text-align: center; font-weight: bold;'>" . htmlspecialchars($item['kode_tp']) . "</td>";
                 $html_rows .= "<td style='font-weight: bold;'>" . htmlspecialchars($item['deskripsi_tp']) . "</td>";
@@ -112,9 +110,7 @@ function generate_pdf_table_rows($id_siswa, $id_induk, $level, $koneksi, $semua_
                 $html_rows .= "<td></td>";
                 $html_rows .= "<td style='padding-left: " . ($padding) . "px;'>" . htmlspecialchars($item['kode_tp']) . ". " . htmlspecialchars($item['deskripsi_tp']) . "</td>";
             }
-            // Kolom 2: Nilai
             $html_rows .= "<td style='text-align: center;'>" . number_format($nilai, 2) . "</td>";
-            // Kolom 3: Deskripsi
             $html_rows .= "<td>";
             if ($level == 0) {
                 $html_rows .= htmlspecialchars(generate_deskripsi_narasi($id_siswa, $id_tp, $koneksi, $semua_tp, $tp_anak));
@@ -131,6 +127,7 @@ function generate_pdf_table_rows($id_siswa, $id_induk, $level, $koneksi, $semua_
 // Membuat Konten HTML untuk PDF
 $table_content = generate_pdf_table_rows($siswa_id, NULL, 0, $koneksi, $semua_tp, $tp_anak, $cache_nilai);
 
+// --- PERUBAHAN DI SINI: Tambahkan CSS dan HTML untuk tanda tangan ---
 $html = '
 <!DOCTYPE html>
 <html>
@@ -139,7 +136,7 @@ $html = '
     <title>Laporan Penilaian Kompetensi</title>
     <style>
         @page { margin: 25mm; }
-        body { font-family: Arial, sans-serif; font-size: 11pt; }
+        body { font-family: Arial, sans-serif; font-size: 11pt; color: #333; }
         .header-info { margin-bottom: 20px; }
         .header-info table { width: 100%; border-collapse: collapse; }
         .header-info td { padding: 3px 0; }
@@ -147,6 +144,10 @@ $html = '
         table.report { width: 100%; border-collapse: collapse; margin-top: 15px; }
         table.report th, table.report td { border: 1px solid black; padding: 8px; text-align: left; vertical-align: top; }
         table.report th { background-color: #f2f2f2; text-align: center; font-weight: bold; }
+        .signature-section { margin-top: 40px; }
+        .signature-section table { width: 100%; border: none; }
+        .signature-section .signature-cell { width: 50%; text-align: center; border: none; }
+        .signature-name { text-decoration: underline; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -165,7 +166,7 @@ $html = '
             <tr>
                 <th style="width: 5%;">No.</th>
                 <th style="width: 35%;">Tujuan Pembelajaran/Indikator</th>
-                <th style="width: 15%;">Ketercapaian</th>
+                <th style="width: 15%;">Nilai</th>
                 <th>Deskripsi</th>
             </tr>
         </thead>
@@ -173,8 +174,30 @@ $html = '
             ' . $table_content . '
         </tbody>
     </table>
+
+    <div class="signature-section">
+        <p>Keterangan:</p>
+        <br>
+        <table>
+            <tr>
+                <td class="signature-cell">
+                    Guru Pembimbing
+                    <br><br><br><br><br>
+                    <span class="signature-name">' . htmlspecialchars($siswa['nama_pembimbing'] ?? '....................') . '</span>
+                </td>
+                <td class="signature-cell">
+                    ...................., ' . date('d F Y') . '
+                    <br>
+                    Pembimbing Dunia Kerja
+                    <br><br><br><br><br>
+                    <span class="signature-name">....................</span>
+                </td>
+            </tr>
+        </table>
+    </div>
 </body>
 </html>';
+// --- AKHIR PERUBAHAN ---
 
 // Proses Generate PDF dengan Dompdf
 $options = new Options();
