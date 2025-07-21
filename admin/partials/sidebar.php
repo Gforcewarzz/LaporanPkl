@@ -1,37 +1,32 @@
 <?php
-// Pastikan sesi sudah dimulai di halaman yang memuat sidebar ini.
-// Variabel $is_admin, $is_siswa, $is_guru diharapkan sudah didefinisikan
-// di file utama (misalnya index.php, dashboard_siswa.php, master_data_siswa.php, dll.)
-// sebelum meng-include file sidebar ini.
-
-// Untuk keamanan, tambahkan inisialisasi jika file sidebar ini diakses di luar konteks normal.
-// Meskipun demikian, di lingkungan produksi, pastikan file utama yang menangani sesi.
-if (session_status() == PHP_SESSION_NONE) {
+// Ensure session is started.
+if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Inisialisasi variabel status login dari sesi
-// Ini harus konsisten dengan bagaimana Anda mengatur sesi di file login Anda.
+// Initialize user role flags.
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
 $is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
 $is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
 
-// Inisialisasi variabel sesi spesifik untuk guru agar tidak undefined jika tidak login sebagai guru
-// Gunakan $_SESSION['id_guru_pendamping'] dan $_SESSION['nama_guru'] seperti yang diatur di login_petugas_act.php
+// Initialize guru-specific session variables to prevent undefined warnings.
 $id_guru_pendamping = $_SESSION['id_guru_pendamping'] ?? null;
-$nama_guru = $_SESSION['nama_guru'] ?? 'Guru Pendamping'; // Default nama jika tidak ada di sesi
+// $nama_guru = $_SESSION['nama_guru'] ?? 'Guru Pendamping'; // Uncomment if $nama_guru is used in the sidebar.
 
-// Inisialisasi variabel sesi universal jika Anda menggunakannya (disarankan untuk konsistensi)
-$user_id = $_SESSION['user_id'] ?? null;
-$user_name = $_SESSION['user_name'] ?? 'Pengguna';
-$user_role = $_SESSION['user_role'] ?? null;
-
+// Determine the base dashboard URL based on the user's role.
+$dashboard_url = '../login.php'; // Default for unauthenticated users
+if ($is_siswa) {
+    $dashboard_url = 'dashboard_siswa.php';
+} elseif ($is_admin) {
+    $dashboard_url = 'index.php';
+} elseif ($is_guru) {
+    $dashboard_url = 'dashboard_guru.php';
+}
 ?>
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
     <div class="app-brand demo">
-        <a href="<?php echo ($is_siswa ? 'dashboard_siswa.php' : ($is_admin ? 'index.php' : ($is_guru ? 'dashboard_guru.php' : '../login.php'))); ?>"
-            class="app-brand-link">
+        <a href="<?= htmlspecialchars($dashboard_url) ?>" class="app-brand-link">
             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
                 style="color: #696cff;">
                 <path
@@ -58,8 +53,7 @@ $user_role = $_SESSION['user_role'] ?? null;
 
     <ul class="menu-inner py-1">
         <li class="menu-item active">
-            <a href="<?php echo ($is_siswa ? 'dashboard_siswa.php' : ($is_admin ? 'index.php' : ($is_guru ? 'dashboard_guru.php' : '../login.php'))); ?>"
-                class="menu-link">
+            <a href="<?= htmlspecialchars($dashboard_url) ?>" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-home-circle"></i>
                 <div data-i18n="Dashboard">Dashboard</div>
             </a>
@@ -101,11 +95,11 @@ $user_role = $_SESSION['user_role'] ?? null;
                         </a>
                     </li>
                 </ul>
-
             </li>
         <?php endif; ?>
 
-        <?php if ($is_admin || $is_siswa || $is_guru): ?>
+        <?php if ($is_admin || $is_siswa || $is_guru): // Group common header 
+        ?>
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Transaksi & Laporan</span>
             </li>
@@ -126,49 +120,31 @@ $user_role = $_SESSION['user_role'] ?? null;
             </li>
         <?php endif; ?>
 
+        <?php if ($is_siswa): ?>
+            <li class="menu-item">
+                <a href="master_data_absensi_siswa.php" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-book-content"></i>
+                    <div data-i18n="Kegiatan Project">Daftar Kehadiran</div>
+                </a>
+            </li>
+        <?php endif; ?>
+
         <?php if ($is_guru): ?>
             <li class="menu-item">
-                <a href="master_data_siswa.php?pembimbing_id=<?= htmlspecialchars($id_guru_pendamping) ?>" class="menu-link">
+                <a href="master_data_siswa.php?pembimbing_id=<?= htmlspecialchars($id_guru_pendamping) ?>"
+                    class="menu-link">
                     <i class="menu-icon tf-icons bx bx-group"></i>
                     <div data-i18n="Siswa Bimbingan">Siswa Bimbingan</div>
                 </a>
             </li>
             <li class="menu-item">
-                <a href="master_data_absensi_siswa.php?pembimbing_id=<?= htmlspecialchars($id_guru_pendamping) ?>" class="menu-link">
+                <a href="master_data_absensi_siswa.php?pembimbing_id=<?= htmlspecialchars($id_guru_pendamping) ?>"
+                    class="menu-link">
                     <i class="menu-icon tf-icons bx bx-calendar-check"></i>
                     <div data-i18n="Absensi Bimbingan">Absensi Bimbingan</div>
                 </a>
             </li>
         <?php endif; ?>
-
-        <?php /*
-        <?php if ($is_admin || $is_guru): ?>
-        <li class="menu-item">
-            <a href="penilaian_pkl.php" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-star"></i>
-                <div data-i18n="Penilaian PKL">Penilaian PKL</div>
-            </a>
-        </li>
-        <?php endif; ?>
-
-        <?php if ($is_admin || $is_guru): ?>
-        <li class="menu-item">
-            <a href="absensi_pkl.php" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-calendar-check"></i>
-                <div data-i18n="Observasi PKL">Observasi PKL</div>
-            </a>
-        </li>
-        <?php endif; ?>
-
-        <?php if ($is_admin || $is_guru): ?>
-        <li class="menu-item">
-            <a href="laporan_pkl.php" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-file"></i>
-                <div data-i18n="Laporan PKL">Laporan Akhir</div>
-            </a>
-        </li>
-        <?php endif; ?>
-        */ ?>
 
         <?php if ($is_admin || $is_siswa || $is_guru): ?>
             <li class="menu-item">
@@ -187,6 +163,7 @@ $user_role = $_SESSION['user_role'] ?? null;
 
     </ul>
 </aside>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 
@@ -195,27 +172,24 @@ $user_role = $_SESSION['user_role'] ?? null;
         Swal.fire({
             title: 'Konfirmasi Logout',
             html: 'Apakah Anda yakin ingin keluar dari aplikasi?',
-            icon: 'question', // Atau 'warning', 'info'
+            icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#dc3545', // Merah untuk Logout
-            cancelButtonColor: '#6c757d', // Abu-abu untuk Batal
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
             confirmButtonText: 'Ya, Logout!',
             cancelButtonText: 'Batal',
-            reverseButtons: true, // Membalik posisi tombol (Batal di kiri)
-            showClass: { // Animasi saat muncul
+            reverseButtons: true,
+            showClass: {
                 popup: 'animate__animated animate__zoomIn animate__faster'
             },
-            hideClass: { // Animasi saat menghilang
+            hideClass: {
                 popup: 'animate__animated animate__zoomOut animate__faster'
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                // Arahkan ke script logout Anda
-                // Asumsi logout.php berada satu tingkat di atas folder admin/
+                // Redirect to your logout script
                 window.location.href = '../logout.php';
             }
         });
     }
-</script>
-}
 </script>
