@@ -125,6 +125,7 @@ $siswa_result = $stmt->get_result();
             </div>
         </div>
     </div>
+    <span></span>
     <div class="layout-overlay layout-menu-toggle"></div>
     </div>
     <?php include 'partials/script.php' ?>
