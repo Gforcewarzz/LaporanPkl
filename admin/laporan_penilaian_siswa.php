@@ -4,15 +4,6 @@ date_default_timezone_set('Asia/Jakarta');
 
 include 'partials/db.php';
 
-// --- LOGIKA KEAMANAN HALAMAN ---
-$is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
-$is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
-
-if (!$is_admin && !$is_guru) {
-    header('Location: ../login.php');
-    exit();
-}
-
 // Cek dan tampilkan notifikasi dari session (misalnya setelah hapus nilai)
 if (isset($_SESSION['pesan_notifikasi'])) {
     $notif = $_SESSION['pesan_notifikasi'];
@@ -32,6 +23,14 @@ if (isset($_SESSION['pesan_notifikasi'])) {
     unset($_SESSION['pesan_notifikasi']);
 }
 
+// --- LOGIKA KEAMANAN HALAMAN ---
+$is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
+$is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
+
+if (!$is_admin && !$is_guru) {
+    header('Location: ../login.php');
+    exit();
+}
 
 // --- INISIALISASI FILTER ---
 $keyword = $_GET['keyword'] ?? '';
@@ -125,9 +124,12 @@ $koneksi->close();
 
                         <div class="card mb-4 shadow-lg p-3">
                             <div class="card-body">
-                                <div class="mb-4">
+                                <div class="mb-4 btn-group">
                                     <a href="form_penilaian.php" class="btn btn-primary">
                                         <i class="bx bx-edit me-1"></i> Input Nilai Siswa
+                                    </a>
+                                    <a href="struktur_tp.php" class="btn btn-secondary">
+                                        <i class="bx bx-cog me-1"></i> Kelola TP
                                     </a>
                                 </div>
                                 <form method="GET" action="">
@@ -268,7 +270,6 @@ $koneksi->close();
             cancelButtonText: 'Batal',
         }).then((result) => {
             if (result.isConfirmed) {
-                // Arahkan ke skrip hapus nilai
                 window.location.href = 'hapus_nilai_siswa.php?siswa_id=' + id;
             }
         });
