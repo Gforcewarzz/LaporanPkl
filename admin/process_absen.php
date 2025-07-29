@@ -22,8 +22,10 @@ if (!$is_siswa || empty($siswa_id)) {
 }
 
 // --- Logika Pembatasan Waktu Absensi (Max 17:30 WIB) ---
+// HAPUS ATAU KOMENTARI BLOK KODE DI BAWAH INI UNTUK MENGHILANGKAN BATAS WAKTU ABSEN
+/*
 $current_time = date('H:i'); // Ambil waktu saat ini (HH:MM)
-$cutoff_time = '17:30';     // Batas waktu absensi
+$cutoff_time = '17:30';      // Batas waktu absensi
 
 if ($current_time > $cutoff_time) {
     // Jika waktu sudah melewati 17:30, gagalkan absensi
@@ -36,6 +38,9 @@ if ($current_time > $cutoff_time) {
     header('Location: dashboard_siswa.php'); // Redirect kembali ke dashboard
     exit();
 }
+*/
+// --- AKHIR BLOK KODE YANG DIHAPUS/DIKOMENTARI ---
+
 
 // --- Proses Form Absensi Jika Metode POST ---
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -195,7 +200,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt_bind_params[] = $bukti_foto_path;
         $stmt_bind_params[] = $current_timestamp_full;
         $stmt_bind_params[] = $jam_datang_auto; // Akan NULL jika status bukan Hadir
-        $stmt_bind_params[] = $jam_pulang;     // Akan NULL selalu saat INSERT awal
+        $stmt_bind_params[] = $jam_pulang;      // Akan NULL selalu saat INSERT awal
 
         $insert_stmt->bind_param("isssssss", ...$stmt_bind_params);
 

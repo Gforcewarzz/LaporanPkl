@@ -38,7 +38,7 @@ if (empty($siswa_id)) {
 // ========================================================
 include 'partials/db.php';
 
-// --- Cek Absensi Harian dari Database (REAL) ---
+// --- Cek Absensi Harian dari Database (REAL) - Disesuaikan untuk Shift Malam ---
 $sudah_absen_hari_ini = false;
 $status_absen_hari_ini = '';
 $keterangan_absen_lengkap = true; // Untuk Sakit/Izin, apakah keterangan dan bukti sudah ada
@@ -47,21 +47,41 @@ $jam_pulang_siswa = null;
 $keterangan_siswa = null; // Tambahkan ini untuk menyimpan keterangan dari DB
 
 $current_date = date('Y-m-d');
-$current_hour_minute = date('H:i'); // Waktu saat ini untuk perbandingan
+$current_time_full = date('H:i:s'); // Waktu saat ini (HH:MM:SS) untuk perbandingan
 
-// Query menggunakan nama tabel dan kolom yang benar: absensi_siswa, status_absen, tanggal_absen, siswa_id
-// PERBAHAN: Tambahkan 'keterangan' ke SELECT
-$query_check_absen = "SELECT status_absen, keterangan, bukti_foto, jam_datang, jam_pulang FROM absensi_siswa WHERE siswa_id = ? AND tanggal_absen = ?";
+// Tentukan tanggal yang mungkin untuk absen masuk yang relevan saat ini
+$possible_checkin_dates_for_display = [$current_date];
+
+// Jika waktu saat ini masih dini hari (misalnya sebelum jam 06:00 pagi),
+// maka cek juga absensi dari hari sebelumnya, karena mungkin shift malam.
+// SESUAIKAN JAM INI JIKA ANDA MENGGUNAKAN BATAS WAKTU DINI HARI LAIN DI process_absen_pulang.php
+if (strtotime($current_time_full) < strtotime('06:00:00')) {
+    $yesterday_date_for_display = date('Y-m-d', strtotime('-1 day', strtotime($current_date)));
+    // Masukkan tanggal kemarin di awal array agar prioritas ceknya tetap terbaru (DESC)
+    array_unshift($possible_checkin_dates_for_display, $yesterday_date_for_display);
+}
+
+// Buat placeholder untuk query IN clause
+$placeholders_for_display = implode(',', array_fill(0, count($possible_checkin_dates_for_display), '?'));
+
+// Query untuk mendapatkan status absen terbaru, mencari di tanggal hari ini atau kemarin (jika dini hari)
+$query_check_absen = "SELECT status_absen, keterangan, bukti_foto, jam_datang, jam_pulang FROM absensi_siswa WHERE siswa_id = ? AND tanggal_absen IN ($placeholders_for_display) ORDER BY tanggal_absen DESC LIMIT 1";
 $stmt_check_absen = $koneksi->prepare($query_check_absen);
 
 if ($stmt_check_absen) {
-    $stmt_check_absen->bind_param("is", $siswa_id, $current_date);
+    // Bangun string tipe untuk bind_param
+    $types_for_display = 'i' . str_repeat('s', count($possible_checkin_dates_for_display));
+    // Gabungkan siswa_id dengan array tanggal untuk bind_param
+    $bind_params_for_display = array_merge([$siswa_id], $possible_checkin_dates_for_display);
+
+    // Bind parameter
+    $stmt_check_absen->bind_param($types_for_display, ...$bind_params_for_display);
     $stmt_check_absen->execute();
     $result_check_absen = $stmt_check_absen->get_result();
 
     if ($result_check_absen->num_rows > 0) {
         $data_absen = $result_check_absen->fetch_assoc();
-        $sudah_absen_hari_ini = true;
+        $sudah_absen_hari_ini = true; // Ini sekarang true jika ada absen yang relevan (kemarin/hari ini)
         $status_absen_hari_ini = $data_absen['status_absen'];
         $jam_datang_siswa = $data_absen['jam_datang'];
         $jam_pulang_siswa = $data_absen['jam_pulang'];
@@ -113,8 +133,8 @@ if ($stmt_proyek) {
     error_log("Error preparing proyek query: " . $koneksi->error);
 }
 
-// Logika untuk menghitung minggu PKL
-$start_pkl_date_example = '2024-01-01'; // Menggunakan tanggal hardcoded
+// Logika untuk menghitung minggu PKL (Contoh, bisa disesuaikan dengan tanggal mulai PKL sebenarnya)
+$start_pkl_date_example = '2024-01-01'; // Sesuaikan dengan tanggal mulai PKL yang sebenarnya
 $today = new DateTime();
 $total_minggu_pkl = 0;
 $start_date_obj = new DateTime($start_pkl_date_example);
@@ -218,14 +238,15 @@ $koneksi->close();
                                                     class="mt-4 d-flex flex-wrap align-items-center justify-content-center justify-content-md-start gap-2">
                                                     <?php if ($sudah_absen_hari_ini): ?>
                                                     <button type="button" class="btn btn-light" disabled>
-                                                        <i class="bx bx-check-double me-2"></i> Anda sudah Absen Hari
-                                                        Ini (Status:
+                                                        <i class="bx bx-check-double me-2"></i> Anda sudah Absen
+                                                        Hari Ini (Status:
                                                         <?= htmlspecialchars($status_absen_hari_ini ?? '') ?>)
                                                     </button>
 
                                                     <?php if ($status_absen_hari_ini == 'Hadir' && empty($jam_pulang_siswa)): ?>
                                                     <button type="button" id="absenPulangBtn" class="btn btn-warning">
-                                                        <i class="bx bx-log-out me-2"></i> Absen Pulang Sekarang!
+                                                        <i class="bx bx-log-out me-2"></i> Absen Pulang
+                                                        Sekarang!
                                                     </button>
                                                     <?php elseif ($status_absen_hari_ini == 'Hadir' && !empty($jam_pulang_siswa)): ?>
                                                     <button type="button" class="btn btn-info" disabled>
@@ -362,23 +383,6 @@ $koneksi->close();
                                 </div>
                             </div>
                         </div>
-
-                        <?php if ($is_siswa): ?>
-                        <div class="row mt-4">
-                            <div class="col-12 text-center">
-                                <h5 class="mb-3 animate__animated animate__fadeInLeft animate__delay-1-9s">Butuh Laporan
-                                    Absensi Lengkap?</h5>
-                                <a href="generate_absensi_pdf.php?siswa_id_pdf=<?= htmlspecialchars($siswa_id) ?>&tanggal_mulai=<?= date('Y-m-01') ?>&tanggal_akhir=<?= date('Y-m-t') ?>"
-                                    target="_blank"
-                                    class="btn btn-primary btn-lg animate__animated animate__fadeInUp animate__delay-2s">
-                                    <i class="bx bxs-file-pdf me-2"></i> Cetak Laporan Absensi Saya Bulan Ini
-                                </a>
-                            </div>
-                        </div>
-                        <?php endif; ?>
-
-
-
                     </div>
                     <?php include './partials/footer.php'; ?>
                     <div class="content-backdrop fade"></div>
@@ -578,26 +582,8 @@ $koneksi->close();
             toggleAdditionalFields();
         });
 
-        function updateAbsenPulangButtonState() {
-            const isAbsenMasukHadir =
-                <?= $sudah_absen_hari_ini && $status_absen_hari_ini == 'Hadir' ? 'true' : 'false' ?>;
-            const isJamPulangEmpty = <?= empty($jam_pulang_siswa) ? 'true' : 'false' ?>;
-
-            if (absenPulangBtn) {
-                if (isAbsenMasukHadir && isJamPulangEmpty) {
-                    absenPulangBtn.disabled = false;
-                    absenPulangBtn.onclick = confirmAbsenPulang;
-                    absenPulangBtn.textContent = 'Absen Pulang Sekarang!';
-                    absenPulangBtn.classList.remove('btn-secondary');
-                    absenPulangBtn.classList.add('btn-warning');
-                } else {
-                    // Rely on PHP initial render for disabled state
-                }
-            }
-        }
-
-        updateAbsenPulangButtonState();
-
+        // Fungsi ini sekarang tidak lagi memerlukan parameter PHP,
+        // karena kondisi sudah ditangani di PHP bagian atas
         function confirmAbsenPulang() {
             Swal.fire({
                 title: 'Konfirmasi Absen Pulang',
@@ -613,6 +599,10 @@ $koneksi->close();
                     window.location.href = 'process_absen_pulang.php';
                 }
             });
+        }
+        // Tambahkan event listener untuk tombol absen pulang jika ada
+        if (absenPulangBtn) {
+            absenPulangBtn.addEventListener('click', confirmAbsenPulang);
         }
     });
     </script>
