@@ -118,7 +118,7 @@ if ($id_jurnal_kegiatan > 0) {
 
 // Tanggal laporan diambil dari database
 $currentDate = date('d F Y', strtotime($laporan_data['tanggal_laporan']));
-
+$tahun_laporan = date('Y', strtotime($laporan_data['tanggal_laporan']));
 $koneksi->close(); // Tutup koneksi database setelah semua query selesai
 
 // Deteksi user agent untuk menentukan apakah mobile atau desktop
@@ -156,19 +156,22 @@ ob_start();
 
         .header {
             margin-bottom: 12pt;
+            text-align: center;
         }
 
-        .header h1,
+        .header h1 {
+            font-size: 16pt;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            color: #444;
+        }
+
         .header h2 {
-            margin: 0;
             font-size: 12pt;
+            margin-top: 0;
+            color: #666;
             line-height: 1.1;
-            text-align: left;
-            font-weight: normal;
-        }
-
-        .header h2 {
-            margin-top: 2pt;
         }
 
         .info-section {
@@ -179,7 +182,6 @@ ob_start();
 
         .info-item {
             display: flex;
-            /* Menggunakan flexbox untuk penjajaran */
             margin-bottom: 1pt;
             font-size: 10pt;
             padding-left: 6pt;
@@ -187,31 +189,25 @@ ob_start();
 
         .info-item strong {
             flex-shrink: 0;
-            /* width: 130pt; */
-            /* Hapus width tetap ini agar flexbox lebih fleksibel */
             min-width: 130pt;
-            /* Tetapkan min-width agar titik dua sejajar */
             max-width: 130pt;
-            /* Tetapkan max-width agar tidak melebihi batas */
             margin-right: 0;
             text-align: left;
             position: relative;
-            /* Diperlukan untuk pseudo-element */
+            color: #444;
+            font-weight: bold;
         }
 
         .info-item strong::after {
             content: ":";
-            /* Tambahkan titik dua */
             position: absolute;
             right: 0;
-            /* Posisikan titik dua di ujung kanan strong */
         }
 
         .info-item span {
             flex-grow: 1;
             text-align: left;
             padding-left: 10pt;
-            /* Beri spasi yang cukup dari titik dua */
         }
 
         .section-block {
@@ -265,9 +261,7 @@ ob_start();
 
         .signature-block {
             margin-top: 5mm;
-            /* Mengatur ulang margin-top agar lebih terkontrol */
             padding-top: 0;
-            /* Hapus padding-top agar tidak mendorong konten terlalu jauh */
             text-align: right;
             font-size: 10pt;
             line-height: 1.3;
@@ -276,20 +270,15 @@ ob_start();
 
         .signature-block .location-date {
             margin-bottom: 2cm;
-            /* Jarak antara lokasi/tanggal dan judul tanda tangan */
             float: right;
-            /* Buat float ke kanan */
             clear: right;
-            /* Hapus float sebelumnya */
         }
 
         .signature-block .signature-title {
+            /* Margin top ini untuk membuat spasi antara tanggal dan judul ttd */
             margin-top: 2cm;
-            /* Ini yang akan mendorong tanda tangan instruktur 2cm ke bawah */
-            margin-bottom: 20pt;
-            /* Jarak antara judul tanda tangan dan garis/nama */
+            margin-bottom: 70pt;
             clear: both;
-            /* Penting untuk membersihkan float dari location-date */
         }
 
         .signature-block p {
@@ -297,13 +286,14 @@ ob_start();
         }
 
         .signature-name-placeholder {
-            margin-top: 0;
+            /* Perubahan di sini: Tambahkan margin-top agar ttd lebih ke bawah */
+            margin-top: 50pt;
+            /* Nilai 50pt ini bisa kamu sesuaikan */
             font-size: 10pt;
             display: block;
             min-height: 1.5em;
         }
 
-        /* Ini tetap dipertahankan sesuai keinginanmu */
         .section-block.catatan-instruktur-section {
             page-break-before: always;
         }
@@ -335,8 +325,8 @@ ob_start();
 <body>
     <div class="page">
         <div class="header">
-            <h1>LAMPIRAN 3</h1>
-            <h2>CATATAN KEGIATAN PKL</h2>
+            <h1>JURNAL KEGIATAN HARIAN PRAKTEK KERJA LAPANGAN</h1>
+            <h2>PESERTA DIDIK SMKN 1 GANTAR</h2>
         </div>
 
         <div class="info-section">
@@ -349,11 +339,11 @@ ob_start();
                 <span><?php echo htmlspecialchars($laporan_data['dunia_kerja_tempat_pkl'] ?? '-'); ?></span>
             </div>
             <div class="info-item">
-                <strong>Nama Instruktur</strong>
+                <strong>Pembimbing Dunia Kerja</strong>
                 <span><?php echo htmlspecialchars($laporan_data['nama_instruktur'] ?? '-'); ?></span>
             </div>
             <div class="info-item">
-                <strong>Nama Guru Pembimbing</strong>
+                <strong>Guru Pembimbing Sekolah</strong>
                 <span><?php echo htmlspecialchars($laporan_data['nama_guru_pembimbing'] ?? '-'); ?></span>
             </div>
         </div>
@@ -395,9 +385,9 @@ ob_start();
         </div>
 
         <div class="signature-block">
-            <p class="location-date"><?php echo htmlspecialchars($location); ?>,
-                <?php echo htmlspecialchars($currentDate); ?></p>
-            <p class="signature-title">Tanda Tangan Instruktur</p>
+            <p class="location-date">...................., .........................
+                <?php echo htmlspecialchars($tahun_laporan); ?></p>
+            <p class="signature-title">Pembimbing Dunia Kerja</p>
             <p class="signature-name-placeholder">(................................................)</p>
         </div>
     </div>

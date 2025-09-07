@@ -143,29 +143,32 @@ function tampilkan_baris_tabel_nilai($id_siswa, $id_induk, $level, $koneksi, $se
                 <div class="content-wrapper">
                     <div class="container-xxl flex-grow-1 container-p-y">
 
-                        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-                            <h4 class="fw-bold mb-0 text-primary">
-                                <span class="text-muted fw-light">Laporan /</span> Rincian Nilai Kompetensi
-                            </h4>
-                            <div class="btn-group">
-                                <a href="laporan_penilaian_siswa.php" class="btn btn-outline-secondary">
-                                    <i class="bx bx-arrow-back me-1"></i> Kembali
-                                </a>
-                                <a href="generate_laporan_nilai_pdf.php?siswa_id=<?= $siswa_id ?>" class="btn btn-danger" target="_blank">
-                                    <i class="bx bxs-file-pdf me-1"></i> Cetak Detail
-                                </a>
-                                <a href="generate_rapor_pdf.php?siswa_id=<?= $siswa_id ?>" class="btn btn-success" target="_blank">
-                                    <i class="bx bxs-printer me-1"></i> Cetak Rapor
-                                </a>
-                            </div>
-                        </div>
+                        <h4 class="fw-bold mb-4 text-primary">
+                            <span class="text-muted fw-light">Laporan /</span> Rincian Nilai Kompetensi
+                        </h4>
 
                         <div class="card shadow-sm mb-4">
-                            <div class="card-body">
-                                <div class="row">
+                            <div class="card-body p-4">
+                                <div class="row mb-3">
                                     <div class="col-md-6"><small class="text-muted">Nama Siswa:</small><h5 class="mb-0"><?= htmlspecialchars($siswa['nama_siswa']) ?></h5></div>
                                     <div class="col-md-3"><small class="text-muted">NISN:</small><h5 class="mb-0"><?= htmlspecialchars($siswa['nisn']) ?></h5></div>
                                     <div class="col-md-3"><small class="text-muted">Kelas:</small><h5 class="mb-0"><?= htmlspecialchars($siswa['kelas']) ?></h5></div>
+                                </div>
+                                <hr class="my-3"> <div class="d-flex flex-column flex-md-row justify-content-end align-items-start gap-3">
+                                    <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-md-3">
+                                        <a href="laporan_penilaian_siswa.php" class="btn btn-outline-secondary w-100">
+                                            <i class="bx bx-arrow-back me-1"></i> Kembali
+                                        </a>
+                                    </div>
+
+                                    <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto order-md-2">
+                                        <a href="generate_laporan_nilai_pdf.php?siswa_id=<?= $siswa_id ?>" class="btn btn-danger w-100" target="_blank">
+                                            <i class="bx bxs-file-pdf me-1"></i> Cetak Detail
+                                        </a>
+                                        <a href="generate_rapor_pdf.php?siswa_id=<?= $siswa_id ?>" class="btn btn-success w-100" target="_blank">
+                                            <i class="bx bxs-printer me-1"></i> Cetak Rapor
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -191,133 +191,19 @@ $koneksi->close();
                         <?php
                         if (isset($_SESSION['alert_message'])) {
                             echo "
-                                <script>
-                                    document.addEventListener('DOMContentLoaded', function() {
-                                        Swal.fire({
-                                            icon: '{$_SESSION['alert_type']}',
-                                            title: '{$_SESSION['alert_title']}',
-                                            text: '{$_SESSION['alert_message']}',
-                                            confirmButtonColor: '#696cff'
-                                        });
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    Swal.fire({
+                                        icon: '{$_SESSION['alert_type']}',
+                                        title: '{$_SESSION['alert_title']}',
+                                        text: '{$_SESSION['alert_message']}',
+                                        confirmButtonColor: '#696cff'
                                     });
-                                </script>
-                                ";
+                                });
+                            </script>
+                            ";
                             unset($_SESSION['alert_message'], $_SESSION['alert_type'], $_SESSION['alert_title']);
                         }
-                        ?>
-
-                        <div
-                            class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom position-relative">
-                            <h4 class="fw-bold mb-0 text-primary animate__animated animate__fadeInLeft">
-                                <span class="text-muted fw-light">Absensi /</span>
-                                <?php
-                                if ($is_siswa) {
-                                    echo "Saya";
-                                } elseif ($is_guru) {
-                                    echo "Siswa Bimbingan";
-                                } elseif ($is_admin) {
-                                    echo "Semua Siswa";
-                                }
-                                ?>
-                            </h4>
-                            <i class="fas fa-clipboard-check fa-2x text-info animate__animated animate__fadeInRight"
-                                style="opacity: 0.6;"></i>
-                        </div>
-
-                        <?php if (!$is_siswa): // Only show filter section for Admin and Guru 
-                        ?>
-                            <div class="card mb-4 shadow-lg">
-                                <div class="card-body p-3">
-                                    <form method="GET" action="" class="row g-2 align-items-end">
-                                        <h6 class="col-12 mb-3 text-primary"><i class='bx bx-filter me-1'></i> Filter
-                                            Tampilan Harian</h6>
-
-                                        <div class="col-12 col-md-4 col-lg-3">
-                                            <label for="tanggalMulaiTabel" class="form-label">Tanggal Mulai:</label>
-                                            <input type="text" id="tanggalMulaiTabel" name="tanggal_mulai"
-                                                class="form-control flatpickr-date"
-                                                value="<?= htmlspecialchars($filter_tanggal_mulai) ?>">
-                                        </div>
-                                        <div class="col-12 col-md-4 col-lg-3">
-                                            <label for="tanggalAkhirTabel" class="form-label">Tanggal Akhir:</label>
-                                            <input type="text" id="tanggalAkhirTabel" name="tanggal_akhir"
-                                                class="form-control flatpickr-date"
-                                                value="<?= htmlspecialchars($filter_tanggal_akhir) ?>">
-                                        </div>
-
-                                        <div class="col-12 col-md-4 col-lg-2">
-                                            <label for="statusFilter" class="form-label">Status Absen:</label>
-                                            <select id="statusFilter" name="status" class="form-select">
-                                                <option value="Semua" <?= $filter_status == 'Semua' ? 'selected' : '' ?>>
-                                                    Semua Status</option>
-                                                <option value="Hadir" <?= $filter_status == 'Hadir' ? 'selected' : '' ?>>
-                                                    Hadir</option>
-                                                <option value="Sakit" <?= $filter_status == 'Sakit' ? 'selected' : '' ?>>
-                                                    Sakit</option>
-                                                <option value="Izin" <?= $filter_status == 'Izin' ? 'selected' : '' ?>>Izin
-                                                </option>
-                                                <option value="Libur" <?= $filter_status == 'Libur' ? 'selected' : '' ?>>
-                                                    Libur</option>
-                                                <option value="Alfa" <?= $filter_status == 'Alfa' ? 'selected' : '' ?>>Alfa
-                                                </option>
-                                            </select>
-                                        </div>
-
-                                        <?php if ($is_admin): // Dropdown kelas only for Admin 
-                                        ?>
-                                            <div class="col-12 col-md-4 col-lg-2">
-                                                <label for="kelasTabelFilter" class="form-label">Filter Kelas:</label>
-                                                <select id="kelasTabelFilter" name="kelas_tabel" class="form-select">
-                                                    <option value="">Semua Kelas</option>
-                                                    <?php foreach ($list_kelas as $kelas_option): ?>
-                                                        <option value="<?= htmlspecialchars($kelas_option) ?>"
-                                                            <?= $kelas_filter_tabel == $kelas_option ? 'selected' : '' ?>>
-                                                            <?= htmlspecialchars($kelas_option) ?>
-                                                        </option>
-                                                    <?php endforeach; ?>
-                                                </select>
-                                            </div>
-                                        <?php endif; ?>
-
-                                        <div class="col-12 col-md-4 col-lg-3">
-                                            <label for="keywordSearch" class="form-label">Cari Siswa:</label>
-                                            <input type="text" id="keywordSearch" name="keyword" class="form-control"
-                                                placeholder="Nama/NISN/Kelas..." value="<?= htmlspecialchars($keyword) ?>">
-                                        </div>
-
-                                        <div
-                                            class="col-12 d-flex flex-wrap justify-content-end align-items-end pt-3 border-top mt-3">
-                                            <div class="col-12 col-md-auto mb-2 mb-md-0 me-md-2">
-                                                <button type="submit" class="btn btn-primary w-100">
-                                                    <i class="bx bx-filter-alt"></i> Terapkan Filter
-                                                </button>
-                                            </div>
-
-                                            <?php
-                                            $reset_params_current = [];
-                                            if ($is_guru && isset($_GET['pembimbing_id']) && !empty($_GET['pembimbing_id'])) {
-                                                $reset_params_current['pembimbing_id'] = htmlspecialchars($_GET['pembimbing_id']);
-                                            }
-                                            $reset_link_current = 'master_data_absensi_siswa.php';
-                                            if (!empty($reset_params_current)) {
-                                                $reset_link_current .= '?' . http_build_query($reset_params_current);
-                                            }
-
-                                            $is_filter_active_for_reset = (!empty($keyword) && !$is_siswa) || ($filter_status !== 'Semua' && !$is_siswa) || $filter_tanggal_mulai !== '2025-07-14' || $filter_tanggal_akhir !== date('Y-m-d') || (!empty($kelas_filter_tabel) && $is_admin);
-
-                                            if ($is_filter_active_for_reset): ?>
-                                                <div class="col-12 col-md-auto mb-2 mb-md-0">
-                                                    <a href="<?= htmlspecialchars($reset_link_current) ?>"
-                                                        class="btn btn-outline-secondary w-100">
-                                                        <i class="bx bx-x"></i> Reset Filter
-                                                    </a>
-                                                </div>
-                                            <?php endif; ?>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        <?php endif; // End of filter section for Admin and Guru 
                         ?>
 
                         <div class="card mb-4 shadow-lg">
@@ -325,8 +211,7 @@ $koneksi->close();
                                 <form method="GET" action="generate_absensi_pdf.php" target="_blank"
                                     class="row g-2 align-items-end">
                                     <h6 class="col-12 mb-3 text-info"><i class='bx bxs-file-pdf me-1'></i> Cetak Laporan
-                                        Rekap
-                                        PDF (Rentang Tanggal)</h6>
+                                        Rekap PDF (Rentang Tanggal)</h6>
 
                                     <div class="col-md-4 col-lg-3">
                                         <label for="tanggalMulaiPdf" class="form-label">Tanggal Mulai:</label>
@@ -340,8 +225,7 @@ $koneksi->close();
                                             class="form-control flatpickr-date-pdf"
                                             value="<?= htmlspecialchars($filter_tanggal_akhir) ?>" readonly>
                                     </div>
-                                    <?php if (!$is_siswa): // Filter Status and Kelas for PDF only for Admin/Guru 
-                                    ?>
+                                    <?php if (!$is_siswa): ?>
                                         <div class="col-md-4 col-lg-3">
                                             <label for="statusFilterPdf" class="form-label">Filter Status (PDF):</label>
                                             <select id="statusFilterPdf" name="status" class="form-select">
@@ -359,8 +243,7 @@ $koneksi->close();
                                                 </option>
                                             </select>
                                         </div>
-                                        <?php if ($is_admin): // Filter kelas PDF only if admin 
-                                        ?>
+                                        <?php if ($is_admin): ?>
                                             <div class="col-md-4 col-lg-3">
                                                 <label for="kelasPdfFilter" class="form-label">Filter Kelas (PDF):</label>
                                                 <select id="kelasPdfFilter" name="kelas_pdf" class="form-select">
@@ -368,28 +251,22 @@ $koneksi->close();
                                                     <?php foreach ($list_kelas as $kelas_option): ?>
                                                         <option value="<?= htmlspecialchars($kelas_option) ?>"
                                                             <?= $kelas_filter_tabel == $kelas_option ? 'selected' : '' ?>>
-                                                            <?= htmlspecialchars($kelas_option) ?>
-                                                        </option>
+                                                            <?= htmlspecialchars($kelas_option) ?></option>
                                                     <?php endforeach; ?>
                                                 </select>
                                             </div>
                                         <?php endif; ?>
-                                    <?php endif; // End filter status and kelas for PDF 
-                                    ?>
-
+                                    <?php endif; ?>
 
                                     <div
                                         class="col-12 d-flex flex-wrap justify-content-end align-items-end pt-3 border-top mt-3">
-                                        <?php if ($is_siswa): // If student, send ID 
-                                        ?>
+                                        <?php if ($is_siswa): ?>
                                             <input type="hidden" name="siswa_id_pdf"
                                                 value="<?= htmlspecialchars($_SESSION['id_siswa']) ?>">
-                                        <?php elseif ($is_guru): // If guru, send supervisor ID 
-                                        ?>
+                                        <?php elseif ($is_guru): ?>
                                             <input type="hidden" name="pembimbing_id_pdf"
                                                 value="<?= htmlspecialchars($_SESSION['id_guru_pendamping']) ?>">
-                                        <?php elseif ($is_admin && isset($_GET['pembimbing_id']) && !empty($_GET['pembimbing_id'])): // Admin viewing a specific teacher's students 
-                                        ?>
+                                        <?php elseif ($is_admin && isset($_GET['pembimbing_id']) && !empty($_GET['pembimbing_id'])): ?>
                                             <input type="hidden" name="pembimbing_id_pdf"
                                                 value="<?= htmlspecialchars($_GET['pembimbing_id']) ?>">
                                         <?php endif; ?>
@@ -404,7 +281,7 @@ $koneksi->close();
                                         </div>
 
                                         <?php
-                                        $back_link = 'index.php'; // Default for admin
+                                        $back_link = 'index.php';
                                         if ($is_siswa) {
                                             $back_link = 'dashboard_siswa.php';
                                         } elseif ($is_guru) {
@@ -422,12 +299,100 @@ $koneksi->close();
                             </div>
                         </div>
 
+                        <div class="card mb-4 shadow-lg">
+                            <div class="card-body p-3">
+                                <form method="GET" action="" class="row g-2 align-items-end">
+                                    <h6 class="col-12 mb-3 text-primary"><i class='bx bx-filter me-1'></i> Filter
+                                        Tampilan Harian</h6>
+
+                                    <div class="col-12 col-md-4 col-lg-3">
+                                        <label for="tanggalMulaiTabel" class="form-label">Tanggal Mulai:</label>
+                                        <input type="text" id="tanggalMulaiTabel" name="tanggal_mulai"
+                                            class="form-control flatpickr-date"
+                                            value="<?= htmlspecialchars($filter_tanggal_mulai) ?>">
+                                    </div>
+                                    <div class="col-12 col-md-4 col-lg-3">
+                                        <label for="tanggalAkhirTabel" class="form-label">Tanggal Akhir:</label>
+                                        <input type="text" id="tanggalAkhirTabel" name="tanggal_akhir"
+                                            class="form-control flatpickr-date"
+                                            value="<?= htmlspecialchars($filter_tanggal_akhir) ?>">
+                                    </div>
+
+                                    <div class="col-12 col-md-4 col-lg-2">
+                                        <label for="statusFilter" class="form-label">Status Absen:</label>
+                                        <select id="statusFilter" name="status" class="form-select">
+                                            <option value="Semua" <?= $filter_status == 'Semua' ? 'selected' : '' ?>>
+                                                Semua Status</option>
+                                            <option value="Hadir" <?= $filter_status == 'Hadir' ? 'selected' : '' ?>>
+                                                Hadir</option>
+                                            <option value="Sakit" <?= $filter_status == 'Sakit' ? 'selected' : '' ?>>
+                                                Sakit</option>
+                                            <option value="Izin" <?= $filter_status == 'Izin' ? 'selected' : '' ?>>Izin
+                                            </option>
+                                            <option value="Libur" <?= $filter_status == 'Libur' ? 'selected' : '' ?>>
+                                                Libur</option>
+                                            <option value="Alfa" <?= $filter_status == 'Alfa' ? 'selected' : '' ?>>Alfa
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <?php if ($is_admin || $is_guru): ?>
+                                        <div class="col-12 col-md-4 col-lg-3">
+                                            <label for="keywordSearch" class="form-label">Cari Siswa:</label>
+                                            <input type="text" id="keywordSearch" name="keyword" class="form-control"
+                                                placeholder="Nama/NISN/Kelas..." value="<?= htmlspecialchars($keyword) ?>">
+                                        </div>
+
+                                        <?php if ($is_admin): ?>
+                                            <div class="col-12 col-md-4 col-lg-2">
+                                                <label for="kelasTabelFilter" class="form-label">Filter Kelas:</label>
+                                                <select id="kelasTabelFilter" name="kelas_tabel" class="form-select">
+                                                    <option value="">Semua Kelas</option>
+                                                    <?php foreach ($list_kelas as $kelas_option): ?>
+                                                        <option value="<?= htmlspecialchars($kelas_option) ?>"
+                                                            <?= $kelas_filter_tabel == $kelas_option ? 'selected' : '' ?>>
+                                                            <?= htmlspecialchars($kelas_option) ?></option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
+                                        <?php endif; ?>
+                                    <?php endif; ?>
+
+                                    <div
+                                        class="col-12 d-flex flex-wrap justify-content-end align-items-end pt-3 border-top mt-3">
+                                        <div class="col-12 col-md-auto mb-2 mb-md-0 me-md-2">
+                                            <button type="submit" class="btn btn-primary w-100">
+                                                <i class="bx bx-filter-alt"></i> Terapkan Filter
+                                            </button>
+                                        </div>
+                                        <?php
+                                        $reset_params_current = [];
+                                        if ($is_guru && isset($_GET['pembimbing_id']) && !empty($_GET['pembimbing_id'])) {
+                                            $reset_params_current['pembimbing_id'] = htmlspecialchars($_GET['pembimbing_id']);
+                                        }
+                                        $reset_link_current = 'master_data_absensi_siswa.php';
+                                        if (!empty($reset_params_current)) {
+                                            $reset_link_current .= '?' . http_build_query($reset_params_current);
+                                        }
+                                        $is_filter_active_for_reset = (!empty($keyword)) || ($filter_status !== 'Semua') || $filter_tanggal_mulai !== '2025-07-14' || $filter_tanggal_akhir !== date('Y-m-d') || (!empty($kelas_filter_tabel));
+                                        if ($is_filter_active_for_reset): ?>
+                                            <div class="col-12 col-md-auto mb-2 mb-md-0">
+                                                <a href="<?= htmlspecialchars($reset_link_current) ?>"
+                                                    class="btn btn-outline-secondary w-100">
+                                                    <i class="bx bx-x"></i> Reset Filter
+                                                </a>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0">Absensi Siswa Tanggal: <span
                                         class="text-primary"><?= date('d F Y', strtotime($filter_tanggal_mulai)) ?> s.d.
-                                        <?= date('d F Y', strtotime($filter_tanggal_akhir)) ?></span>
-                                </h5>
+                                        <?= date('d F Y', strtotime($filter_tanggal_akhir)) ?></span></h5>
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive text-nowrap d-none d-md-block"
@@ -447,9 +412,8 @@ $koneksi->close();
                                                 <th>Keterangan</th>
                                                 <th>Jam Datang</th>
                                                 <th>Jam Pulang</th>
-                                                <th>Bukti Foto</th>
-                                                <?php if ($is_admin): // Show Aksi only for Admin 
-                                                ?>
+                                                <th>Bukti Foto ( jika tidak hadir )</th>
+                                                <?php if ($is_admin): ?>
                                                     <th>Aksi</th>
                                                 <?php endif; ?>
                                             </tr>
@@ -466,16 +430,9 @@ $koneksi->close();
                                                         'Libur' => 'bg-label-secondary',
                                                         default => 'bg-label-secondary',
                                                     };
-                                                    // PERBAIKAN: Keterangan dari kolom 'keterangan' database
                                                     $keterangan_display_for_column = !empty($row['keterangan']) ? htmlspecialchars($row['keterangan']) : '-';
-                                                    // PERBAIKAN: Status Absen from status_absensi_hari_ini
                                                     $status_absen_display_table = htmlspecialchars($row['status_absensi_hari_ini']);
-
-                                                    $bukti_foto_display = !empty($row['bukti_foto']) ?
-                                                        "<a href='#' class='badge bg-primary view-image-btn' data-bs-toggle='modal' data-bs-target='#viewImageModal' data-image-url='image_absensi/" . htmlspecialchars($row['bukti_foto']) . "'>
-                                                        <i class='bx bx-image'></i> Lihat
-                                                    </a>" : '-';
-
+                                                    $bukti_foto_display = !empty($row['bukti_foto']) ? "<a href='#' class='badge bg-primary view-image-btn' data-bs-toggle='modal' data-bs-target='#viewImageModal' data-image-url='image_absensi/" . htmlspecialchars($row['bukti_foto']) . "'><i class='bx bx-image'></i> Lihat</a>" : '-';
                                                     $jam_datang_display_table = !empty($row['jam_datang']) ? date('H:i', strtotime($row['jam_datang'])) : '-';
                                                     $jam_pulang_display_table = !empty($row['jam_pulang']) ? date('H:i', strtotime($row['jam_pulang'])) : '-';
                                                     ?>
@@ -487,7 +444,43 @@ $koneksi->close();
                                                             <td><?= htmlspecialchars($row['nama_jurusan'] ?? '-') ?></td>
                                                             <td><?= htmlspecialchars($row['nama_tempat_pkl'] ?? '-') ?></td>
                                                         <?php endif; ?>
-                                                        <td><?= !empty($row['tanggal_absen']) ? date('d F Y', strtotime($row['tanggal_absen'])) : '-' ?>
+                                                        <td>
+                                                            <?php
+                                                            // Logika untuk menampilkan nama hari
+                                                            if (!empty($row['tanggal_absen'])) {
+                                                                $tanggal_obj = new DateTime($row['tanggal_absen']);
+                                                                $nama_hari_inggris = $tanggal_obj->format('l');
+                                                                $nama_hari_indonesia = '';
+
+                                                                // Mengubah nama hari dari Inggris ke Indonesia
+                                                                switch ($nama_hari_inggris) {
+                                                                    case 'Sunday':
+                                                                        $nama_hari_indonesia = 'Minggu';
+                                                                        break;
+                                                                    case 'Monday':
+                                                                        $nama_hari_indonesia = 'Senin';
+                                                                        break;
+                                                                    case 'Tuesday':
+                                                                        $nama_hari_indonesia = 'Selasa';
+                                                                        break;
+                                                                    case 'Wednesday':
+                                                                        $nama_hari_indonesia = 'Rabu';
+                                                                        break;
+                                                                    case 'Thursday':
+                                                                        $nama_hari_indonesia = 'Kamis';
+                                                                        break;
+                                                                    case 'Friday':
+                                                                        $nama_hari_indonesia = 'Jumat';
+                                                                        break;
+                                                                    case 'Saturday':
+                                                                        $nama_hari_indonesia = 'Sabtu';
+                                                                        break;
+                                                                }
+                                                                echo $nama_hari_indonesia . ', ' . date('d F Y', strtotime($row['tanggal_absen']));
+                                                            } else {
+                                                                echo '-';
+                                                            }
+                                                            ?>
                                                         </td>
                                                         <td><span
                                                                 class='badge <?= $badgeColor ?>'><?= $status_absen_display_table ?></span>
@@ -496,25 +489,21 @@ $koneksi->close();
                                                         <td><?= $jam_datang_display_table ?></td>
                                                         <td><?= $jam_pulang_display_table ?></td>
                                                         <td><?= $bukti_foto_display ?></td>
-                                                        <?php if ($is_admin): // Show Aksi only for Admin 
-                                                        ?>
+                                                        <?php if ($is_admin): ?>
                                                             <td>
                                                                 <div class='dropdown'>
                                                                     <button class='btn p-0 dropdown-toggle hide-arrow'
-                                                                        data-bs-toggle='dropdown'>
-                                                                        <i class='bx bx-dots-vertical-rounded'></i>
-                                                                    </button>
+                                                                        data-bs-toggle='dropdown'><i
+                                                                            class='bx bx-dots-vertical-rounded'></i></button>
                                                                     <div class='dropdown-menu'>
                                                                         <a class='dropdown-item'
-                                                                            href='master_data_absensi_siswa_edit.php?<?= !empty($row['id_absensi']) ? 'id=' . htmlspecialchars($row['id_absensi']) : 'siswa_id=' . htmlspecialchars($row['id_siswa']) . '&tanggal=' . urlencode($filter_tanggal_mulai) ?>'>
-                                                                            <i class='bx bx-edit-alt me-1'></i> Edit
-                                                                        </a>
+                                                                            href='master_data_absensi_siswa_edit.php?<?= !empty($row['id_absensi']) ? 'id=' . htmlspecialchars($row['id_absensi']) : 'siswa_id=' . htmlspecialchars($row['id_siswa']) . '&tanggal=' . urlencode($filter_tanggal_mulai) ?>'><i
+                                                                                class='bx bx-edit-alt me-1'></i> Edit</a>
                                                                         <?php if (!empty($row['id_absensi'])): ?>
                                                                             <a class='dropdown-item text-danger'
                                                                                 href='javascript:void(0);'
-                                                                                onclick="confirmDelete('<?= htmlspecialchars($row['id_absensi']) ?>', '<?= htmlspecialchars(addslashes($row['nama_siswa'])) ?>', '<?= htmlspecialchars($row['status_absensi_hari_ini']) ?>')">
-                                                                                <i class='bx bx-trash me-1'></i> Hapus
-                                                                            </a>
+                                                                                onclick="confirmDelete('<?= htmlspecialchars($row['id_absensi']) ?>', '<?= htmlspecialchars(addslashes($row['nama_siswa'])) ?>', '<?= htmlspecialchars($row['status_absensi_hari_ini']) ?>')"><i
+                                                                                    class='bx bx-trash me-1'></i> Hapus</a>
                                                                         <?php endif; ?>
                                                                     </div>
                                                                 </div>
@@ -525,8 +514,8 @@ $koneksi->close();
                                             else: ?>
                                                 <tr>
                                                     <td colspan='<?= ($is_admin) ? 12 : (($is_guru) ? 11 : 7) ?>'
-                                                        class='text-center py-4'>Tidak ada data absensi
-                                                        ditemukan untuk tanggal ini atau filter yang diterapkan.<br>
+                                                        class='text-center py-4'>Tidak ada data absensi ditemukan untuk
+                                                        tanggal ini atau filter yang diterapkan.<br>
                                                         <?php if ($is_siswa && ($filter_tanggal_mulai !== '2025-07-14' || $filter_tanggal_akhir !== date('Y-m-d'))): ?>
                                                             Coba sesuaikan rentang tanggal.
                                                         <?php endif; ?>
@@ -555,14 +544,10 @@ $koneksi->close();
                                                 'Libur' => 'bg-label-secondary',
                                                 default => 'bg-label-secondary',
                                             };
-                                            $keterangan_display_mobile = !empty($row_mobile['keterangan']) ? htmlspecialchars($row_mobile['keterangan']) : '-'; // PERBAIKAN: Keterangan from 'keterangan'
-                                            $status_absen_display_mobile = htmlspecialchars($row_mobile['status_absensi_hari_ini']); // Status Absen
+                                            $keterangan_display_mobile = !empty($row_mobile['keterangan']) ? htmlspecialchars($row_mobile['keterangan']) : '-';
+                                            $status_absen_display_mobile = htmlspecialchars($row_mobile['status_absensi_hari_ini']);
 
-                                            $bukti_foto_display_mobile = !empty($row_mobile['bukti_foto']) ?
-                                                "<a href='#' class='btn btn-sm btn-outline-primary mt-2 view-image-btn' data-bs-toggle='modal' data-bs-target='#viewImageModal' data-image-url='image_absensi/" . htmlspecialchars($row_mobile['bukti_foto']) . "'>
-                                                    <i class='bx bx-image'></i> Lihat Bukti
-                                                </a>" : ' ';
-
+                                            $bukti_foto_display_mobile = !empty($row_mobile['bukti_foto']) ? "<a href='#' class='btn btn-sm btn-outline-primary mt-2 view-image-btn' data-bs-toggle='modal' data-bs-target='#viewImageModal' data-image-url='image_absensi/" . htmlspecialchars($row_mobile['bukti_foto']) . "'><i class='bx bx-image'></i> Lihat Bukti</a>" : ' ';
                                             $jam_datang_display_mobile = !empty($row_mobile['jam_datang']) ? date('H:i', strtotime($row_mobile['jam_datang'])) : '-';
                                             $jam_pulang_display_mobile = !empty($row_mobile['jam_pulang']) ? date('H:i', strtotime($row_mobile['jam_pulang'])) . " WIB" : '-';
                                     ?>
@@ -575,23 +560,19 @@ $koneksi->close();
                                                         </h6>
                                                         <span
                                                             class="badge <?= $badgeColorMobile ?> ms-2"><?= $status_absen_display_mobile ?></span>
-                                                        <?php if ($is_admin): // Show dropdown only for Admin 
-                                                        ?>
+                                                        <?php if ($is_admin): ?>
                                                             <div class='dropdown ms-auto'>
                                                                 <button class='btn p-0 dropdown-toggle hide-arrow'
-                                                                    data-bs-toggle='dropdown'>
-                                                                    <i class='bx bx-dots-vertical-rounded'></i>
-                                                                </button>
+                                                                    data-bs-toggle='dropdown'><i
+                                                                        class='bx bx-dots-vertical-rounded'></i></button>
                                                                 <div class='dropdown-menu'>
                                                                     <a class='dropdown-item'
-                                                                        href='master_data_absensi_siswa_edit.php?<?= !empty($row_mobile['id_absensi']) ? 'id=' . htmlspecialchars($row_mobile['id_absensi']) : 'siswa_id=' . htmlspecialchars($row_mobile['id_siswa']) . '&tanggal=' . urlencode($filter_tanggal_mulai) ?>'>
-                                                                        <i class='bx bx-edit-alt me-1'></i> Edit
-                                                                    </a>
+                                                                        href='master_data_absensi_siswa_edit.php?<?= !empty($row_mobile['id_absensi']) ? 'id=' . htmlspecialchars($row_mobile['id_absensi']) : 'siswa_id=' . htmlspecialchars($row_mobile['id_siswa']) . '&tanggal=' . urlencode($filter_tanggal_mulai) ?>'><i
+                                                                            class='bx bx-edit-alt me-1'></i> Edit</a>
                                                                     <?php if (!empty($row_mobile['id_absensi'])): ?>
                                                                         <a class='dropdown-item text-danger' href='javascript:void(0);'
-                                                                            onclick="confirmDelete('<?= htmlspecialchars($row_mobile['id_absensi']) ?>', '<?= htmlspecialchars(addslashes($row_mobile['nama_siswa'])) ?>', '<?= htmlspecialchars($row['status_absensi_hari_ini']) ?>')">
-                                                                            <i class='bx bx-trash me-1'></i> Hapus
-                                                                        </a>
+                                                                            onclick="confirmDelete('<?= htmlspecialchars($row_mobile['id_absensi']) ?>', '<?= htmlspecialchars(addslashes($row_mobile['nama_siswa'])) ?>', '<?= htmlspecialchars($row['status_absensi_hari_ini']) ?>')"><i
+                                                                                class='bx bx-trash me-1'></i> Hapus</a>
                                                                     <?php endif; ?>
                                                                 </div>
                                                             </div>
@@ -601,8 +582,7 @@ $koneksi->close();
                                                     <?php if ($is_admin || $is_guru): ?>
                                                         <p class="card-text mb-1"><small class="text-muted"><i
                                                                     class="bx bx-hash me-1"></i> No Induk:
-                                                                <?= htmlspecialchars($row_mobile['no_induk']) ?? '-' ?></small>
-                                                        </p>
+                                                                <?= htmlspecialchars($row_mobile['no_induk']) ?? '-' ?></small></p>
                                                         <p class="card-text mb-1"><small class="text-muted"><i
                                                                     class="bx bx-award me-1"></i> Kelas:
                                                                 <?= htmlspecialchars($row_mobile['kelas']) ?></small></p>
@@ -726,8 +706,6 @@ $koneksi->close();
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Safely initialize Flatpickr for "Tanggal Mulai Tabel" and "Tanggal Akhir Tabel"
-            // These elements are only present for Admin and Guru roles.
             const tanggalMulaiTabelInput = document.getElementById('tanggalMulaiTabel');
             const tanggalAkhirTabelInput = document.getElementById('tanggalAkhirTabel');
 
@@ -753,7 +731,6 @@ $koneksi->close();
                     defaultDate: "<?= date('Y-m-d') ?>",
                 });
 
-                // Set initial min/max dates for tabel pickers
                 if (tanggalMulaiTabelPicker.selectedDates.length > 0) {
                     tanggalAkhirTabelPicker.set('minDate', tanggalMulaiTabelPicker.selectedDates[0]);
                 }
@@ -762,13 +739,11 @@ $koneksi->close();
                 }
             }
 
-
-            // Initialize Flatpickr for "Tanggal Mulai PDF" - always present
             const tanggalMulaiPdfPicker = flatpickr("#tanggalMulaiPdf", {
                 dateFormat: "Y-m-d",
                 maxDate: "today",
-                disableMobile: true, // Force desktop picker on mobile
-                allowInput: false, // Prevent manual typing
+                disableMobile: true,
+                allowInput: false,
                 onChange: function(selectedDates, dateStr, instance) {
                     if (selectedDates.length > 0) {
                         tanggalAkhirPdfPicker.set('minDate', selectedDates[0]);
@@ -778,23 +753,20 @@ $koneksi->close();
                 }
             });
 
-            // Initialize Flatpickr for "Tanggal Akhir PDF" - always present
             const tanggalAkhirPdfPicker = flatpickr("#tanggalAkhirPdf", {
                 dateFormat: "Y-m-d",
                 maxDate: "today",
-                disableMobile: true, // Force desktop picker on mobile
-                allowInput: false, // Prevent manual typing
+                disableMobile: true,
+                allowInput: false,
                 defaultDate: "<?= date('Y-m-d') ?>",
             });
 
-            // Set initial min/max dates for PDF pickers
             if (tanggalMulaiPdfPicker.selectedDates.length > 0) {
                 tanggalAkhirPdfPicker.set('minDate', tanggalMulaiPdfPicker.selectedDates[0]);
             }
             if (tanggalAkhirPdfPicker.selectedDates.length > 0) {
                 tanggalMulaiPdfPicker.set('maxDate', tanggalAkhirPdfPicker.selectedDates[0]);
             }
-
 
             const viewImageModal = document.getElementById('viewImageModal');
             if (viewImageModal) {

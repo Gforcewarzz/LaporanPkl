@@ -237,38 +237,38 @@ $koneksi->close();
                                                 <div
                                                     class="mt-4 d-flex flex-wrap align-items-center justify-content-center justify-content-md-start gap-2">
                                                     <?php if ($sudah_absen_hari_ini): ?>
-                                                    <button type="button" class="btn btn-light" disabled>
-                                                        <i class="bx bx-check-double me-2"></i> Anda sudah Absen
-                                                        Hari Ini (Status:
-                                                        <?= htmlspecialchars($status_absen_hari_ini ?? '') ?>)
-                                                    </button>
+                                                        <button type="button" class="btn btn-light" disabled>
+                                                            <i class="bx bx-check-double me-2"></i> Anda sudah Absen
+                                                            Hari Ini (Status:
+                                                            <?= htmlspecialchars($status_absen_hari_ini ?? '') ?>)
+                                                        </button>
 
-                                                    <?php if ($status_absen_hari_ini == 'Hadir' && empty($jam_pulang_siswa)): ?>
-                                                    <button type="button" id="absenPulangBtn" class="btn btn-warning">
-                                                        <i class="bx bx-log-out me-2"></i> Absen Pulang
-                                                        Sekarang!
-                                                    </button>
-                                                    <?php elseif ($status_absen_hari_ini == 'Hadir' && !empty($jam_pulang_siswa)): ?>
-                                                    <button type="button" class="btn btn-info" disabled>
-                                                        <i class="bx bx-check-double me-2"></i> Anda Sudah Absen
-                                                        Pulang
-                                                    </button>
-                                                    <?php endif; ?>
+                                                        <?php if ($status_absen_hari_ini == 'Hadir' && empty($jam_pulang_siswa)): ?>
+                                                            <button type="button" id="absenPulangBtn" class="btn btn-warning">
+                                                                <i class="bx bx-log-out me-2"></i> Absen Pulang
+                                                                Sekarang!
+                                                            </button>
+                                                        <?php elseif ($status_absen_hari_ini == 'Hadir' && !empty($jam_pulang_siswa)): ?>
+                                                            <button type="button" class="btn btn-info" disabled>
+                                                                <i class="bx bx-check-double me-2"></i> Anda Sudah Absen
+                                                                Pulang
+                                                            </button>
+                                                        <?php endif; ?>
 
-                                                    <?php
+                                                        <?php
                                                         if (($status_absen_hari_ini == 'Sakit' || $status_absen_hari_ini == 'Izin') && (empty($keterangan_siswa) || empty($data_absen['bukti_foto']))):
                                                         ?>
-                                                    <p class="text-warning mt-2 mb-0 fw-bold">
-                                                        <i class="bx bx-error-circle me-1"></i> Absensi Sakit/Izin
-                                                        Anda belum lengkap. Mohon lengkapi keterangan atau bukti
-                                                        foto!
-                                                    </p>
-                                                    <?php endif; ?>
+                                                            <p class="text-warning mt-2 mb-0 fw-bold">
+                                                                <i class="bx bx-error-circle me-1"></i> Absensi Sakit/Izin
+                                                                Anda belum lengkap. Mohon lengkapi keterangan atau bukti
+                                                                foto!
+                                                            </p>
+                                                        <?php endif; ?>
                                                     <?php else: ?>
-                                                    <button type="button" class="btn btn-success btn-lg"
-                                                        data-bs-toggle="modal" data-bs-target="#absenModal">
-                                                        <i class="bx bx-check-square me-2"></i> Absen Hari Ini!
-                                                    </button>
+                                                        <button type="button" class="btn btn-success btn-lg"
+                                                            data-bs-toggle="modal" data-bs-target="#absenModal">
+                                                            <i class="bx bx-check-square me-2"></i> Absen Hari Ini!
+                                                        </button>
                                                     <?php endif; ?>
                                                 </div>
                                             </div>
@@ -349,11 +349,11 @@ $koneksi->close();
                                                     class="bx bx-check-double me-2"></i>Progres Laporanmu</h5>
                                             <p class="card-text text-muted mb-0" style="font-size: 0.9rem;">
                                                 <?php if ($total_laporan_harian > 0): ?>
-                                                Terakhir melaporkan kegiatan pada tanggal
-                                                <strong><?= $last_report_date ?></strong>.
+                                                    Terakhir melaporkan kegiatan pada tanggal
+                                                    <strong><?= $last_report_date ?></strong>.
                                                 <?php else: ?>
-                                                Belum ada laporan kegiatan yang tercatat. Ayo buat laporan pertamumu
-                                                hari ini!
+                                                    Belum ada laporan kegiatan yang tercatat. Ayo buat laporan pertamumu
+                                                    hari ini!
                                                 <?php endif; ?>
                                             </p>
                                         </div>
@@ -382,7 +382,6 @@ $koneksi->close();
                                     </a>
                                 </div>
                             </div>
-                        </div>
                     </div>
                     <?php include './partials/footer.php'; ?>
                     <div class="content-backdrop fade"></div>
@@ -484,127 +483,127 @@ $koneksi->close();
     </div>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const radioHadir = document.getElementById('radioHadir');
-        const radioSakit = document.getElementById('radioSakit');
-        const radioIzin = document.getElementById('radioIzin');
-        const radioLibur = document.getElementById('radioLibur');
-        const additionalFields = document.getElementById('additionalFields');
-        const keteranganField = document.getElementById('keterangan');
-        const buktiFotoField = document.getElementById('buktiFoto');
-        const formAbsen = document.getElementById('formAbsen');
-        const absenModalElement = document.getElementById('absenModal');
-        const absenModal = new bootstrap.Modal(absenModalElement);
-        const jamDatangField = document.getElementById('jamDatangField');
-        const jamDatangInput = document.getElementById('jamDatang');
+        document.addEventListener('DOMContentLoaded', function() {
+            const radioHadir = document.getElementById('radioHadir');
+            const radioSakit = document.getElementById('radioSakit');
+            const radioIzin = document.getElementById('radioIzin');
+            const radioLibur = document.getElementById('radioLibur');
+            const additionalFields = document.getElementById('additionalFields');
+            const keteranganField = document.getElementById('keterangan');
+            const buktiFotoField = document.getElementById('buktiFoto');
+            const formAbsen = document.getElementById('formAbsen');
+            const absenModalElement = document.getElementById('absenModal');
+            const absenModal = new bootstrap.Modal(absenModalElement);
+            const jamDatangField = document.getElementById('jamDatangField');
+            const jamDatangInput = document.getElementById('jamDatang');
 
-        const absenPulangBtn = document.getElementById('absenPulangBtn');
+            const absenPulangBtn = document.getElementById('absenPulangBtn');
 
-        function toggleAdditionalFields() {
-            if (radioSakit.checked || radioIzin.checked) {
-                additionalFields.style.display = 'block';
-                keteranganField.setAttribute('required', 'required');
-                buktiFotoField.setAttribute('required', 'required');
-                jamDatangField.style.display = 'none'; // Sembunyikan field jam datang
-                jamDatangInput.removeAttribute('required'); // Hapus atribut required
-                jamDatangInput.value = ''; // Kosongkan nilai jam datang
-            } else if (radioHadir.checked) {
-                additionalFields.style.display = 'none';
-                keteranganField.removeAttribute('required');
-                buktiFotoField.removeAttribute('required');
-                keteranganField.value = '';
-                buktiFotoField.value = '';
-                jamDatangField.style.display = 'block'; // Tampilkan field jam datang
-                jamDatangInput.setAttribute('required', 'required'); // Tambahkan atribut required
-                const now = new Date();
-                const hours = String(now.getHours()).padStart(2, '0');
-                const minutes = String(now.getMinutes()).padStart(2, '0');
-                jamDatangInput.value = `${hours}:${minutes}`;
-            } else if (radioLibur.checked) {
-                additionalFields.style.display = 'none';
-                keteranganField.removeAttribute('required');
-                buktiFotoField.removeAttribute('required');
-                keteranganField.value = '';
-                buktiFotoField.value = '';
-                jamDatangField.style.display = 'none'; // Sembunyikan field jam datang
-                document.getElementById('jamDatang').removeAttribute('required'); // Hapus atribut required
-                jamDatangInput.value = ''; // Kosongkan nilai jam datang
-            }
-        }
-
-        toggleAdditionalFields();
-
-        radioHadir.addEventListener('change', toggleAdditionalFields);
-        radioSakit.addEventListener('change', toggleAdditionalFields);
-        radioIzin.addEventListener('change', toggleAdditionalFields);
-        radioLibur.addEventListener('change', toggleAdditionalFields);
-
-        absenModalElement.addEventListener('show.bs.modal', function() {
-            if (radioHadir.checked) {
-                const now = new Date();
-                const hours = String(now.getHours()).padStart(2, '0');
-                const minutes = String(now.getMinutes()).padStart(2, '0');
-                jamDatangInput.value = `${hours}:${minutes}`;
-            }
-        });
-
-
-        formAbsen.addEventListener('submit', function(event) {
-            if (radioSakit.checked || radioIzin.checked) {
-                if (keteranganField.value.trim() === '' || buktiFotoField.files.length === 0) {
-                    event.preventDefault();
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Data Tidak Lengkap!',
-                        text: 'Untuk status Sakit/Izin, keterangan dan bukti foto wajib diisi.',
-                        confirmButtonColor: '#dc3545'
-                    });
-                    return;
-                }
-            } else if (radioHadir.checked) {
-                if (jamDatangInput.value.trim() === '') {
-                    event.preventDefault();
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Jam Datang Kosong!',
-                        text: 'Terjadi kesalahan internal: Jam datang tidak terisi otomatis.',
-                        confirmButtonColor: '#dc3545'
-                    });
-                    return;
+            function toggleAdditionalFields() {
+                if (radioSakit.checked || radioIzin.checked) {
+                    additionalFields.style.display = 'block';
+                    keteranganField.setAttribute('required', 'required');
+                    buktiFotoField.setAttribute('required', 'required');
+                    jamDatangField.style.display = 'none'; // Sembunyikan field jam datang
+                    jamDatangInput.removeAttribute('required'); // Hapus atribut required
+                    jamDatangInput.value = ''; // Kosongkan nilai jam datang
+                } else if (radioHadir.checked) {
+                    additionalFields.style.display = 'none';
+                    keteranganField.removeAttribute('required');
+                    buktiFotoField.removeAttribute('required');
+                    keteranganField.value = '';
+                    buktiFotoField.value = '';
+                    jamDatangField.style.display = 'block'; // Tampilkan field jam datang
+                    jamDatangInput.setAttribute('required', 'required'); // Tambahkan atribut required
+                    const now = new Date();
+                    const hours = String(now.getHours()).padStart(2, '0');
+                    const minutes = String(now.getMinutes()).padStart(2, '0');
+                    jamDatangInput.value = `${hours}:${minutes}`;
+                } else if (radioLibur.checked) {
+                    additionalFields.style.display = 'none';
+                    keteranganField.removeAttribute('required');
+                    buktiFotoField.removeAttribute('required');
+                    keteranganField.value = '';
+                    buktiFotoField.value = '';
+                    jamDatangField.style.display = 'none'; // Sembunyikan field jam datang
+                    document.getElementById('jamDatang').removeAttribute('required'); // Hapus atribut required
+                    jamDatangInput.value = ''; // Kosongkan nilai jam datang
                 }
             }
 
-            absenModal.hide();
-        });
-
-        absenModalElement.addEventListener('hidden.bs.modal', function() {
-            formAbsen.reset();
             toggleAdditionalFields();
-        });
 
-        // Fungsi ini sekarang tidak lagi memerlukan parameter PHP,
-        // karena kondisi sudah ditangani di PHP bagian atas
-        function confirmAbsenPulang() {
-            Swal.fire({
-                title: 'Konfirmasi Absen Pulang',
-                html: 'Apakah Anda yakin ingin melakukan absen pulang sekarang?<br>Waktu pulang akan dicatat secara otomatis.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#28a745',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Ya, Absen Pulang!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = 'process_absen_pulang.php';
+            radioHadir.addEventListener('change', toggleAdditionalFields);
+            radioSakit.addEventListener('change', toggleAdditionalFields);
+            radioIzin.addEventListener('change', toggleAdditionalFields);
+            radioLibur.addEventListener('change', toggleAdditionalFields);
+
+            absenModalElement.addEventListener('show.bs.modal', function() {
+                if (radioHadir.checked) {
+                    const now = new Date();
+                    const hours = String(now.getHours()).padStart(2, '0');
+                    const minutes = String(now.getMinutes()).padStart(2, '0');
+                    jamDatangInput.value = `${hours}:${minutes}`;
                 }
             });
-        }
-        // Tambahkan event listener untuk tombol absen pulang jika ada
-        if (absenPulangBtn) {
-            absenPulangBtn.addEventListener('click', confirmAbsenPulang);
-        }
-    });
+
+
+            formAbsen.addEventListener('submit', function(event) {
+                if (radioSakit.checked || radioIzin.checked) {
+                    if (keteranganField.value.trim() === '' || buktiFotoField.files.length === 0) {
+                        event.preventDefault();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Data Tidak Lengkap!',
+                            text: 'Untuk status Sakit/Izin, keterangan dan bukti foto wajib diisi.',
+                            confirmButtonColor: '#dc3545'
+                        });
+                        return;
+                    }
+                } else if (radioHadir.checked) {
+                    if (jamDatangInput.value.trim() === '') {
+                        event.preventDefault();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Jam Datang Kosong!',
+                            text: 'Terjadi kesalahan internal: Jam datang tidak terisi otomatis.',
+                            confirmButtonColor: '#dc3545'
+                        });
+                        return;
+                    }
+                }
+
+                absenModal.hide();
+            });
+
+            absenModalElement.addEventListener('hidden.bs.modal', function() {
+                formAbsen.reset();
+                toggleAdditionalFields();
+            });
+
+            // Fungsi ini sekarang tidak lagi memerlukan parameter PHP,
+            // karena kondisi sudah ditangani di PHP bagian atas
+            function confirmAbsenPulang() {
+                Swal.fire({
+                    title: 'Konfirmasi Absen Pulang',
+                    html: 'Apakah Anda yakin ingin melakukan absen pulang sekarang?<br>Waktu pulang akan dicatat secara otomatis.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#28a745',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Absen Pulang!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = 'process_absen_pulang.php';
+                    }
+                });
+            }
+            // Tambahkan event listener untuk tombol absen pulang jika ada
+            if (absenPulangBtn) {
+                absenPulangBtn.addEventListener('click', confirmAbsenPulang);
+            }
+        });
     </script>
 </body>
 

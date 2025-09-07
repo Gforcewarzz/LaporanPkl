@@ -145,10 +145,9 @@ $koneksi->close(); // Tutup koneksi setelah semua data diambil
                                         value="<?= htmlspecialchars($laporan_data['id_jurnal_harian']) ?>">
                                     <input type="hidden" name="siswa_id_original"
                                         value="<?= htmlspecialchars($laporan_data['siswa_id']) ?>">
-                                    <?php if ($is_admin): // Tambahkan hidden input untuk redirect admin 
-                                    ?>
-                                        <input type="hidden" name="redirect_siswa_id"
-                                            value="<?= htmlspecialchars($laporan_data['siswa_id']) ?>">
+                                    <?php if ($is_admin): // Tambahkan hidden input untuk redirect admin ?>
+                                    <input type="hidden" name="redirect_siswa_id"
+                                        value="<?= htmlspecialchars($laporan_data['siswa_id']) ?>">
                                     <?php endif; ?>
 
                                     <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-2s">

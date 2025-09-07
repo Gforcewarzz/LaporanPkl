@@ -235,17 +235,17 @@
       document.addEventListener("DOMContentLoaded", function () {
         function getTargetDateWIB() {
           const now = new Date();
-          // Get current date components in Asia/Jakarta timezone
           const nowInJakarta = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
 
-          let targetDate = new Date(nowInJakarta); // Start with today's date in WIB
-          const targetHour = 8; // Target 08:45 AM
-          const targetMinute = 45; // Target 08:45 AM
+          let targetDate = new Date(nowInJakarta);
+          const targetHour = 10; // Change this to 10 for 10 AM
+          const targetMinute = 15; // Change this to 30 for 30 minutes
 
-          targetDate.setHours(targetHour, targetMinute, 0, 0); // Set to 08:45:00 AM WIB
+          targetDate.setHours(targetHour, targetMinute, 0, 0);
 
-          // If the target time (08:45 AM today) has already passed,
-          // then set it for tomorrow at 08:45 AM.
+          // If the target time (10:30 AM today) has already passed,
+          // then set it for tomorrow at 10:30 AM.
+          // (This ensures the countdown always targets a future time)
           if (nowInJakarta.getTime() > targetDate.getTime()) {
             targetDate.setDate(targetDate.getDate() + 1); // Go to tomorrow
           }
@@ -259,27 +259,21 @@
           const now = new Date().getTime();
           let distance = countDownDate - now;
 
-          // If the countdown is finished for some reason (e.g., page left open overnight)
-          // then recalculate for the next 08:45 AM WIB
           if (distance < 0) {
-            countDownDate = getTargetDateWIB(); // Get target for next 08:45 AM
-            distance = countDownDate - now; // Recalculate distance
-          }
-
-          // If after recalculation distance is still negative, it means we passed the very latest target,
-          // so we display the "online" message
-          if (distance < 0) {
+            // If the countdown finishes, reset for the next day or show "online"
             clearInterval(x);
             document.getElementById("countdown").innerHTML = '<span class="text-base md:text-xl font-bold text-primary">Situs Telah Kembali Normal!</span>';
-            // window.location.href = "/"; // Uncomment to redirect to the main site
-            return; // Exit to prevent updating negative numbers
+            // If you want it to always reset to 10:30 AM tomorrow after reaching 10:30 AM today, uncomment and adjust:
+            // countDownDate = getTargetDateWIB();
+            // distance = countDownDate - now;
+            // if (distance < 0) { /* handle if still negative after reset */ }
+            return;
           }
 
           const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
           const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
           const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-          // Add leading zero if less than 10
           document.getElementById("hours").innerHTML = hours < 10 ? "0" + hours : hours;
           document.getElementById("minutes").innerHTML = minutes < 10 ? "0" + minutes : minutes;
           document.getElementById("seconds").innerHTML = seconds < 10 ? "0" + seconds : seconds;

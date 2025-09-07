@@ -1,50 +1,17 @@
 <?php
-session_start(); // Pastikan session sudah dimulai paling awal
-
 // Pastikan path ke db.php benar relatif dari lokasi file ini
+// Jika db.php ada di partials/
 include 'partials/db.php';
+session_start(); // Pastikan session sudah dimulai
 
-// --- Inisialisasi Variabel Sesi Universal ---
-// Ini adalah logika yang diperbaiki untuk memastikan user_id, user_role, dan user_name
-// selalu terisi dengan benar dari berbagai kemungkinan setup sesi login.
-$loggedInUserId = null;
-$loggedInUserRole = null;
-$loggedInUserName = 'Pengguna'; // Default nama jika tidak ada
+// Ambil data sesi universal (user_id, user_role, user_name)
+$loggedInUserId = $_SESSION['user_id'] ?? null;
+$loggedInUserRole = $_SESSION['user_role'] ?? null;
+$loggedInUserName = $_SESSION['user_name'] ?? 'Pengguna'; // Default nama jika tidak ada
 
-// Prioritaskan sesi universal jika sudah ada (direkomendasikan setelah perbaikan di login_act)
-if (isset($_SESSION['user_id']) && isset($_SESSION['user_role'])) {
-    $loggedInUserId = $_SESSION['user_id'];
-    $loggedInUserRole = $_SESSION['user_role'];
-    $loggedInUserName = $_SESSION['user_name'] ?? 'Pengguna';
-} else {
-    // Fallback/kompatibilitas dengan setup sesi lama jika sesi universal belum diterapkan konsisten
-    // Admin
-    if (isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in') {
-        $loggedInUserId = $_SESSION['id_admin'] ?? null;
-        $loggedInUserRole = 'admin';
-        $loggedInUserName = $_SESSION['nama_admin'] ?? 'Admin';
-    }
-    // Guru Pendamping
-    elseif (isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in') {
-        $loggedInUserId = $_SESSION['id_guru_pendamping'] ?? null; // Cek ini! Pastikan ID guru ada di sesi ini
-        $loggedInUserRole = 'guru_pendamping';
-        $loggedInUserName = $_SESSION['nama_guru'] ?? 'Guru'; // Cek ini! Pastikan nama guru ada di sesi ini
-    }
-    // Siswa
-    elseif (isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in') {
-        $loggedInUserId = $_SESSION['id_siswa'] ?? null;
-        $loggedInUserRole = 'siswa';
-        $loggedInUserName = $_SESSION['siswa_nama'] ?? 'Siswa';
-    }
-}
-
-// Verifikasi akhir: Jika masih belum ada ID atau peran, redirect ke login
+// Verifikasi apakah ada user yang login dengan sesi universal
 if (!$loggedInUserId || !$loggedInUserRole) {
-    // Set pesan alert untuk login agar lebih jelas
-    $_SESSION['ganti_password_message'] = 'Sesi Anda tidak valid. Silakan login kembali.';
-    $_SESSION['ganti_password_message_type'] = 'error';
-    $_SESSION['ganti_password_message_title'] = 'Sesi Tidak Ditemukan!';
-    header('Location: login.php'); // Sesuaikan ke halaman login utama Anda
+    header('Location: login.php'); // Redirect ke halaman login jika belum login
     exit();
 }
 
@@ -61,14 +28,14 @@ switch ($loggedInUserRole) {
         $formTitle .= " Admin";
         break;
     default:
-        $formTitle .= " Pengguna";
+        $formTitle .= " Pengguna"; // Fallback jika peran tidak dikenali
         break;
 }
 
 // Ambil pesan notifikasi (misal dari ganti_password_act.php) dari session
 $message = $_SESSION['ganti_password_message'] ?? '';
 $message_type = $_SESSION['ganti_password_message_type'] ?? '';
-$message_title_swal = $_SESSION['ganti_password_message_title'] ?? '';
+$message_title_swal = $_SESSION['ganti_password_message_title'] ?? ''; // Ambil juga judul SweetAlert
 
 // Hapus pesan dari session agar tidak muncul lagi setelah refresh halaman
 unset($_SESSION['ganti_password_message']);
@@ -96,17 +63,17 @@ unset($_SESSION['ganti_password_message_title']);
 
                         <?php if ($message): // Tampilkan SweetAlert2 jika ada pesan 
                         ?>
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function() {
-                                    Swal.fire({
-                                        icon: '<?= htmlspecialchars($message_type); ?>',
-                                        title: '<?= htmlspecialchars($message_title_swal); ?>',
-                                        text: '<?= htmlspecialchars($message); ?>',
-                                        confirmButtonColor: '<?= ($message_type == "success") ? "#3085d6" : "#d33"; ?>',
-                                        confirmButtonText: 'OK'
-                                    });
-                                });
-                            </script>
+                        <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            Swal.fire({
+                                icon: '<?= htmlspecialchars($message_type); ?>',
+                                title: '<?= htmlspecialchars($message_title_swal); ?>',
+                                text: '<?= htmlspecialchars($message); ?>',
+                                confirmButtonColor: '<?= ($message_type == "success") ? "#3085d6" : "#d33"; ?>',
+                                confirmButtonText: 'OK'
+                            });
+                        });
+                        </script>
                         <?php endif; ?>
 
                         <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
