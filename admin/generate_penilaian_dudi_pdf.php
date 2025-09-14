@@ -6,15 +6,14 @@ require_once __DIR__ . '/vendor/autoload.php';
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
-// Keamanan
+// --- PERUBAHAN KEAMANAN: Siswa sekarang boleh akses ---
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
 $is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
-if (!$is_admin && !$is_guru) {
-    die("Akses ditolak.");
-}
+$is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
 
-// Cek versi cetak dari URL
-$versi_cetak = isset($_GET['versi']) && $_GET['versi'] === 'kosong' ? 'kosong' : 'terisi';
+if (!$is_admin && !$is_guru && !$is_siswa) {
+    die("Akses ditolak. Anda harus login.");
+}
 
 // Ambil ID siswa dari URL
 $siswa_id = isset($_GET['siswa_id']) ? (int)$_GET['siswa_id'] : 0;
@@ -22,7 +21,7 @@ if ($siswa_id === 0) {
     die("ID Siswa tidak valid.");
 }
 
-// Ambil data detail siswa, tempat pkl, dan guru pembimbing
+// Ambil data detail siswa
 $query_detail = "SELECT s.nama_siswa, s.nisn, s.kelas, tp.nama_tempat_pkl, gp.nama_pembimbing
                  FROM siswa s
                  LEFT JOIN tempat_pkl tp ON s.tempat_pkl_id = tp.id_tempat_pkl
@@ -38,28 +37,16 @@ if (!$siswa) {
     die("Data siswa tidak ditemukan.");
 }
 
-// --- LOGIKA TERBARU DAN EFISIEN UNTUK PENGAMBILAN DATA ---
-
-// Ambil semua nilai siswa (TP & Jurnal) dalam SATU KALI QUERY
-$semua_nilai_siswa = [];
+// Ambil ID jurnal yang sudah dinilai untuk membangun struktur TP yang benar
 $graded_jurnal_ids = [];
-if ($versi_cetak === 'terisi') {
-    $stmt_nilai = $koneksi->prepare("SELECT id_tp, jurnal_kegiatan_id, nilai FROM nilai_siswa WHERE siswa_id = ?");
-    $stmt_nilai->bind_param("i", $siswa_id);
-    $stmt_nilai->execute();
-    $result_nilai = $stmt_nilai->get_result();
-    while ($row = $result_nilai->fetch_assoc()) {
-        if (!empty($row['jurnal_kegiatan_id'])) {
-            $jurnal_id = $row['jurnal_kegiatan_id'];
-            $key = 'jurnal_' . $jurnal_id;
-            $semua_nilai_siswa[$key] = $row['nilai'];
-            $graded_jurnal_ids[] = $jurnal_id;
-        } else if (!empty($row['id_tp'])) {
-            $semua_nilai_siswa[$row['id_tp']] = $row['nilai'];
-        }
-    }
-    $stmt_nilai->close();
+$stmt_nilai = $koneksi->prepare("SELECT jurnal_kegiatan_id FROM nilai_siswa WHERE siswa_id = ? AND jurnal_kegiatan_id IS NOT NULL");
+$stmt_nilai->bind_param("i", $siswa_id);
+$stmt_nilai->execute();
+$result_nilai = $stmt_nilai->get_result();
+while ($row = $result_nilai->fetch_assoc()) {
+    $graded_jurnal_ids[] = $row['jurnal_kegiatan_id'];
 }
+$stmt_nilai->close();
 
 // Ambil semua TP statis
 $tp_result = $koneksi->query("SELECT * FROM tujuan_pembelajaran ORDER BY id_induk, kode_tp");
@@ -69,7 +56,7 @@ while ($row = $tp_result->fetch_assoc()) {
 }
 
 // Gabungkan data jurnal yang sudah dinilai ke dalam struktur TP
-if ($versi_cetak === 'terisi' && !empty($graded_jurnal_ids)) {
+if (!empty($graded_jurnal_ids)) {
     $induk_jurnal_id = null;
     foreach ($semua_tp as $tp) {
         if ($tp['kode_tp'] === '3') {
@@ -77,7 +64,6 @@ if ($versi_cetak === 'terisi' && !empty($graded_jurnal_ids)) {
             break;
         }
     }
-
     if ($induk_jurnal_id) {
         $in_placeholders = implode(',', array_fill(0, count($graded_jurnal_ids), '?'));
         $stmt_jurnal = $koneksi->prepare("SELECT id_jurnal_kegiatan, nama_pekerjaan FROM jurnal_kegiatan WHERE id_jurnal_kegiatan IN ($in_placeholders)");
@@ -85,7 +71,6 @@ if ($versi_cetak === 'terisi' && !empty($graded_jurnal_ids)) {
         $stmt_jurnal->execute();
         $jurnal_list = $stmt_jurnal->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt_jurnal->close();
-
         $sub_kode = 1;
         foreach ($jurnal_list as $jurnal) {
             $jurnal_tp_id = 'jurnal_' . $jurnal['id_jurnal_kegiatan'];
@@ -99,129 +84,60 @@ if ($versi_cetak === 'terisi' && !empty($graded_jurnal_ids)) {
     }
 }
 
-// Buat struktur pohon (tree)
+// Buat struktur pohon (tree) dari data yang sudah digabung
 $tp_anak = [];
 foreach ($semua_tp as $tp) {
     $id_induk = $tp['id_induk'] ?? 0;
     $tp_anak[$id_induk][] = $tp['id_tp'];
 }
 
-$cache_nilai_terhitung = [];
-
-// --- FUNGSI-FUNGSI LOGIKA YANG SUDAH DIPERBAIKI ---
-
-function hitung_nilai($id_tp, $semua_nilai_siswa, $tp_anak, &$cache_nilai_terhitung)
-{
-    if (isset($cache_nilai_terhitung[$id_tp])) return $cache_nilai_terhitung[$id_tp];
-
-    $punya_anak = isset($tp_anak[$id_tp]);
-    if (!$punya_anak) {
-        $nilai = $semua_nilai_siswa[$id_tp] ?? 0;
-        $cache_nilai_terhitung[$id_tp] = $nilai;
-        return $nilai;
-    } else {
-        $nilai_anak_arr = [];
-        foreach ($tp_anak[$id_tp] as $id_anak) {
-            $nilai_anak_arr[] = hitung_nilai($id_anak, $semua_nilai_siswa, $tp_anak, $cache_nilai_terhitung);
-        }
-        $filtered_nilai = array_filter($nilai_anak_arr, fn($n) => $n > 0);
-        $rata_rata = empty($filtered_nilai) ? 0 : array_sum($filtered_nilai) / count($filtered_nilai);
-        $cache_nilai_terhitung[$id_tp] = $rata_rata;
-        return $rata_rata;
-    }
-}
-
-function generate_deskripsi_narasi($id_tp_utama, $semua_nilai_siswa, $semua_tp, $tp_anak)
-{
-    $anak_utama = $tp_anak[$id_tp_utama] ?? [];
-    if (empty($anak_utama)) return "-";
-
-    $cache_nilai_lokal = [];
-    $nilai_kompetensi = [];
-    foreach ($anak_utama as $id_anak) {
-        $nilai = hitung_nilai($id_anak, $semua_nilai_siswa, $tp_anak, $cache_nilai_lokal);
-        if ($nilai > 0) {
-            $nilai_kompetensi[] = ['deskripsi' => $semua_tp[$id_anak]['deskripsi_tp'], 'nilai' => $nilai];
-        }
-    }
-    if (empty($nilai_kompetensi)) return "Nilai untuk kompetensi ini belum terisi.";
-
-    $tertinggi = null;
-    $terendah = null;
-    foreach ($nilai_kompetensi as $kompetensi) {
-        if ($tertinggi === null || $kompetensi['nilai'] > $tertinggi['nilai']) $tertinggi = $kompetensi;
-        if ($terendah === null || $kompetensi['nilai'] < $terendah['nilai']) $terendah = $kompetensi;
-    }
-
-    $desc_tertinggi = lcfirst(trim(explode('(', $tertinggi['deskripsi'])[0]));
-    $desc_terendah = lcfirst(trim(explode('(', $terendah['deskripsi'])[0]));
-
-    if ($terendah['nilai'] < 80) {
-        if ($tertinggi['nilai'] == $terendah['nilai']) {
-            return "Peserta didik masih perlu meningkatkan kompetensi dalam hal {$desc_terendah}.";
-        }
-        return "Peserta didik menunjukkan kompetensi yang baik dalam {$desc_tertinggi}, namun masih perlu bimbingan pada {$desc_terendah}.";
-    } else {
-        if ($tertinggi['nilai'] == $terendah['nilai']) {
-            return "Peserta didik secara konsisten menunjukkan penguasaan yang sangat baik pada semua kompetensi.";
-        }
-        return "Peserta didik menunjukkan penguasaan yang sangat baik pada seluruh kompetensi, terutama menonjol dalam hal {$desc_tertinggi}.";
-    }
-}
-
-function generate_pdf_table_rows($id_induk, $level, $semua_nilai_siswa, $semua_tp, $tp_anak, &$cache_nilai_terhitung, $versi_cetak)
+// Fungsi untuk membuat baris tabel PDF (versi KOSONG)
+function generate_pdf_table_rows_kosong($id_induk, $level, $semua_tp, $tp_anak)
 {
     if (!isset($tp_anak[$id_induk])) return '';
 
     $html_rows = '';
     foreach ($tp_anak[$id_induk] as $id_tp) {
         $item = $semua_tp[$id_tp];
-        $nilai = hitung_nilai($id_tp, $semua_nilai_siswa, $tp_anak, $cache_nilai_terhitung);
         $punya_anak = isset($tp_anak[$id_tp]);
-
-        if ($versi_cetak === 'terisi' && !$punya_anak && $nilai <= 0) continue;
-
         $padding = $level * 20;
         $fontWeight = ($level == 0 || $punya_anak) ? 'font-weight: bold;' : '';
 
         $html_rows .= "<tr>";
+        // Kolom No & Tujuan Pembelajaran
         if ($level == 0) {
             $html_rows .= "<td style='text-align: center; {$fontWeight}'>" . htmlspecialchars($item['kode_tp']) . "</td>";
             $html_rows .= "<td style='{$fontWeight}'>" . htmlspecialchars($item['deskripsi_tp']) . "</td>";
         } else {
-            $html_rows .= "<td></td>";
+            $html_rows .= "<td></td>"; // Kolom nomor kosong untuk anak
             $html_rows .= "<td style='padding-left: " . ($padding) . "px;'>- " . htmlspecialchars($item['deskripsi_tp']) . "</td>";
         }
 
+        // Kolom Nilai (dibuat kosong)
         $html_rows .= "<td style='text-align: center; {$fontWeight}'>";
-        if ($versi_cetak === 'terisi') {
-            $html_rows .= ($nilai > 0) ? number_format($nilai, 1) : '-';
+        if ($punya_anak) {
+            $html_rows .= 'Rata-rata';
         } else {
-            if ($punya_anak) $html_rows .= 'Rata-rata';
-            else $html_rows .= '';
+            $html_rows .= ''; // Kosong untuk diisi manual
         }
         $html_rows .= "</td>";
 
-        $html_rows .= "<td>";
-        if ($level == 0) {
-            if ($versi_cetak === 'terisi') {
-                $html_rows .= htmlspecialchars(generate_deskripsi_narasi($id_tp, $semua_nilai_siswa, $semua_tp, $tp_anak));
-            } else $html_rows .= '';
-        }
-        $html_rows .= "</td></tr>";
+        // Kolom Deskripsi (dibuat kosong)
+        $html_rows .= "<td></td>";
+        $html_rows .= "</tr>";
 
         if ($punya_anak) {
-            $html_rows .= generate_pdf_table_rows($id_tp, $level + 1, $semua_nilai_siswa, $semua_tp, $tp_anak, $cache_nilai_terhitung, $versi_cetak);
+            $html_rows .= generate_pdf_table_rows_kosong($id_tp, $level + 1, $semua_tp, $tp_anak);
         }
     }
     return $html_rows;
 }
 
 // Membuat Konten HTML untuk PDF
-$table_content = generate_pdf_table_rows(0, 0, $semua_nilai_siswa, $semua_tp, $tp_anak, $cache_nilai_terhitung, $versi_cetak);
+$table_content = generate_pdf_table_rows_kosong(0, 0, $semua_tp, $tp_anak);
 
 $html = '
-<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Laporan Penilaian Kompetensi</title>
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Formulir Penilaian DUDI</title>
 <style>
     @page { margin: 25mm; } body { font-family: Arial, sans-serif; font-size: 11pt; color: #333; }
     .header-info table { width: 100%; border-collapse: collapse; margin-bottom: 20px;}
@@ -235,12 +151,12 @@ $html = '
     .signature-name { font-weight: bold; }
 </style>
 </head><body>
+    <h2 style="text-align: center; margin-bottom: 25px;">FORMULIR PENILAIAN KOMPETENSI<br>PRAKTIK KERJA LAPANGAN (PKL)</h2>
     <div class="header-info">
         <table>
             <tr><td class="label">Nama Peserta Didik</td><td>: ' . htmlspecialchars($siswa['nama_siswa']) . '</td></tr>
             <tr><td class="label">Dunia Kerja Tempat PKL</td><td>: ' . htmlspecialchars($siswa['nama_tempat_pkl'] ?? '-') . '</td></tr>
             <tr><td class="label">Nama Instruktur</td><td>: .....................................................</td></tr>
-            <tr><td class="label">Nama Guru Pembimbing</td><td>: ' . htmlspecialchars($siswa['nama_pembimbing'] ?? '-') . '</td></tr>
         </table>
     </div>
     <table class="report">
@@ -249,7 +165,7 @@ $html = '
                 <th style="width: 5%;">No.</th>
                 <th style="width: 45%;">Tujuan Pembelajaran/Indikator</th>
                 <th style="width: 10%;">Nilai</th>
-                <th>Deskripsi Pencapaian</th>
+                <th>Catatan / Deskripsi Pencapaian</th>
             </tr>
         </thead>
         <tbody>' . $table_content . '</tbody>
@@ -257,14 +173,10 @@ $html = '
     <div class="signature-section">
         <table>
             <tr>
-                <td class="signature-cell">
-                    Guru Pembimbing<br><br><br><br><br>
-                    <span class="signature-name">' . htmlspecialchars($siswa['nama_pembimbing'] ?? '....................') . '</span>
-                </td>
-                <td class="signature-cell">
+                <td class="signature-cell" style="text-align: right; padding-right: 50px;">
                     ...................., ............................................
                     <br>Pembimbing Dunia Kerja<br><br><br><br><br>
-                    <span class="signature-name">....................</span>
+                    <span class="signature-name">(....................)</span>
                 </td>
             </tr>
         </table>
@@ -279,5 +191,5 @@ $dompdf = new Dompdf($options);
 $dompdf->loadHtml($html);
 $dompdf->setPaper('A4', 'portrait');
 $dompdf->render();
-$dompdf->stream("Laporan_Nilai_" . str_replace(' ', '_', $siswa['nama_siswa']) . ".pdf", ["Attachment" => false]);
+$dompdf->stream("Formulir_Penilaian_DUDI_" . str_replace(' ', '_', $siswa['nama_siswa']) . ".pdf", ["Attachment" => false]);
 exit();
