@@ -239,10 +239,6 @@ function tampilkan_baris_tabel_nilai($id_induk, $level, $semua_nilai_siswa, $sem
                                         class="btn btn-danger" target="_blank"><i class="bx bxs-file-pdf me-1"></i>
                                         Cetak Rincian (Terisi)</a>
 
-                                    <a href="generate_penilaian_dudi_pdf.php?siswa_id=<?= $siswa_id ?>"
-                                        class="btn btn-info" target="_blank"><i class="bx bxs-file-blank me-1"></i>
-                                        Cetak Form DUDI</a>
-
                                     <a href="generate_rapor_pdf.php?siswa_id=<?= $siswa_id ?>" class="btn btn-success"
                                         target="_blank"><i class="bx bxs-printer me-1"></i> Cetak Rapor</a>
 
