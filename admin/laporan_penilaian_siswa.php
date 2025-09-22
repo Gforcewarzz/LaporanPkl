@@ -141,18 +141,18 @@ $koneksi->close();
                                 <form method="GET" action="">
                                     <div class="row g-3 align-items-end">
                                         <?php if ($is_admin) : ?>
-                                            <div class="col-md-4">
-                                                <label for="kelas_filter" class="form-label">Filter Kelas:</label>
-                                                <select id="kelas_filter" name="kelas" class="form-select">
-                                                    <option value="">Semua Kelas</option>
-                                                    <?php foreach ($list_kelas as $kelas) : ?>
-                                                        <option value="<?= htmlspecialchars($kelas) ?>"
-                                                            <?= ($kelas_filter == $kelas) ? 'selected' : '' ?>>
-                                                            <?= htmlspecialchars($kelas) ?>
-                                                        </option>
-                                                    <?php endforeach; ?>
-                                                </select>
-                                            </div>
+                                        <div class="col-md-4">
+                                            <label for="kelas_filter" class="form-label">Filter Kelas:</label>
+                                            <select id="kelas_filter" name="kelas" class="form-select">
+                                                <option value="">Semua Kelas</option>
+                                                <?php foreach ($list_kelas as $kelas) : ?>
+                                                <option value="<?= htmlspecialchars($kelas) ?>"
+                                                    <?= ($kelas_filter == $kelas) ? 'selected' : '' ?>>
+                                                    <?= htmlspecialchars($kelas) ?>
+                                                </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
                                         <?php endif; ?>
                                         <div class="col-md-5">
                                             <label for="keyword" class="form-label">Cari Siswa/NISN/Kelas:</label>
@@ -178,7 +178,7 @@ $koneksi->close();
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive d-none d-md-block">
-                                    <table class="table table-hover w-100">
+                                    <table class="table table-hover w-100 text-nowrap" style="min-width: 1000px;">
                                         <thead>
                                             <tr>
                                                 <th>No</th>
@@ -190,44 +190,44 @@ $koneksi->close();
                                         </thead>
                                         <tbody class="table-border-bottom-0">
                                             <?php if ($result && $result->num_rows > 0) : ?>
-                                                <?php $no = 1;
+                                            <?php $no = 1;
                                                 while ($row = $result->fetch_assoc()) : ?>
-                                                    <tr>
-                                                        <td><?= $no++ ?></td>
-                                                        <td><strong><?= htmlspecialchars($row['nama_siswa']) ?></strong></td>
-                                                        <td><?= htmlspecialchars($row['nisn']) ?></td>
-                                                        <td><?= htmlspecialchars($row['kelas']) ?></td>
-                                                        <td class="text-center">
-                                                            <div class="btn-group">
-                                                                <a href="laporan_tabel_lengkap.php?siswa_id=<?= $row['id_siswa'] ?>"
-                                                                    class="btn btn-sm btn-info">
-                                                                    <i class="bx bx-show me-1"></i> Detail Laporan
-                                                                </a>
-                                                                <button type="button"
-                                                                    class="btn btn-info dropdown-toggle dropdown-toggle-split"
-                                                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                                                    <span class="visually-hidden">Toggle Dropdown</span>
-                                                                </button>
-                                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                                    <li><a class="dropdown-item"
-                                                                            href="form_penilaian_detail.php?siswa_id=<?= $row['id_siswa'] ?>"><i
-                                                                                class="bx bx-edit-alt me-1"></i> Edit Nilai</a>
-                                                                    </li>
-                                                                    <li><a class="dropdown-item text-danger"
-                                                                            href="javascript:void(0);"
-                                                                            onclick="confirmDelete('<?= $row['id_siswa'] ?>', '<?= addslashes($row['nama_siswa']) ?>')"><i
-                                                                                class="bx bx-trash me-1"></i> Hapus Nilai</a>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                <?php endwhile; ?>
+                                            <tr>
+                                                <td><?= $no++ ?></td>
+                                                <td><strong><?= htmlspecialchars($row['nama_siswa']) ?></strong></td>
+                                                <td><?= htmlspecialchars($row['nisn']) ?></td>
+                                                <td><?= htmlspecialchars($row['kelas']) ?></td>
+                                                <td class="text-center">
+                                                    <div class="btn-group" style="position: static;">
+                                                        <a href="laporan_tabel_lengkap.php?siswa_id=<?= $row['id_siswa'] ?>"
+                                                            class="btn btn-sm btn-info">
+                                                            <i class="bx bx-show me-1"></i> Detail Laporan
+                                                        </a>
+                                                        <button type="button"
+                                                            class="btn btn-info dropdown-toggle dropdown-toggle-split"
+                                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <span class="visually-hidden">Toggle Dropdown</span>
+                                                        </button>
+                                                        <ul class="dropdown-menu dropdown-menu-end">
+                                                            <li><a class="dropdown-item"
+                                                                    href="form_penilaian_detail.php?siswa_id=<?= $row['id_siswa'] ?>"><i
+                                                                        class="bx bx-edit-alt me-1"></i> Edit Nilai</a>
+                                                            </li>
+                                                            <li><a class="dropdown-item text-danger"
+                                                                    href="javascript:void(0);"
+                                                                    onclick="confirmDelete('<?= $row['id_siswa'] ?>', '<?= addslashes($row['nama_siswa']) ?>')"><i
+                                                                        class="bx bx-trash me-1"></i> Hapus Nilai</a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <?php endwhile; ?>
                                             <?php else : ?>
-                                                <tr>
-                                                    <td colspan="5" class='text-center'>Tidak ada data siswa yang cocok
-                                                        dengan filter.</td>
-                                                </tr>
+                                            <tr>
+                                                <td colspan="5" class='text-center'>Tidak ada data siswa yang cocok
+                                                    dengan filter.</td>
+                                            </tr>
                                             <?php endif; ?>
                                         </tbody>
                                     </table>
@@ -240,40 +240,40 @@ $koneksi->close();
                                         $no_mobile = 1;
                                         while ($row_mobile = $result->fetch_assoc()) :
                                     ?>
-                                            <div class="card mb-3 shadow-sm border-start border-4 border-info">
-                                                <div class="card-body">
-                                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                                        <h6 class="mb-1">
-                                                            <strong><?= $no_mobile++ . '. ' . htmlspecialchars($row_mobile['nama_siswa']) ?></strong>
-                                                        </h6>
-                                                        <div class="dropdown">
-                                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                                data-bs-toggle="dropdown"><i
-                                                                    class="bx bx-dots-vertical-rounded"></i></button>
-                                                            <div class="dropdown-menu dropdown-menu-end">
-                                                                <a class="dropdown-item"
-                                                                    href="laporan_tabel_lengkap.php?siswa_id=<?= $row_mobile['id_siswa'] ?>"><i
-                                                                        class="bx bx-show me-1"></i> Detail Laporan</a>
-                                                                <a class="dropdown-item"
-                                                                    href="form_penilaian_detail.php?siswa_id=<?= $row_mobile['id_siswa'] ?>"><i
-                                                                        class="bx bx-edit-alt me-1"></i> Edit Nilai</a>
-                                                                <a class="dropdown-item text-danger" href="javascript:void(0);"
-                                                                    onclick="confirmDelete('<?= $row_mobile['id_siswa'] ?>', '<?= addslashes($row_mobile['nama_siswa']) ?>')"><i
-                                                                        class="bx bx-trash me-1"></i> Hapus Nilai</a>
-                                                            </div>
-                                                        </div>
+                                    <div class="card mb-3 shadow-sm border-start border-4 border-info">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h6 class="mb-1">
+                                                    <strong><?= $no_mobile++ . '. ' . htmlspecialchars($row_mobile['nama_siswa']) ?></strong>
+                                                </h6>
+                                                <div class="dropdown">
+                                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                        data-bs-toggle="dropdown"><i
+                                                            class="bx bx-dots-vertical-rounded"></i></button>
+                                                    <div class="dropdown-menu dropdown-menu-end">
+                                                        <a class="dropdown-item"
+                                                            href="laporan_tabel_lengkap.php?siswa_id=<?= $row_mobile['id_siswa'] ?>"><i
+                                                                class="bx bx-show me-1"></i> Detail Laporan</a>
+                                                        <a class="dropdown-item"
+                                                            href="form_penilaian_detail.php?siswa_id=<?= $row_mobile['id_siswa'] ?>"><i
+                                                                class="bx bx-edit-alt me-1"></i> Edit Nilai</a>
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="confirmDelete('<?= $row_mobile['id_siswa'] ?>', '<?= addslashes($row_mobile['nama_siswa']) ?>')"><i
+                                                                class="bx bx-trash me-1"></i> Hapus Nilai</a>
                                                     </div>
-                                                    <p class="mb-1"><small><strong>NISN:</strong>
-                                                            <?= htmlspecialchars($row_mobile['nisn']) ?></small></p>
-                                                    <p class="mb-2"><small><strong>Kelas:</strong>
-                                                            <?= htmlspecialchars($row_mobile['kelas']) ?></small></p>
                                                 </div>
                                             </div>
-                                        <?php
+                                            <p class="mb-1"><small><strong>NISN:</strong>
+                                                    <?= htmlspecialchars($row_mobile['nisn']) ?></small></p>
+                                            <p class="mb-2"><small><strong>Kelas:</strong>
+                                                    <?= htmlspecialchars($row_mobile['kelas']) ?></small></p>
+                                        </div>
+                                    </div>
+                                    <?php
                                         endwhile;
                                     else :
                                         ?>
-                                        <div class="alert alert-info text-center">Tidak ada data siswa ditemukan.</div>
+                                    <div class="alert alert-info text-center">Tidak ada data siswa ditemukan.</div>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -291,28 +291,6 @@ $koneksi->close();
     <?php include './partials/script.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        function confirmDelete(id, nama) {
-            Swal.fire({
-                title: 'Anda Yakin?',
-                html: `Semua data nilai untuk siswa <strong>${nama}</strong> akan dihapus. <br>Aksi ini tidak dapat dibatalkan!`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Ya, Hapus Nilai!',
-                cancelButtonText: 'Batal',
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = 'hapus_nilai_siswa.php?siswa_id=' + id;
-                }
-            });
-        }
-    </script>
-</body>
-
-</html>hp include './partials/script.php'; ?>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
     function confirmDelete(id, nama) {
         Swal.fire({
             title: 'Anda Yakin?',
@@ -329,7 +307,7 @@ $koneksi->close();
             }
         });
     }
-</script>
+    </script>
 </body>
 
 </html>
