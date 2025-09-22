@@ -108,9 +108,7 @@ function generate_pdf_table_rows_kosong($id_induk, $level, $semua_tp, $tp_anak)
 
 // Membuat Konten HTML untuk PDF
 $table_content = generate_pdf_table_rows_kosong(0, 0, $semua_tp, $tp_anak);
-$html = '...'; // Isi variabel $html dengan template HTML PDF Anda yang sudah ada
 
-// (Kode HTML lengkap untuk PDF sama seperti sebelumnya, tidak perlu diubah)
 $html = '
 <!DOCTYPE html><html><head><meta charset="UTF-8"><title>Formulir Penilaian DUDI</title>
 <style>
@@ -121,6 +119,10 @@ $html = '
     table.report { width: 100%; border-collapse: collapse; margin-top: 15px; }
     table.report th, table.report td { border: 1px solid black; padding: 7px; text-align: left; vertical-align: top; }
     table.report th { background-color: #f2f2f2; text-align: center; font-weight: bold; }
+    
+    /* Mencegah header tabel berulang di halaman berikutnya */
+    table.report thead { display: table-row-group; }
+
     .signature-section { margin-top: 40px; page-break-inside: avoid; }
     .signature-section table { width: 100%; border: none; }
     .signature-section .signature-cell { width: 50%; text-align: center; }
