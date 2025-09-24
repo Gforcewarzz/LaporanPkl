@@ -18,7 +18,7 @@ if (!$is_siswa && !$is_admin && !$is_guru) {
     exit();
 }
 
-$id_siswa_filter  = null;
+$id_siswa_filter   = null;
 $guru_id_bimbingan = $_SESSION['id_guru_pendamping'] ?? null;
 
 $where_clauses = [];
@@ -129,7 +129,7 @@ $nama_guru_pembimbing_header   = '-';
 $info_tambahan_pdf             = [];
 
 if (!empty($laporan_harian_data)) {
-    $first_row                     = $laporan_harian_data[0];
+    $first_row                   = $laporan_harian_data[0];
     $nama_peserta_didik_header     = htmlspecialchars($first_row['nama_siswa'] ?? '-');
     $kelas_header                  = htmlspecialchars($first_row['kelas'] ?? '-');
     $dunia_kerja_tempat_pkl_header = htmlspecialchars($first_row['nama_tempat_pkl'] ?? '-');
@@ -157,25 +157,14 @@ if (!empty($laporan_harian_data)) {
         if ($stmt_siswa_detail) {
             $stmt_siswa_detail->bind_param("i", $id_siswa);
             $stmt_siswa_detail->execute();
-            $res_siswa_detail          = $stmt_siswa_detail->get_result()->fetch_assoc();
-            $kelas_header              = htmlspecialchars($res_siswa_detail['kelas'] ?? '-');
+            $res_siswa_detail            = $stmt_siswa_detail->get_result()->fetch_assoc();
+            $kelas_header                  = htmlspecialchars($res_siswa_detail['kelas'] ?? '-');
             $dunia_kerja_tempat_pkl_header = htmlspecialchars($res_siswa_detail['nama_tempat_pkl'] ?? '-');
             $nama_instruktur_header        = htmlspecialchars($res_siswa_detail['nama_instruktur_pkl'] ?? '-');
             $nama_guru_pembimbing_header   = htmlspecialchars($res_siswa_detail['nama_pembimbing'] ?? '-');
             $stmt_siswa_detail->close();
         }
-    } elseif ($is_admin && isset($_GET['siswa_id']) && ($id_siswa_from_get = (int)$_GET['siswa_id'])) {
-        $query_siswa_detail = "SELECT nama_siswa, kelas FROM siswa WHERE id_siswa = ?";
-        $stmt_siswa_detail  = $koneksi->prepare($query_siswa_detail);
-        if ($stmt_siswa_detail) {
-            $stmt_siswa_detail->bind_param("i", $id_siswa_from_get);
-            $stmt_siswa_detail->execute();
-            $res_siswa_detail          = $stmt_siswa_detail->get_result()->fetch_assoc();
-            $nama_peserta_didik_header = htmlspecialchars($res_siswa_detail['nama_siswa'] ?? '-') . ' (Tidak Ada Laporan)';
-            $kelas_header              = htmlspecialchars($res_siswa_detail['kelas'] ?? '-');
-            $stmt_siswa_detail->close();
-        }
-    } elseif ($is_guru && isset($_GET['siswa_id']) && ($id_siswa_from_get = (int)$_GET['siswa_id'])) {
+    } elseif (($is_admin || $is_guru) && isset($_GET['siswa_id']) && ($id_siswa_from_get = (int)$_GET['siswa_id'])) {
         $query_siswa_detail = "SELECT nama_siswa, kelas FROM siswa WHERE id_siswa = ?";
         $stmt_siswa_detail  = $koneksi->prepare($query_siswa_detail);
         if ($stmt_siswa_detail) {
@@ -221,7 +210,7 @@ $html = '
         }
         h1 {
             text-align: center;
-            color: #444; /* Abu-abu gelap */
+            color: #444;
             font-size: 16pt;
             font-weight: bold;
             margin-bottom: 5px;
@@ -229,18 +218,13 @@ $html = '
         }
         h2 {
             text-align: center;
-            color: #666; /* Abu-abu sedang */
+            color: #666;
             font-size: 12pt;
             margin-top: 0;
             margin-bottom: 25px;
         }
         .header-section {
-            padding: 0;
-            margin-bottom: 30px;
-            background-color: #f8f8f8; /* Abu-abu terang */
-            padding: 15px 20px;
-            border-radius: 5px;
-            border: 1px solid #e0e0e0;
+            margin-bottom: 20px; /* Menghilangkan box */
         }
         .header-info p {
             margin: 6px 0;
@@ -257,11 +241,10 @@ $html = '
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 25px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-top: 15px;
         }
         th, td {
-            border: 1px solid #d0d0d0; /* Abu-abu muda */
+            border: 1px solid #d0d0d0;
             padding: 10px 12px;
             text-align: left;
             font-size: 8.5pt;
@@ -269,7 +252,7 @@ $html = '
             line-height: 1.5;
         }
         th {
-            background-color: #a0a0a0; /* Abu-abu lebih gelap */
+            background-color: #a0a0a0;
             font-weight: bold;
             color: #ffffff;
             text-transform: uppercase;
@@ -278,14 +261,20 @@ $html = '
         tr:nth-child(even) {
             background-color: #f8f8f8;
         }
-        tr:hover {
-            background-color: #e0e0e0;
+        .footer-notes {
+            margin-top: 20px;
+            font-size: 8pt;
+            color: #555;
+        }
+        .footer-notes p {
+            margin: 3px 0;
         }
     </style>
 </head>
 <body>
     <h1>JURNAL KEGIATAN HARIAN PRAKTEK KERJA LAPANGAN</h1>
     <h2>PESERTA DIDIK SMKN 1 GANTAR</h2>
+    
     <div class="header-section">
         <div class="header-info">
             <p><strong>Nama Peserta Didik</strong>: ' . $nama_peserta_didik_header . '</p>
@@ -300,10 +289,11 @@ $html = '
     <table>
         <thead>
             <tr>
-                <th>No</th>
-                <th>Hari/Tanggal</th>
-                <th>Unit Kerja/Pekerjaan</th>
-                <th>Catatan*</th>
+                <th style="width: 5%; text-align: center;">No</th>
+                <th style="width: 20%; text-align: center;">Hari/Tanggal</th>
+                <th style="width: 35%; text-align: center;">Unit Kerja/Pekerjaan</th>
+                <th style="width: 25%; text-align: center;">Catatan Pembimbing*</th>
+                <th style="width: 15%; text-align: center;">Paraf Pembimbing</th>
             </tr>
         </thead>
         <tbody>';
@@ -328,15 +318,23 @@ if (!empty($laporan_harian_data)) {
             <td>" . htmlspecialchars($formatted_date_id) . "</td>
             <td>" . nl2br(htmlspecialchars($row['pekerjaan'] ?? '-')) . "</td>
             <td>" . nl2br(htmlspecialchars($row['catatan'] ?? '-')) . "</td>
+            <td></td>
         </tr>";
         $no++;
     }
 } else {
-    $html .= "<tr><td colspan='4' style='text-align: center; padding: 20px; color: #7f8c8d;'>Tidak ada laporan harian ditemukan untuk kriteria ini.</td></tr>";
+    $html .= "<tr><td colspan='5' style='text-align: center; padding: 20px; color: #7f8c8d;'>Tidak ada laporan harian ditemukan untuk kriteria ini.</td></tr>";
 }
+
 $html .= '
         </tbody>
     </table>
+
+    <div class="footer-notes">
+        <p>Jurnal kegiatan disusun oleh peserta didik sebagai dokumen pekerjaan yang dilaksanakan.</p>
+        <p>*) Catatan diberikan oleh pembimbing dunia kerja pada setiap kegiatan atau waktu tertentu.</p>
+    </div>
+
 </body>
 </html>';
 

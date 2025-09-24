@@ -1,5 +1,4 @@
 <?php
-
 session_start();
 date_default_timezone_set('Asia/Jakarta'); // Pastikan zona waktu konsisten
 
@@ -17,7 +16,7 @@ use Dompdf\Options;
 
 // --- LOGIKA KEAMANAN HALAMAN ---
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
-$is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
+$is_guru  = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
 $is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
 
 if (!$is_admin && !$is_guru && !$is_siswa) {
@@ -112,6 +111,7 @@ $query_sql = "
     SELECT
         s.id_siswa, s.nama_siswa, s.kelas, j.nama_jurusan, tp.nama_tempat_pkl,
         gp.nama_pembimbing AS nama_guru_pembimbing,
+        tp.nama_instruktur AS nama_pembimbing_dunia_kerja,
         (SELECT MIN(tanggal_absen) FROM absensi_siswa WHERE siswa_id = s.id_siswa) AS tanggal_mulai_pkl,
         as_abs.tanggal_absen, as_abs.status_absen
     FROM absensi_siswa as_abs
@@ -127,7 +127,6 @@ if ($stmt === false) {
     die("Gagal menyiapkan query absensi: " . $koneksi->error);
 }
 if (!empty($query_params)) {
-    // [PERBAIKAN] Menggunakan call_user_func_array untuk stabilitas
     $bind_args = [];
     $bind_args[] = $query_types;
     foreach ($query_params as $key => $value) {
@@ -140,224 +139,212 @@ $result = $stmt->get_result();
 $absensi_data = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-
-// --- LOGIKA UNTUK LAPORAN REKAPITULASI ---
-$recap_data = [];
-$pembimbing_name_for_recap = "Semua Guru";
-
-if ($generate_recap_report) {
-    // Ambil semua siswa yang relevan dengan tanggal mulai PKL mereka
-    $siswa_where_clauses = [];
-    $siswa_query_params = [];
-    $siswa_query_types = "";
-    if ($final_filter_pembimbing_id !== null) {
-        $siswa_where_clauses[] = 's.pembimbing_id = ?';
-        $siswa_query_params[] = &$final_filter_pembimbing_id;
-        $siswa_query_types .= 'i';
-    }
-    if (!empty($kelas_filter_pdf)) {
-        $siswa_where_clauses[] = 's.kelas = ?';
-        $siswa_query_params[] = &$kelas_filter_pdf;
-        $siswa_query_types .= 's';
-    }
-
-    $siswa_filter_sql = !empty($siswa_where_clauses) ? " WHERE " . implode(" AND ", $siswa_where_clauses) : "";
-    $siswa_detail_sql = "
-        SELECT s.id_siswa, s.nama_siswa, s.kelas, gp.nama_pembimbing,
-               (SELECT MIN(tanggal_absen) FROM absensi_siswa WHERE siswa_id = s.id_siswa) AS tanggal_mulai_pkl
-        FROM siswa s
-        LEFT JOIN guru_pembimbing gp ON s.pembimbing_id = gp.id_pembimbing
-        $siswa_filter_sql ORDER BY s.kelas ASC, s.nama_siswa ASC";
-
-    $stmt_siswa = $koneksi->prepare($siswa_detail_sql);
-    if ($stmt_siswa === false) {
-        die("Gagal menyiapkan query siswa untuk rekap: " . $koneksi->error);
-    }
-    if (!empty($siswa_query_params)) {
-        // [PERBAIKAN] Menggunakan call_user_func_array
-        $bind_args_siswa = [];
-        $bind_args_siswa[] = $siswa_query_types;
-        foreach ($siswa_query_params as $key => $value) {
-            $bind_args_siswa[] = &$siswa_query_params[$key];
-        }
-        call_user_func_array(array($stmt_siswa, 'bind_param'), $bind_args_siswa);
-    }
-
-    $stmt_siswa->execute();
-    $result_siswa = $stmt_siswa->get_result();
-    $all_relevant_students = $result_siswa->fetch_all(MYSQLI_ASSOC);
-    $stmt_siswa->close();
-
-    // Ambil nama pembimbing jika hanya satu
-    if ($final_filter_pembimbing_id) {
-        $unique_pembimbings = array_unique(array_column($all_relevant_students, 'nama_pembimbing'));
-        if (count($unique_pembimbings) === 1) {
-            $pembimbing_name_for_recap = reset($unique_pembimbings);
-        }
-    }
-
-    $absensi_per_siswa_tanggal = [];
-    foreach ($absensi_data as $record) {
-        $absensi_per_siswa_tanggal[$record['id_siswa']][$record['tanggal_absen']] = $record['status_absen'];
-    }
-
-    foreach ($all_relevant_students as $siswa) {
-        $rekap = ['Hadir' => 0, 'Sakit' => 0, 'Izin' => 0, 'Libur' => 0, 'Alfa' => 0];
-        $start_ts = strtotime($tanggal_mulai);
-        $end_ts = strtotime($tanggal_akhir);
-        $siswa_mulai_pkl_ts = !empty($siswa['tanggal_mulai_pkl']) ? strtotime($siswa['tanggal_mulai_pkl']) : $start_ts;
-
-        for ($i = $start_ts; $i <= $end_ts; $i = strtotime('+1 day', $i)) {
-            $day_of_week = date('N', $i);
-            $current_date_str = date('Y-m-d', $i);
-
-            if ($i < $siswa_mulai_pkl_ts) {
-                continue;
-            }
-
-            if ($day_of_week >= 1 && $day_of_week <= 5) {
-                if (isset($absensi_per_siswa_tanggal[$siswa['id_siswa']][$current_date_str])) {
-                    $status = $absensi_per_siswa_tanggal[$siswa['id_siswa']][$current_date_str];
-                    if (array_key_exists($status, $rekap)) {
-                        $rekap[$status]++;
-                    }
-                } else {
-                    $rekap['Alfa']++;
-                }
-            }
-        }
-        $recap_data[] = array_merge($siswa, $rekap);
-    }
-}
+// --- (REKAPITULASI bila diperlukan, blok bisa ditambah di sini) ---
 
 $koneksi->close();
 
 // --- PENGATURAN HTML & PDF ---
 $nama_sekolah = "SMKN 1 GANTAR";
-$tahun_pkl = date('Y'); // Mengambil tahun saat ini
-$detail_pembimbing = "";
-if (!$generate_recap_report && !empty($absensi_data)) {
-    $detail_pembimbing = $absensi_data[0]['nama_guru_pembimbing'] ?? '';
-} elseif ($generate_recap_report) {
-    $detail_pembimbing = $pembimbing_name_for_recap;
+$tahun_pkl = date('Y');
+
+// Menentukan tanggal tanda tangan secara dinamis
+$tanggal_tanda_tangan = date('d F Y', strtotime($tanggal_akhir)); // Default: tanggal akhir filter
+
+if ($generate_recap_report) {
+    $detail_pembimbing = $pembimbing_name_for_recap ?? 'Semua Guru';
+} elseif (!empty($absensi_data)) {
+    $detail_pembimbing = $absensi_data[0]['nama_pembimbing_dunia_kerja'] ?? '-';
+    $last_record = end($absensi_data);
+    $tanggal_tanda_tangan = date('d F Y', strtotime($last_record['tanggal_absen']));
 }
 
-$html = '
+ob_start();
+?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <title>Rekapitulasi Daftar Hadir PKL</title>
     <style>
-        body { font-family: Arial, sans-serif; font-size: 10pt; margin: 15mm; color: #333; }
-        .header-title { text-align: center; font-size: 14pt; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
-        .school-info { text-align: center; font-size: 12pt; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .report-period { text-align: center; font-size: 11pt; margin-bottom: 20px; }
-        .student-info { font-size: 10pt; margin-bottom: 15px; line-height: 1.6; }
-        .student-info td { padding: 2px 0; }
-        .student-info td:first-child { width: 150px; font-weight: bold; }
-        table.attendance { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #333; padding: 8px; text-align: center; font-size: 9.5pt; }
-        th { background-color: #e0e0e0; font-weight: bold; }
-        td.left-align { text-align: left; }
-        .signature-section { margin: 40px 0 0 40px; font-size: 10pt; page-break-inside: avoid; width: 100%; }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10pt;
+            margin: 15mm;
+            color: #333;
+        }
+
+        .header-title {
+            text-align: center;
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .school-info {
+            text-align: center;
+            font-size: 12pt;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .report-period-table {
+            margin: 0 auto 20px auto;
+            /* Membuat tabel berada di tengah */
+            border-collapse: collapse;
+            width: auto;
+            font-size: 11pt;
+        }
+
+        .report-period-table td {
+            border: none;
+            padding: 2px 5px;
+            text-align: left;
+        }
+
+        .report-period-table td.label {
+            font-weight: bold;
+        }
+
+        /* === BIODATA: pastikan rata kiri === */
+        .student-info-table {
+            border-collapse: collapse;
+            width: auto;
+            margin-bottom: 15px;
+            font-size: 10pt;
+        }
+
+        .student-info-table td {
+            border: none;
+            padding: 3px 5px 3px 0;
+            vertical-align: top;
+            text-align: left !important;
+        }
+
+        .student-info-table td.label {
+            font-weight: bold;
+            width: 180px;
+        }
+
+        /* === ABSENSI: scope center hanya untuk tabel ini === */
+        table.attendance {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .attendance th,
+        .attendance td {
+            border: 1px solid #333;
+            padding: 8px;
+            text-align: center;
+            font-size: 9.5pt;
+        }
+
+        .attendance th {
+            background-color: #e0e0e0;
+            font-weight: bold;
+        }
+
+        .attendance td.left-align {
+            text-align: left;
+        }
+
+        .signature-section {
+            margin: 40px 0 0 40px;
+            font-size: 10pt;
+            page-break-inside: avoid;
+            width: 100%;
+        }
     </style>
 </head>
+
 <body>
     <div class="header-title">REKAPITULASI DAFTAR HADIR PESERTA PKL</div>
-    <div class="school-info">' . htmlspecialchars($nama_sekolah) . ' TAHUN ' . htmlspecialchars($tahun_pkl) . '</div>
-    <div class="report-period">Periode: ' . date('d F Y', strtotime($tanggal_mulai)) . ' s.d. ' . date('d F Y', strtotime($tanggal_akhir)) . '</div>';
+    <div class="school-info"><?= htmlspecialchars($nama_sekolah) ?> TAHUN <?= htmlspecialchars($tahun_pkl) ?></div>
 
-if ($generate_recap_report) {
-    if (empty($recap_data)) {
-        $html .= '<p style="text-align: center;">Tidak ada data rekapitulasi untuk ditampilkan.</p>';
-    } else {
-        $html .= '<table class="attendance">
-            <thead>
+
+    <?php if ($generate_recap_report): ?>
+        <p style="text-align: center;">Tampilan rekapitulasi akan muncul di sini.</p>
+    <?php else: ?>
+        <?php if (empty($absensi_data)): ?>
+            <p style="text-align: center;">Tidak ada data absensi untuk ditampilkan.</p>
+        <?php else: ?>
+            <?php $first_record = $absensi_data[0]; ?>
+            <table class="student-info-table">
                 <tr>
-                    <th style="width:5%;">No</th>
-                    <th style="width:30%;" class="left-align">Nama Siswa</th>
-                    <th style="width:15%;">Kelas</th>
-                    <th>Hadir</th>
-                    <th>Sakit</th>
-                    <th>Izin</th>
-                    <th>Libur</th>
-                    <th>Alfa</th>
+                    <td class="label">Nama Peserta Didik</td>
+                    <td>: <?= htmlspecialchars($first_record['nama_siswa']) ?></td>
                 </tr>
-            </thead>
-            <tbody>';
-        $no = 1;
-        foreach ($recap_data as $row) {
-            $html .= '<tr>
-                <td>' . $no++ . '</td>
-                <td class="left-align">' . htmlspecialchars($row['nama_siswa']) . '</td>
-                <td>' . htmlspecialchars($row['kelas']) . '</td>
-                <td>' . $row['Hadir'] . '</td>
-                <td>' . $row['Sakit'] . '</td>
-                <td>' . $row['Izin'] . '</td>
-                <td>' . $row['Libur'] . '</td>
-                <td>' . $row['Alfa'] . '</td>
-            </tr>';
-        }
-        $html .= '</tbody></table>';
-    }
-} else {
-    if (empty($absensi_data)) {
-        $html .= '<p style="text-align: center;">Tidak ada data absensi untuk ditampilkan.</p>';
-    } else {
-        $first_record = $absensi_data[0];
-        $html .= '
-        <div class="student-info">
-            <table>
-                <tr><td>Nama Peserta Didik</td><td>: ' . htmlspecialchars($first_record['nama_siswa']) . '</td></tr>
-                <tr><td>Tempat PKL</td><td>: ' . htmlspecialchars($first_record['nama_tempat_pkl'] ?? '-') . '</td></tr>
+                <tr>
+                    <td class="label">Kelas</td>
+                    <td>: <?= htmlspecialchars($first_record['kelas']) ?></td>
+                </tr>
+                <tr>
+                    <td class="label">Jurusan</td>
+                    <td>: <?= htmlspecialchars($first_record['nama_jurusan'] ?? '-') ?></td>
+                </tr>
+                <tr>
+                    <td class="label">Tempat PKL</td>
+                    <td>: <?= htmlspecialchars($first_record['nama_tempat_pkl'] ?? '-') ?></td>
+                </tr>
+                <tr>
+                    <td class="label">Tanggal Mulai</td>
+                    <td>: <?= date('d F Y', strtotime($tanggal_mulai)) ?></td>
+                </tr>
+                <tr>
+                    <td class="label">Tanggal Selesai</td>
+                    <td>: <?= date('d F Y', strtotime($tanggal_akhir)) ?></td>
+                </tr>
             </table>
-        </div>
-        <table class="attendance">
-            <thead>
+
+            <table class="attendance">
+                <thead>
+                    <tr>
+                        <th style="width:5%;">No</th>
+                        <th style="width:25%;">Tanggal</th>
+                        <th style="width:20%;">Status Kehadiran</th>
+                        <th>Paraf</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php $no = 1;
+                    foreach ($absensi_data as $record): ?>
+                        <tr>
+                            <td><?= $no++ ?></td>
+                            <td><?= date('d F Y', strtotime($record['tanggal_absen'])) ?></td>
+                            <td><?= htmlspecialchars($record['status_absen']) ?></td>
+                            <td></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    <?php endif; ?>
+
+    <div class="signature-section">
+        <table style="width: 100%; border-collapse: collapse;">
+            <tbody>
                 <tr>
-                    <th style="width:5%;">No</th>
-                    <th style="width:25%;">Tanggal</th>
-                    <th style="width:20%;">Status Kehadiran</th>
-                    <th>Paraf</th>
+                    <td style="width: 60%; border: none;"></td>
+                    <td style="width: 40%; border: none; text-align: left;">
+                        <p>...................., <?= $tanggal_tanda_tangan ?></p>
+                        <p>Mengetahui,</p>
+                        <p>Pembimbing Dunia Kerja</p>
+                        <div style="height: 60px;"></div>
+                        <p><b>(....................................)</b></p>
+                    </td>
                 </tr>
-            </thead>
-            <tbody>';
-        $no = 1;
-        foreach ($absensi_data as $record) {
-            $html .= '<tr>
-                <td>' . $no++ . '</td>
-                <td>' . date('d F Y', strtotime($record['tanggal_absen'])) . '</td>
-                <td>' . htmlspecialchars($record['status_absen']) . '</td>
-                <td></td>
-            </tr>';
-        }
-        $html .= '</tbody></table>';
-    }
-}
-
-// Bagian Tanda Tangan
-$html .= '
-<div class="signature-section">
-    <table style="width: 100%; border-collapse: collapse;">
-        <tbody>
-            <tr>
-                <td style="width: 60%; border: none;"></td>
-                <td style="width: 40%; border: none; text-align: left;">
-                    <p>...................., .................... ' . $tahun_pkl . '</p>
-                    <p>Mengetahui,</p>
-                    <p>Pembimbing Sekolah</p>
-                    <div style="height: 60px;"></div>
-                    <p><b>(' . htmlspecialchars($detail_pembimbing) . ')</b></p>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div>';
-
-$html .= '
+            </tbody>
+        </table>
+    </div>
 </body>
-</html>';
+
+</html>
+<?php
+$html = ob_get_clean();
 
 $options = new Options();
 $options->set('isHtml5ParserEnabled', true);
