@@ -139,24 +139,12 @@ $result = $stmt->get_result();
 $absensi_data = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-// --- (REKAPITULASI bila diperlukan, blok bisa ditambah di sini) ---
-
 $koneksi->close();
 
 // --- PENGATURAN HTML & PDF ---
 $nama_sekolah = "SMKN 1 GANTAR";
 $tahun_pkl = date('Y');
-
-// Menentukan tanggal tanda tangan secara dinamis
-$tanggal_tanda_tangan = date('d F Y', strtotime($tanggal_akhir)); // Default: tanggal akhir filter
-
-if ($generate_recap_report) {
-    $detail_pembimbing = $pembimbing_name_for_recap ?? 'Semua Guru';
-} elseif (!empty($absensi_data)) {
-    $detail_pembimbing = $absensi_data[0]['nama_pembimbing_dunia_kerja'] ?? '-';
-    $last_record = end($absensi_data);
-    $tanggal_tanda_tangan = date('d F Y', strtotime($last_record['tanggal_absen']));
-}
+$tanggal_tanda_tangan = date('d F Y', strtotime($tanggal_akhir));
 
 ob_start();
 ?>
@@ -190,45 +178,34 @@ ob_start();
             padding-bottom: 10px;
         }
 
-        .report-period-table {
-            margin: 0 auto 20px auto;
-            /* Membuat tabel berada di tengah */
-            border-collapse: collapse;
-            width: auto;
-            font-size: 11pt;
-        }
-
-        .report-period-table td {
-            border: none;
-            padding: 2px 5px;
-            text-align: left;
-        }
-
-        .report-period-table td.label {
-            font-weight: bold;
-        }
-
-        /* === BIODATA: pastikan rata kiri === */
+        /* === BIODATA: pastikan rata kiri dan rapi === */
         .student-info-table {
             border-collapse: collapse;
             width: auto;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             font-size: 10pt;
         }
 
         .student-info-table td {
             border: none;
-            padding: 3px 5px 3px 0;
+            padding: 3px 0;
             vertical-align: top;
-            text-align: left !important;
+            text-align: left;
         }
 
         .student-info-table td.label {
             font-weight: bold;
-            width: 180px;
+            width: 150px;
+            /* Lebar label */
         }
 
-        /* === ABSENSI: scope center hanya untuk tabel ini === */
+        .student-info-table td.separator {
+            width: 10px;
+            /* Lebar untuk titik dua */
+            text-align: center;
+        }
+
+        /* === TABEL ABSENSI: center === */
         table.attendance {
             width: 100%;
             border-collapse: collapse;
@@ -248,12 +225,8 @@ ob_start();
             font-weight: bold;
         }
 
-        .attendance td.left-align {
-            text-align: left;
-        }
-
         .signature-section {
-            margin: 40px 0 0 40px;
+            margin-top: 40px;
             font-size: 10pt;
             page-break-inside: avoid;
             width: 100%;
@@ -265,38 +238,43 @@ ob_start();
     <div class="header-title">REKAPITULASI DAFTAR HADIR PESERTA PKL</div>
     <div class="school-info"><?= htmlspecialchars($nama_sekolah) ?> TAHUN <?= htmlspecialchars($tahun_pkl) ?></div>
 
-
     <?php if ($generate_recap_report): ?>
-        <p style="text-align: center;">Tampilan rekapitulasi akan muncul di sini.</p>
+        <p style="text-align: center;">Tampilan rekapitulasi umum akan muncul di sini.</p>
     <?php else: ?>
         <?php if (empty($absensi_data)): ?>
-            <p style="text-align: center;">Tidak ada data absensi untuk ditampilkan.</p>
+            <p style="text-align: center;">Tidak ada data absensi untuk ditampilkan pada periode dan filter yang dipilih.</p>
         <?php else: ?>
             <?php $first_record = $absensi_data[0]; ?>
             <table class="student-info-table">
                 <tr>
                     <td class="label">Nama Peserta Didik</td>
-                    <td>: <?= htmlspecialchars($first_record['nama_siswa']) ?></td>
+                    <td class="separator">:</td>
+                    <td><?= htmlspecialchars($first_record['nama_siswa']) ?></td>
                 </tr>
                 <tr>
                     <td class="label">Kelas</td>
-                    <td>: <?= htmlspecialchars($first_record['kelas']) ?></td>
+                    <td class="separator">:</td>
+                    <td><?= htmlspecialchars($first_record['kelas'] ?? '-') ?></td>
                 </tr>
                 <tr>
                     <td class="label">Jurusan</td>
-                    <td>: <?= htmlspecialchars($first_record['nama_jurusan'] ?? '-') ?></td>
+                    <td class="separator">:</td>
+                    <td><?= htmlspecialchars($first_record['nama_jurusan'] ?? '-') ?></td>
                 </tr>
                 <tr>
                     <td class="label">Tempat PKL</td>
-                    <td>: <?= htmlspecialchars($first_record['nama_tempat_pkl'] ?? '-') ?></td>
+                    <td class="separator">:</td>
+                    <td><?= htmlspecialchars($first_record['nama_tempat_pkl'] ?? '-') ?></td>
                 </tr>
                 <tr>
                     <td class="label">Tanggal Mulai</td>
-                    <td>: <?= date('d F Y', strtotime($tanggal_mulai)) ?></td>
+                    <td class="separator">:</td>
+                    <td><?= date('d F Y', strtotime($tanggal_mulai)) ?></td>
                 </tr>
                 <tr>
                     <td class="label">Tanggal Selesai</td>
-                    <td>: <?= date('d F Y', strtotime($tanggal_akhir)) ?></td>
+                    <td class="separator">:</td>
+                    <td><?= date('d F Y', strtotime($tanggal_akhir)) ?></td>
                 </tr>
             </table>
 
@@ -324,22 +302,24 @@ ob_start();
         <?php endif; ?>
     <?php endif; ?>
 
-    <div class="signature-section">
-        <table style="width: 100%; border-collapse: collapse;">
-            <tbody>
-                <tr>
-                    <td style="width: 60%; border: none;"></td>
-                    <td style="width: 40%; border: none; text-align: left;">
-                        <p>...................., <?= $tanggal_tanda_tangan ?></p>
-                        <p>Mengetahui,</p>
-                        <p>Pembimbing Dunia Kerja</p>
-                        <div style="height: 60px;"></div>
-                        <p><b>(....................................)</b></p>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+    <?php if (!$generate_recap_report && !empty($absensi_data)): ?>
+        <div class="signature-section">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tbody>
+                    <tr>
+                        <td style="width: 60%; border: none;"></td>
+                        <td style="width: 40%; border: none; text-align: left;">
+                            <p>...................., <?= $tanggal_tanda_tangan ?></p>
+                            <p>Mengetahui,</p>
+                            <p>Pembimbing Dunia Kerja</p>
+                            <div style="height: 60px;"></div>
+                            <p><b>(....................................)</b></p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
 </body>
 
 </html>
@@ -357,5 +337,6 @@ $dompdf->setPaper('A4', 'portrait');
 $dompdf->render();
 
 $filename = "Rekap_Hadir_PKL_" . date('Ymd_His') . ".pdf";
+// Setting Attachment ke false agar file langsung terbuka di browser
 $dompdf->stream($filename, ["Attachment" => false]);
 exit();
