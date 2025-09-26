@@ -272,7 +272,7 @@ $html = '
     </style>
 </head>
 <body>
-    <h1>JURNAL KEGIATAN HARIAN PRAKTEK KERJA LAPANGAN</h1>
+    <h1>JURNAL KEGIATAN HARIAN PKL</h1>
     <h2>PESERTA DIDIK SMKN 1 GANTAR</h2>
     
     <div class="header-section">

@@ -110,19 +110,16 @@ $guru_display_from_data = '';
 $kelas_display_from_data = '';
 $jurusan_display_from_data = '';
 if (!empty($siswa_data)) {
-    // Ambil semua nama guru, kelas, dan jurusan dari hasil
     $all_gurus = array_column($siswa_data, 'nama_pembimbing');
     $all_kelas = array_column($siswa_data, 'kelas');
     $all_jurusan = array_column($siswa_data, 'nama_jurusan');
 
-    // Filter nilai unik dan hapus nilai kosong
     $unique_gurus = array_unique(array_filter($all_gurus));
     $unique_kelas = array_unique(array_filter($all_kelas));
     $unique_jurusan = array_unique(array_filter($all_jurusan));
 
-    // Hanya set variabel display jika hanya ada SATU nilai unik dalam hasil
     if (count($unique_gurus) === 1) {
-        $guru_display_from_data = reset($unique_gurus); // Ambil satu-satunya elemen
+        $guru_display_from_data = reset($unique_gurus);
     }
     if (count($unique_kelas) === 1) {
         $kelas_display_from_data = reset($unique_kelas);
@@ -131,7 +128,6 @@ if (!empty($siswa_data)) {
         $jurusan_display_from_data = reset($unique_jurusan);
     }
 }
-
 
 // --- GENERASI KONTEN HTML untuk PDF ---
 $html = '
@@ -149,6 +145,10 @@ $html = '
         .info-section div { margin-bottom: 4px; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
         th, td { border: 1px solid #ccc; padding: 7px 10px; text-align: left; vertical-align: top; font-size: 8.5pt; line-height: 1.3; }
+
+        /* >>>> KAPITALKAN SEMUA TEKS DI TABEL <<<< */
+        th, td { text-transform: uppercase; }
+
         th { background-color: #e9e9e9; font-weight: bold; color: #333; }
         tr:nth-child(even) { background-color: #f8f8f8; }
         .no-data { text-align: center; padding: 20px; color: #777; font-style: italic; }
@@ -189,7 +189,9 @@ if (!empty($siswa_data)) {
         <tbody>';
     $no = 1;
     foreach ($siswa_data as $row) {
-        $absen_pertama_display = !empty($row['tanggal_absen_pertama']) ? date('d F Y', strtotime($row['tanggal_absen_pertama'])) : 'Belum Absen';
+        $absen_pertama_display = !empty($row['tanggal_absen_pertama'])
+            ? date('d F Y', strtotime($row['tanggal_absen_pertama']))
+            : 'Belum Absen';
         $html .= '
             <tr>
                 <td>' . $no++ . '</td>
@@ -212,7 +214,7 @@ $html .= '
 </body>
 </html>';
 
-// --- KONFIGURasi DOMPDF DAN OUTPUT PDF ---
+// --- KONFIGURASI DOMPDF DAN OUTPUT PDF ---
 $options = new Options();
 $options->set('isHtml5ParserEnabled', true);
 $options->set('isRemoteEnabled', true);
@@ -223,7 +225,6 @@ $dompdf->loadHtml($html);
 $dompdf->setPaper('A4', 'portrait');
 $dompdf->render();
 
-// Atur nama file PDF
 $filename = "Rekap_Siswa_PKL_" . date('Ymd_His');
 if (!empty($kelas_filter_pdf)) {
     $filename .= "_Kelas_" . str_replace(' ', '_', $kelas_filter_pdf);
@@ -233,6 +234,5 @@ if ($is_guru && !empty($_SESSION['guru_nama'])) {
 }
 $filename .= ".pdf";
 
-// Output PDF ke browser
 $dompdf->stream($filename, ["Attachment" => false]);
 exit();

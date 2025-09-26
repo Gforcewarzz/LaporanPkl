@@ -281,18 +281,17 @@ $koneksi->close(); // Tutup koneksi setelah semua query selesai
                         <div class="card mb-4 shadow-lg p-4">
                             <div class="card-body p-0">
                                 <form method="GET" action="" class="row g-3 align-items-end mb-4 border-bottom pb-4">
-                                    <h6 class="mb-3 text-primary fw-semibold"><i class='bx bx-filter me-1'></i> Filter Tampilan Harian</h6>
+                                    <h6 class="mb-3 text-primary fw-semibold"><i class='bx bx-filter me-1'></i> Filter
+                                        Tampilan Harian</h6>
 
                                     <div class="col-12 col-md-4 col-lg-3">
                                         <label for="startDateFilter" class="form-label mb-1">Dari Tanggal:</label>
-                                        <input type="date" id="startDateFilter" name="start_date"
-                                            class="form-control"
+                                        <input type="date" id="startDateFilter" name="start_date" class="form-control"
                                             value="<?= htmlspecialchars($start_date) ?>">
                                     </div>
                                     <div class="col-12 col-md-4 col-lg-3">
                                         <label for="endDateFilter" class="form-label mb-1">Sampai Tanggal:</label>
-                                        <input type="date" id="endDateFilter" name="end_date"
-                                            class="form-control"
+                                        <input type="date" id="endDateFilter" name="end_date" class="form-control"
                                             value="<?= htmlspecialchars($end_date) ?>">
                                     </div>
                                     <div class="col-12 col-md-4 col-lg-4">
@@ -302,15 +301,14 @@ $koneksi->close(); // Tutup koneksi setelah semua query selesai
                                                 placeholder="Pekerjaan, catatan, nama siswa, atau jurusan..."
                                                 value="<?= htmlspecialchars($keyword) ?>">
                                             <button type="submit" class="btn btn-primary">
-                                                <i class="bx bx-search"></i> <span class="d-none d-sm-inline">Terapkan</span>
+                                                <i class="bx bx-search"></i> <span
+                                                    class="d-none d-sm-inline">Terapkan</span>
                                             </button>
                                         </div>
                                     </div>
                                     <div class="col-12 col-md-auto col-lg-2 d-flex align-items-end">
                                         <?php
-                                        // Cek apakah ada filter yang aktif untuk tombol Reset
                                         $is_filter_active = !empty($keyword) || !empty($start_date) || !empty($end_date);
-                                        // Tambahkan kondisi untuk peran agar filter siswa_id/pembimbing_id tetap terbawa saat reset jika ada
                                         $reset_params_arr = [];
                                         if (($is_admin && !empty($_GET['siswa_id'])) || ($is_guru && !empty($_GET['siswa_id']))) {
                                             $reset_params_arr['siswa_id'] = htmlspecialchars($_GET['siswa_id']);
@@ -320,7 +318,8 @@ $koneksi->close(); // Tutup koneksi setelah semua query selesai
                                         $reset_link_query = !empty($reset_params_arr) ? '?' . http_build_query($reset_params_arr) : '';
 
                                         if ($is_filter_active): ?>
-                                            <a href="master_kegiatan_harian.php<?= $reset_link_query ?>" class="btn btn-outline-secondary w-100">
+                                            <a href="master_kegiatan_harian.php<?= $reset_link_query ?>"
+                                                class="btn btn-outline-secondary w-100">
                                                 <i class="bx bx-x"></i> <span class="d-none d-sm-inline">Reset Filter</span>
                                             </a>
                                         <?php endif; ?>
@@ -339,343 +338,336 @@ $koneksi->close(); // Tutup koneksi setelah semua query selesai
                                     <?php endif; ?>
                                 </div>
 
-                                <div class="d-flex gap-2 w-100 w-md-auto mb-3">
-                                    <?php
-                                    // Bangun query params saat ini untuk link PDF
-                                    $pdf_query_params = [];
-                                    if (!empty($keyword)) {
-                                        $pdf_query_params['keyword'] = $keyword;
-                                    }
-                                    if (!empty($start_date)) {
-                                        $pdf_query_params['start_date'] = $start_date;
-                                    }
-                                    if (!empty($end_date)) {
-                                        $pdf_query_params['end_date'] = $end_date;
-                                    }
-                                    if ($is_siswa && $id_siswa_filter !== null) {
-                                        $pdf_query_params['siswa_id'] = $id_siswa_filter;
-                                    } elseif ($is_admin && $id_siswa_filter !== null) {
-                                        $pdf_query_params['siswa_id'] = $id_siswa_filter;
-                                    } elseif ($is_guru && isset($_GET['siswa_id']) && !empty($_GET['siswa_id'])) {
-                                        $pdf_query_params['siswa_id'] = htmlspecialchars($_GET['siswa_id']);
-                                    } elseif ($is_guru && $guru_id_bimbingan !== null && (!isset($_GET['siswa_id']) || empty($_GET['siswa_id']))) {
-                                        $pdf_query_params['pembimbing_id'] = $guru_id_bimbingan;
-                                    }
+                                <?php if (!$is_guru): ?>
+                                    <div class="d-flex gap-2 w-100 w-md-auto mb-3">
+                                        <?php
+                                        $pdf_query_params = [];
+                                        if (!empty($keyword)) {
+                                            $pdf_query_params['keyword'] = $keyword;
+                                        }
+                                        if (!empty($start_date)) {
+                                            $pdf_query_params['start_date'] = $start_date;
+                                        }
+                                        if (!empty($end_date)) {
+                                            $pdf_query_params['end_date'] = $end_date;
+                                        }
+                                        if ($is_siswa && $id_siswa_filter !== null) {
+                                            $pdf_query_params['siswa_id'] = $id_siswa_filter;
+                                        } elseif ($is_admin && $id_siswa_filter !== null) {
+                                            $pdf_query_params['siswa_id'] = $id_siswa_filter;
+                                        }
 
-                                    $pdf_link_query_string = !empty($pdf_query_params) ? '?' . http_build_query($pdf_query_params) : '';
-                                    ?>
-                                    <a href="generate_laporan_harian_pdf.php<?= $pdf_link_query_string ?>"
-                                        class="btn btn-outline-danger w-100 animate__animated animate__fadeInDown animate__delay-0-3s"
-                                        target="_blank">
-                                        <i class="bx bxs-file-pdf me-1"></i> Cetak PDF Laporan
-                                    </a>
-                                </div>
+                                        $pdf_link_query_string = !empty($pdf_query_params) ? '?' . http_build_query($pdf_query_params) : '';
+                                        ?>
+                                        <a href="generate_laporan_harian_pdf.php<?= $pdf_link_query_string ?>"
+                                            class="btn btn-outline-danger w-100 animate__animated animate__fadeInDown animate__delay-0-3s"
+                                            target="_blank">
+                                            <i class="bx bxs-file-pdf me-1"></i> Cetak PDF Laporan
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">Daftar Jurnal PKL Harian <?= htmlspecialchars($siswa_nama_display) ?>
-                                </h5>
-                                <small class="text-muted">Total: <?= $total_records ?> Laporan</small>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="table-responsive text-nowrap d-none d-md-block"
-                                    style="min-height: calc(100vh - 450px); overflow-y: auto;">
-                                    <?php if (count($laporan_data) > 0): ?>
-                                        <table class="table table-hover">
-                                            <thead>
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>Hari/Tanggal</th>
-                                                    <?php if ($is_admin || ($is_guru && (!isset($_GET['siswa_id']) || empty($_GET['siswa_id'])))): ?>
-                                                        <th>Siswa</th>
-                                                        <th>Jurusan</th>
-                                                    <?php endif; ?>
-                                                    <th>Pekerjaan</th>
-                                                    <th>Catatan</th>
-                                                    <th>Aksi</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="table-border-bottom-0">
-                                                <?php
-                                                $no = $offset + 1;
-                                                foreach ($laporan_data as $row) {
-                                                    $hari_indonesia = [
-                                                        'Sunday' => 'Minggu',
-                                                        'Monday' => 'Senin',
-                                                        'Tuesday' => 'Selasa',
-                                                        'Wednesday' => 'Rabu',
-                                                        'Thursday' => 'Kamis',
-                                                        'Friday' => 'Jumat',
-                                                        'Saturday' => 'Sabtu'
-                                                    ];
-                                                    $nama_hari_inggris = date('l', strtotime($row['tanggal']));
-                                                    $formatted_date_display = $hari_indonesia[$nama_hari_inggris] . ', ' . date('d F Y', strtotime($row['tanggal']));
-
-                                                    // Batasi panjang teks untuk tampilan tabel desktop
-                                                    $pekerjaan_display = htmlspecialchars($row['pekerjaan']);
-                                                    $catatan_display = htmlspecialchars($row['catatan'] ?? '-');
-
-                                                    if (mb_strlen($pekerjaan_display) > 50) {
-                                                        $pekerjaan_display = mb_strimwidth($pekerjaan_display, 0, 50, "...");
-                                                    }
-                                                    if (mb_strlen($catatan_display) > 70) {
-                                                        $catatan_display = mb_strimwidth($catatan_display, 0, 70, "...");
-                                                    }
-                                                ?>
-                                                    <tr>
-                                                        <td><?= $no++ ?></td>
-                                                        <td><strong><?= $formatted_date_display ?></strong></td>
-                                                        <?php if ($is_admin || ($is_guru && (!isset($_GET['siswa_id']) || empty($_GET['siswa_id'])))): ?>
-                                                            <td><?= htmlspecialchars($row['nama_siswa'] ?? '-') ?></td>
-                                                            <td><?= htmlspecialchars($row['nama_jurusan'] ?? '-') ?></td>
-                                                        <?php endif; ?>
-                                                        <td><?= $pekerjaan_display ?></td>
-                                                        <td><?= $catatan_display ?></td>
-                                                        <td>
-                                                            <div class="dropdown">
-                                                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                                                    <i class="bx bx-dots-vertical-rounded"></i>
-                                                                </button>
-                                                                <div class="dropdown-menu" style='z-index: 1050;'>
-                                                                    <a class="dropdown-item"
-                                                                        href="master_kegiatan_harian_edit.php?id=<?= htmlspecialchars($row['id_jurnal_harian']) ?>">
-                                                                        <i class="bx bx-edit-alt me-1"></i> Edit Jurnal PKL Harian
-                                                                    </a>
-                                                                    <?php if ($is_admin || $is_siswa): // Hanya admin dan siswa yang bisa delete 
-                                                                    ?>
-                                                                        <div class="dropdown-divider"></div>
-                                                                        <a class="dropdown-item text-danger"
-                                                                            href="javascript:void(0);"
-                                                                            onclick="confirmDeleteKegiatanHarian('<?= htmlspecialchars($row['id_jurnal_harian']) ?>', '<?= htmlspecialchars($formatted_date_display) ?>')">
-                                                                            <i class="bx bx-trash me-1"></i> Hapus
-                                                                        </a>
-                                                                    <?php endif; ?>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                <?php
-                                                }
-                                                ?>
-                                            </tbody>
-                                        </table>
-                                    <?php else: ?>
-                                        <div class="alert alert-warning text-center mt-4 mx-3" role="alert">
-                                            <h5 class="alert-heading"><i class="bx bx-info-circle"></i> Data Tidak Ditemukan
-                                            </h5>
-                                            <p class="mb-0">
-                                                <?php if (!empty($keyword) || !empty($start_date) || !empty($end_date)): ?>
-                                                    Tidak ada laporan yang cocok dengan filter yang diberikan.
-                                                <?php elseif ($is_siswa): ?>
-                                                    Anda belum memiliki Jurnal PKL Harian yang tercatat. Silakan tambahkan
-                                                    laporan pertama Anda.
-                                                <?php elseif (($is_admin && $id_siswa_filter !== null && $id_siswa_filter !== "") || ($is_guru && isset($_GET['siswa_id']) && !empty($_GET['siswa_id']))): ?>
-                                                    Siswa ini belum memiliki Jurnal PKL Harian.
-                                                <?php else: ?>
-                                                    Tidak ada laporan kegiatan harian yang ditemukan di sistem.
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Daftar Jurnal PKL Harian <?= htmlspecialchars($siswa_nama_display) ?>
+                            </h5>
+                            <small class="text-muted">Total: <?= $total_records ?> Laporan</small>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive text-nowrap d-none d-md-block"
+                                style="min-height: calc(100vh - 450px); overflow-y: auto;">
+                                <?php if (count($laporan_data) > 0): ?>
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>Hari/Tanggal</th>
+                                                <?php if ($is_admin || ($is_guru && (!isset($_GET['siswa_id']) || empty($_GET['siswa_id'])))): ?>
+                                                    <th>Siswa</th>
+                                                    <th>Jurusan</th>
                                                 <?php endif; ?>
-                                            </p>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
+                                                <th>Pekerjaan</th>
+                                                <th>Catatan</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="table-border-bottom-0">
+                                            <?php
+                                            $no = $offset + 1;
+                                            foreach ($laporan_data as $row) {
+                                                $hari_indonesia = [
+                                                    'Sunday' => 'Minggu',
+                                                    'Monday' => 'Senin',
+                                                    'Tuesday' => 'Selasa',
+                                                    'Wednesday' => 'Rabu',
+                                                    'Thursday' => 'Kamis',
+                                                    'Friday' => 'Jumat',
+                                                    'Saturday' => 'Sabtu'
+                                                ];
+                                                $nama_hari_inggris = date('l', strtotime($row['tanggal']));
+                                                $formatted_date_display = $hari_indonesia[$nama_hari_inggris] . ', ' . date('d F Y', strtotime($row['tanggal']));
 
-                                <div class="d-md-none p-3">
-                                    <?php
-                                    // Reset pointer hasil query untuk tampilan mobile
-                                    if ($result_laporan->num_rows > 0) { // Gunakan $result_laporan
-                                        $result_laporan->data_seek(0); // Reset pointer
-                                        $colors = ['primary', 'warning', 'info', 'success', 'danger'];
-                                        $color_index = 0;
-                                        $no_mobile = $offset + 1;
-                                        foreach ($laporan_data as $row_mobile) {
-                                            $current_color = $colors[$color_index % count($colors)];
-                                            $color_index++;
-                                            $hari_indonesia = [
-                                                'Sunday' => 'Minggu',
-                                                'Monday' => 'Senin',
-                                                'Tuesday' => 'Selasa',
-                                                'Wednesday' => 'Rabu',
-                                                'Thursday' => 'Kamis',
-                                                'Friday' => 'Jumat',
-                                                'Saturday' => 'Sabtu'
-                                            ];
-                                            $nama_hari_inggris_mobile = date('l', strtotime($row_mobile['tanggal']));
-                                            $formatted_date_mobile = $hari_indonesia[$nama_hari_inggris_mobile] . ', ' . date('d F Y', strtotime($row_mobile['tanggal']));
-                                    ?>
-                                            <div
-                                                class="card mb-3 shadow-sm border-start border-4 border-<?= $current_color ?> rounded-3 animate__animated animate__fadeInUp">
-                                                <div class="card-body">
-                                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                                        <div>
-                                                            <h6 class="mb-1 text-<?= $current_color ?>"><i
-                                                                    class="bx bx-calendar-event me-1"></i>
-                                                                <strong><?= htmlspecialchars($formatted_date_mobile) ?></strong>
-                                                            </h6>
-                                                            <span class="badge bg-label-<?= $current_color ?>"><i
-                                                                    class="bx bx-file me-1"></i> Jurnal PKL Harian
-                                                                #<?= $no_mobile++ ?></span>
-                                                        </div>
+                                                // Batasi panjang teks untuk tampilan tabel desktop
+                                                $pekerjaan_display = htmlspecialchars($row['pekerjaan']);
+                                                $catatan_display = htmlspecialchars($row['catatan'] ?? '-');
+
+                                                if (mb_strlen($pekerjaan_display) > 50) {
+                                                    $pekerjaan_display = mb_strimwidth($pekerjaan_display, 0, 50, "...");
+                                                }
+                                                if (mb_strlen($catatan_display) > 70) {
+                                                    $catatan_display = mb_strimwidth($catatan_display, 0, 70, "...");
+                                                }
+                                            ?>
+                                                <tr>
+                                                    <td><?= $no++ ?></td>
+                                                    <td><strong><?= $formatted_date_display ?></strong></td>
+                                                    <?php if ($is_admin || ($is_guru && (!isset($_GET['siswa_id']) || empty($_GET['siswa_id'])))): ?>
+                                                        <td><?= htmlspecialchars($row['nama_siswa'] ?? '-') ?></td>
+                                                        <td><?= htmlspecialchars($row['nama_jurusan'] ?? '-') ?></td>
+                                                    <?php endif; ?>
+                                                    <td><?= $pekerjaan_display ?></td>
+                                                    <td><?= $catatan_display ?></td>
+                                                    <td>
                                                         <div class="dropdown">
                                                             <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
                                                                 data-bs-toggle="dropdown" aria-expanded="false">
                                                                 <i class="bx bx-dots-vertical-rounded"></i>
                                                             </button>
-                                                            <div class="dropdown-menu dropdown-menu-end">
+                                                            <div class="dropdown-menu" style='z-index: 1050;'>
                                                                 <a class="dropdown-item"
-                                                                    href="master_kegiatan_harian_edit.php?id=<?= htmlspecialchars($row_mobile['id_jurnal_harian']) ?>">
-                                                                    <i class="bx bx-edit-alt me-1"></i> Edit Jurnal PKL Harian
+                                                                    href="master_kegiatan_harian_edit.php?id=<?= htmlspecialchars($row['id_jurnal_harian']) ?>">
+                                                                    <i class="bx bx-edit-alt me-1"></i> Edit Jurnal PKL
+                                                                    Harian
                                                                 </a>
                                                                 <?php if ($is_admin || $is_siswa): // Hanya admin dan siswa yang bisa delete 
                                                                 ?>
                                                                     <div class="dropdown-divider"></div>
                                                                     <a class="dropdown-item text-danger" href="javascript:void(0);"
-                                                                        onclick="confirmDeleteKegiatanHarian('<?= htmlspecialchars($row_mobile['id_jurnal_harian']) ?>', '<?= htmlspecialchars($formatted_date_mobile) ?>')">
+                                                                        onclick="confirmDeleteKegiatanHarian('<?= htmlspecialchars($row['id_jurnal_harian']) ?>', '<?= htmlspecialchars($formatted_date_display) ?>')">
                                                                         <i class="bx bx-trash me-1"></i> Hapus
                                                                     </a>
                                                                 <?php endif; ?>
                                                             </div>
                                                         </div>
-                                                    </div>
+                                                    </td>
+                                                </tr>
+                                            <?php
+                                            }
+                                            ?>
+                                        </tbody>
+                                    </table>
+                                <?php else: ?>
+                                    <div class="alert alert-warning text-center mt-4 mx-3" role="alert">
+                                        <h5 class="alert-heading"><i class="bx bx-info-circle"></i> Data Tidak Ditemukan
+                                        </h5>
+                                        <p class="mb-0">
+                                            <?php if (!empty($keyword) || !empty($start_date) || !empty($end_date)): ?>
+                                                Tidak ada laporan yang cocok dengan filter yang diberikan.
+                                            <?php elseif ($is_siswa): ?>
+                                                Anda belum memiliki Jurnal PKL Harian yang tercatat. Silakan tambahkan
+                                                laporan pertama Anda.
+                                            <?php elseif (($is_admin && $id_siswa_filter !== null && $id_siswa_filter !== "") || ($is_guru && isset($_GET['siswa_id']) && !empty($_GET['siswa_id']))): ?>
+                                                Siswa ini belum memiliki Jurnal PKL Harian.
+                                            <?php else: ?>
+                                                Tidak ada laporan kegiatan harian yang ditemukan di sistem.
+                                            <?php endif; ?>
+                                        </p>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
 
-                                                    <div class="mb-2">
-                                                        <strong class="text-dark"><i class="bx bx-task me-1"></i>
-                                                            Pekerjaan:</strong><br>
-                                                        <?= nl2br(htmlspecialchars($row_mobile['pekerjaan'])) ?>
+                            <div class="d-md-none p-3">
+                                <?php
+                                // Reset pointer hasil query untuk tampilan mobile
+                                if ($result_laporan->num_rows > 0) { // Gunakan $result_laporan
+                                    $result_laporan->data_seek(0); // Reset pointer
+                                    $colors = ['primary', 'warning', 'info', 'success', 'danger'];
+                                    $color_index = 0;
+                                    $no_mobile = $offset + 1;
+                                    foreach ($laporan_data as $row_mobile) {
+                                        $current_color = $colors[$color_index % count($colors)];
+                                        $color_index++;
+                                        $hari_indonesia = [
+                                            'Sunday' => 'Minggu',
+                                            'Monday' => 'Senin',
+                                            'Tuesday' => 'Selasa',
+                                            'Wednesday' => 'Rabu',
+                                            'Thursday' => 'Kamis',
+                                            'Friday' => 'Jumat',
+                                            'Saturday' => 'Sabtu'
+                                        ];
+                                        $nama_hari_inggris_mobile = date('l', strtotime($row_mobile['tanggal']));
+                                        $formatted_date_mobile = $hari_indonesia[$nama_hari_inggris_mobile] . ', ' . date('d F Y', strtotime($row_mobile['tanggal']));
+                                ?>
+                                        <div
+                                            class="card mb-3 shadow-sm border-start border-4 border-<?= $current_color ?> rounded-3 animate__animated animate__fadeInUp">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <div>
+                                                        <h6 class="mb-1 text-<?= $current_color ?>"><i
+                                                                class="bx bx-calendar-event me-1"></i>
+                                                            <strong><?= htmlspecialchars($formatted_date_mobile) ?></strong>
+                                                        </h6>
+                                                        <span class="badge bg-label-<?= $current_color ?>"><i
+                                                                class="bx bx-file me-1"></i> Jurnal PKL Harian
+                                                            #<?= $no_mobile++ ?></span>
                                                     </div>
-                                                    <div class="mb-0 text-wrap">
-                                                        <strong class="text-dark"><i class="bx bx-info-circle me-1"></i>
-                                                            Catatan:</strong><br>
-                                                        <?= nl2br(htmlspecialchars($row_mobile['catatan'] ?? '-')) ?>
-                                                    </div>
-                                                    <?php if ($is_admin || ($is_guru && (!isset($_GET['siswa_id']) || empty($_GET['siswa_id'])))): ?>
-                                                        <div class="d-flex justify-content-end mt-3">
-                                                            <small class="text-muted"><i class="bx bx-user me-1"></i>
-                                                                Siswa:
-                                                                <?= htmlspecialchars($row_mobile['nama_siswa'] ?? '-') ?></small>
+                                                    <div class="dropdown">
+                                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                                        </button>
+                                                        <div class="dropdown-menu dropdown-menu-end">
+                                                            <a class="dropdown-item"
+                                                                href="master_kegiatan_harian_edit.php?id=<?= htmlspecialchars($row_mobile['id_jurnal_harian']) ?>">
+                                                                <i class="bx bx-edit-alt me-1"></i> Edit Jurnal PKL Harian
+                                                            </a>
+                                                            <?php if ($is_admin || $is_siswa): // Hanya admin dan siswa yang bisa delete 
+                                                            ?>
+                                                                <div class="dropdown-divider"></div>
+                                                                <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                                    onclick="confirmDeleteKegiatanHarian('<?= htmlspecialchars($row_mobile['id_jurnal_harian']) ?>', '<?= htmlspecialchars($formatted_date_mobile) ?>')">
+                                                                    <i class="bx bx-trash me-1"></i> Hapus
+                                                                </a>
+                                                            <?php endif; ?>
                                                         </div>
-                                                        <div class="d-flex justify-content-end mt-1">
-                                                            <small class="text-muted"><i class="bx bx-book-open me-1"></i>
-                                                                Jurusan:
-                                                                <?= htmlspecialchars($row_mobile['nama_jurusan'] ?? '-') ?></small>
-                                                        </div>
-                                                    <?php endif; ?>
-                                                    <div class="d-flex justify-content-end mt-3">
-                                                        <small class="text-muted"><i class="bx bx-calendar-check me-1"></i>
-                                                            Dilaporkan:
-                                                            <?= date('d F Y, H:i', strtotime($row_mobile['tanggal'])) ?>
-                                                            WIB</small>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        <?php }
-                                    } else { ?>
-                                        <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp animate__delay-0-3s"
-                                            role="alert" style="border-radius: 8px;">
-                                            <h5 class="alert-heading mb-3"><i class="bx bx-list-plus bx-lg text-info"></i>
-                                            </h5>
-                                            <p class="mb-3">Belum ada Jurnal PKL Harian yang tercatat di sini.</p>
-                                            <p class="mb-0">
-                                                <?php if (!empty($keyword) || !empty($start_date) || !empty($end_date)): ?>
-                                                    Tidak ada laporan yang cocok dengan filter yang diberikan.
-                                                <?php elseif ($is_siswa): ?>
-                                                    Anda belum memiliki Jurnal PKL Harian yang tercatat. Silakan tambahkan
-                                                    laporan pertama Anda.
-                                                <?php elseif (($is_admin && $id_siswa_filter !== null && $id_siswa_filter !== "") || ($is_guru && isset($_GET['siswa_id']) && !empty($_GET['siswa_id']))): ?>
-                                                    Siswa ini belum memiliki Jurnal PKL Harian.
-                                                <?php else: ?>
-                                                    Tidak ada laporan kegiatan harian yang ditemukan di sistem.
+
+                                                <div class="mb-2">
+                                                    <strong class="text-dark"><i class="bx bx-task me-1"></i>
+                                                        Pekerjaan:</strong><br>
+                                                    <?= nl2br(htmlspecialchars($row_mobile['pekerjaan'])) ?>
+                                                </div>
+                                                <div class="mb-0 text-wrap">
+                                                    <strong class="text-dark"><i class="bx bx-info-circle me-1"></i>
+                                                        Catatan:</strong><br>
+                                                    <?= nl2br(htmlspecialchars($row_mobile['catatan'] ?? '-')) ?>
+                                                </div>
+                                                <?php if ($is_admin || ($is_guru && (!isset($_GET['siswa_id']) || empty($_GET['siswa_id'])))): ?>
+                                                    <div class="d-flex justify-content-end mt-3">
+                                                        <small class="text-muted"><i class="bx bx-user me-1"></i>
+                                                            Siswa:
+                                                            <?= htmlspecialchars($row_mobile['nama_siswa'] ?? '-') ?></small>
+                                                    </div>
+                                                    <div class="d-flex justify-content-end mt-1">
+                                                        <small class="text-muted"><i class="bx bx-book-open me-1"></i>
+                                                            Jurusan:
+                                                            <?= htmlspecialchars($row_mobile['nama_jurusan'] ?? '-') ?></small>
+                                                    </div>
                                                 <?php endif; ?>
-                                            </p>
+                                                <div class="d-flex justify-content-end mt-3">
+                                                    <small class="text-muted"><i class="bx bx-calendar-check me-1"></i>
+                                                        Dilaporkan:
+                                                        <?= date('d F Y, H:i', strtotime($row_mobile['tanggal'])) ?>
+                                                        WIB</small>
+                                                </div>
+                                            </div>
                                         </div>
-                                    <?php
-                                    }
-                                    ?>
-                                </div>
+                                    <?php }
+                                } else { ?>
+                                    <div class="alert alert-info text-center mt-5 py-4 animate__animated animate__fadeInUp animate__delay-0-3s"
+                                        role="alert" style="border-radius: 8px;">
+                                        <h5 class="alert-heading mb-3"><i class="bx bx-list-plus bx-lg text-info"></i>
+                                        </h5>
+                                        <p class="mb-3">Belum ada Jurnal PKL Harian yang tercatat di sini.</p>
+                                        <p class="mb-0">
+                                            <?php if (!empty($keyword) || !empty($start_date) || !empty($end_date)): ?>
+                                                Tidak ada laporan yang cocok dengan filter yang diberikan.
+                                            <?php elseif ($is_siswa): ?>
+                                                Anda belum memiliki Jurnal PKL Harian yang tercatat. Silakan tambahkan
+                                                laporan pertama Anda.
+                                            <?php elseif (($is_admin && $id_siswa_filter !== null && $id_siswa_filter !== "") || ($is_guru && isset($_GET['siswa_id']) && !empty($_GET['siswa_id']))): ?>
+                                                Siswa ini belum memiliki Jurnal PKL Harian.
+                                            <?php else: ?>
+                                                Tidak ada laporan kegiatan harian yang ditemukan di sistem.
+                                            <?php endif; ?>
+                                        </p>
+                                    </div>
+                                <?php
+                                }
+                                ?>
                             </div>
-                            <?php if ($total_pages > 1): ?>
-                                <div class="card-footer bg-light border-top pt-3 pb-2">
-                                    <nav aria-label="Page navigation" class="overflow-auto pb-2" style="max-width: 100%;">
-                                        <ul class="pagination mb-0">
-                                            <li class="page-item <?= ($current_page <= 1) ? 'disabled' : '' ?>">
-                                                <a class="page-link"
-                                                    href="?page=<?= $current_page - 1 ?><?php
-                                                                                        // Pertahankan semua filter yang ada saat navigasi paginasi
-                                                                                        $pagination_query_params = $_GET;
-                                                                                        $pagination_query_params['page'] = $current_page - 1;
-                                                                                        echo '&' . http_build_query($pagination_query_params);
-                                                                                        ?>"
-                                                    aria-label="Previous">
-                                                    <i class="tf-icon bx bx-chevrons-left"></i>
-                                                </a>
-                                            </li>
-                                            <?php
-                                            $num_links = 5;
-                                            $start_page_link = max(1, $current_page - floor($num_links / 2));
-                                            $end_page_link = min($total_pages, $current_page + floor($num_links / 2));
-
-                                            if ($end_page_link - $start_page_link + 1 < $num_links) {
-                                                if ($start_page_link == 1) {
-                                                    $end_page_link = min($total_pages, $num_links);
-                                                } elseif ($end_page_link == $total_pages) {
-                                                    $start_page_link = max(1, $total_pages - $num_links + 1);
-                                                }
-                                            }
-
-                                            if ($start_page_link > 1) {
-                                                $temp_params = $_GET;
-                                                $temp_params['page'] = 1;
-                                                echo '<li class="page-item"><a class="page-link" href="?' . http_build_query($temp_params) . '">1</a></li>';
-                                                if ($start_page_link > 2) {
-                                                    echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
-                                                }
-                                            }
-
-                                            for ($i = $start_page_link; $i <= $end_page_link; $i++):
-                                                $temp_params = $_GET;
-                                                $temp_params['page'] = $i;
-                                            ?>
-                                                <li class="page-item <?= ($current_page == $i) ? 'active' : '' ?>">
-                                                    <a class="page-link"
-                                                        href="?<?= http_build_query($temp_params) ?>"><?= $i ?></a>
-                                                </li>
-                                            <?php endfor;
-
-                                            if ($end_page_link < $total_pages) {
-                                                if ($end_page_link < $total_pages - 1) {
-                                                    echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
-                                                }
-                                                $temp_params = $_GET;
-                                                $temp_params['page'] = $total_pages;
-                                                echo '<li class="page-item"><a class="page-link" href="?' . http_build_query($temp_params) . '">' . $total_pages . '</a></li>';
-                                            }
-                                            ?>
-                                            <li class="page-item <?= ($current_page >= $total_pages) ? 'disabled' : '' ?>">
-                                                <a class="page-link"
-                                                    href="?page=<?= $current_page + 1 ?><?php
-                                                                                        $pagination_query_params = $_GET;
-                                                                                        $pagination_query_params['page'] = $current_page + 1;
-                                                                                        echo '&' . http_build_query($pagination_query_params);
-                                                                                        ?>"
-                                                    aria-label="Next">
-                                                    <i class="tf-icon bx bx-chevrons-right"></i>
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </nav>
-                                </div>
-                            <?php endif; ?>
                         </div>
+                        <?php if ($total_pages > 1): ?>
+                            <div class="card-footer bg-light border-top pt-3 pb-2">
+                                <nav aria-label="Page navigation" class="overflow-auto pb-2" style="max-width: 100%;">
+                                    <ul class="pagination mb-0">
+                                        <li class="page-item <?= ($current_page <= 1) ? 'disabled' : '' ?>">
+                                            <a class="page-link" href="?page=<?= $current_page - 1 ?><?php
+                                                                                                        // Pertahankan semua filter yang ada saat navigasi paginasi
+                                                                                                        $pagination_query_params = $_GET;
+                                                                                                        $pagination_query_params['page'] = $current_page - 1;
+                                                                                                        echo '&' . http_build_query($pagination_query_params);
+                                                                                                        ?>" aria-label="Previous">
+                                                <i class="tf-icon bx bx-chevrons-left"></i>
+                                            </a>
+                                        </li>
+                                        <?php
+                                        $num_links = 5;
+                                        $start_page_link = max(1, $current_page - floor($num_links / 2));
+                                        $end_page_link = min($total_pages, $current_page + floor($num_links / 2));
 
+                                        if ($end_page_link - $start_page_link + 1 < $num_links) {
+                                            if ($start_page_link == 1) {
+                                                $end_page_link = min($total_pages, $num_links);
+                                            } elseif ($end_page_link == $total_pages) {
+                                                $start_page_link = max(1, $total_pages - $num_links + 1);
+                                            }
+                                        }
+
+                                        if ($start_page_link > 1) {
+                                            $temp_params = $_GET;
+                                            $temp_params['page'] = 1;
+                                            echo '<li class="page-item"><a class="page-link" href="?' . http_build_query($temp_params) . '">1</a></li>';
+                                            if ($start_page_link > 2) {
+                                                echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                                            }
+                                        }
+
+                                        for ($i = $start_page_link; $i <= $end_page_link; $i++):
+                                            $temp_params = $_GET;
+                                            $temp_params['page'] = $i;
+                                        ?>
+                                            <li class="page-item <?= ($current_page == $i) ? 'active' : '' ?>">
+                                                <a class="page-link" href="?<?= http_build_query($temp_params) ?>"><?= $i ?></a>
+                                            </li>
+                                        <?php endfor;
+
+                                        if ($end_page_link < $total_pages) {
+                                            if ($end_page_link < $total_pages - 1) {
+                                                echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                                            }
+                                            $temp_params = $_GET;
+                                            $temp_params['page'] = $total_pages;
+                                            echo '<li class="page-item"><a class="page-link" href="?' . http_build_query($temp_params) . '">' . $total_pages . '</a></li>';
+                                        }
+                                        ?>
+                                        <li class="page-item <?= ($current_page >= $total_pages) ? 'disabled' : '' ?>">
+                                            <a class="page-link" href="?page=<?= $current_page + 1 ?><?php
+                                                                                                        $pagination_query_params = $_GET;
+                                                                                                        $pagination_query_params['page'] = $current_page + 1;
+                                                                                                        echo '&' . http_build_query($pagination_query_params);
+                                                                                                        ?>" aria-label="Next">
+                                                <i class="tf-icon bx bx-chevrons-right"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        <?php endif; ?>
                     </div>
-                    <?php include './partials/footer.php'; ?>
-                    <div class="content-backdrop fade"></div>
+
                 </div>
+                <?php include './partials/footer.php'; ?>
+                <div class="content-backdrop fade"></div>
             </div>
         </div>
-        <div class="layout-overlay layout-menu-toggle"></div>
+    </div>
+    <div class="layout-overlay layout-menu-toggle"></div>
     </div>
 
     <div class="modal fade" id="viewImageModal" tabindex="-1" aria-labelledby="viewImageModalLabel" aria-hidden="true">
@@ -777,4 +769,5 @@ $koneksi->close(); // Tutup koneksi setelah semua query selesai
 </body>
 
 </html>
+
 </html>
