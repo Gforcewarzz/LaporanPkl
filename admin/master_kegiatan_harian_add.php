@@ -58,12 +58,6 @@ if ($is_admin) {
         mysqli_free_result($result_siswa_list);
     }
 }
-
-// Jangan lupa tutup koneksi jika tidak ada query lain setelah ini
-// $koneksi->close(); 
-// Catatan: Jika partials/script.php atau file lain di bawah membutuhkan $koneksi,
-// biarkan terbuka dan tutup di akhir file utama atau di partials/footer.php.
-// Jika $koneksi hanya untuk halaman ini, tutup di sini.
 ?>
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="./assets/"
@@ -118,8 +112,7 @@ if ($is_admin) {
                             </div>
                             <div class="card-body p-4">
                                 <form action="master_kegiatan_harian_add_act.php" method="POST">
-                                    <?php if ($is_admin): // Tampilkan dropdown siswa jika admin yang login 
-                                    ?>
+                                    <?php if ($is_admin): ?>
                                         <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-1s">
                                             <label for="selected_siswa_id" class="form-label fw-bold">
                                                 <i class="bx bx-user me-1"></i> Pilih Siswa:
@@ -150,17 +143,15 @@ if ($is_admin) {
                                             <i class="bx bx-briefcase-alt me-1"></i> Deskripsi Pekerjaan:
                                         </label>
                                         <textarea class="form-control" id="pekerjaan" name="pekerjaan" rows="5"
-                                            placeholder="Contoh: Membantu tim IT dalam konfigurasi jaringan baru di kantor pusat."
-                                            required></textarea>
+                                            placeholder="Tulis deskripsi pekerjaan..." required></textarea>
                                     </div>
 
                                     <div class="mb-3 animate__animated animate__fadeInLeft animate__delay-0-4s">
                                         <label for="catatan" class="form-label fw-bold">
-                                            <i class="bx bx-notepad me-1"></i> Catatan Tambahan:
+                                            <i class="bx bx-notepad me-1"></i> Catatan Tambahan (Opsional):
                                         </label>
                                         <textarea class="form-control" id="catatan" name="catatan" rows="3"
-                                            placeholder="Contoh: Menghadapi kendala teknis saat instalasi driver printer."
-                                            required></textarea>
+                                            placeholder="Tulis catatan bila perlu..."></textarea>
                                     </div>
 
                                     <input type="hidden" name="siswa_id"
@@ -196,5 +187,6 @@ if ($is_admin) {
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <?php include './partials/script.php'; ?>
 </body>
+
 
 </html>
