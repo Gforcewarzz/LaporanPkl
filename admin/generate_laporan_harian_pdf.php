@@ -8,34 +8,76 @@ require_once __DIR__ . '/vendor/autoload.php';
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
-// --- CEK ROLE ---
+// --- CEK ROLE & AMBIL ID SISWA ---
 $is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
+$is_admin_or_guru = (isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in') ||
+    (isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in');
 
-// hanya siswa yang boleh cetak
-if (!$is_siswa) {
-    die("Laporan hanya bisa dicetak oleh peserta didik.");
+$id_siswa_filter = null;
+if ($is_siswa) {
+    $id_siswa_filter = $_SESSION['id_siswa'] ?? null;
+} elseif ($is_admin_or_guru && isset($_GET['siswa_id'])) {
+    $id_siswa_filter = $_GET['siswa_id'];
 }
 
-$id_siswa_filter = $_SESSION['id_siswa'] ?? null;
 if (!$id_siswa_filter) {
-    die("Data siswa tidak ditemukan.");
+    die("Akses ditolak atau data siswa tidak ditemukan.");
 }
 
-// --- QUERY DATA JURNAL ---
+// --- AMBIL DATA HEADER SISWA SECARA TERPISAH ---
+$siswa_info = null;
+$stmt_siswa = $koneksi->prepare("
+    SELECT s.nama_siswa, s.kelas, tp.nama_tempat_pkl
+    FROM siswa s
+    LEFT JOIN tempat_pkl tp ON s.tempat_pkl_id = tp.id_tempat_pkl
+    WHERE s.id_siswa = ?
+");
+$stmt_siswa->bind_param("i", $id_siswa_filter);
+$stmt_siswa->execute();
+$result_siswa = $stmt_siswa->get_result();
+if ($result_siswa->num_rows > 0) {
+    $siswa_info = $result_siswa->fetch_assoc();
+}
+$stmt_siswa->close();
+
+$nama_peserta_didik_header      = $siswa_info ? strtoupper($siswa_info['nama_siswa']) : 'N/A';
+$kelas_header                   = $siswa_info ? $siswa_info['kelas'] : 'N/A';
+$dunia_kerja_tempat_pkl_header  = $siswa_info ? strtoupper($siswa_info['nama_tempat_pkl']) : 'N/A';
+// Variabel ini dibutuhkan oleh struktur HTML lama, kita isi placeholder
+$guru_pembimbing_header         = '........................................';
+
+
+// --- AMBIL FILTER TANGGAL DARI URL ---
+$start_date = $_GET['start_date'] ?? '';
+$end_date = $_GET['end_date'] ?? '';
+
+// --- BANGUN QUERY SECARA DINAMIS UNTUK JURNAL HARIAN ---
+$query_params = [$id_siswa_filter];
+$query_types = "i";
+$where_clauses = ["jh.siswa_id = ?"];
+
+if (!empty($start_date)) {
+    $where_clauses[] = "jh.tanggal >= ?";
+    $query_params[] = $start_date;
+    $query_types .= "s";
+}
+
+if (!empty($end_date)) {
+    $where_clauses[] = "jh.tanggal <= ?";
+    $query_params[] = $end_date;
+    $query_types .= "s";
+}
+
 $query_sql = "
     SELECT
-        jh.id_jurnal_harian, jh.tanggal, jh.pekerjaan, jh.catatan,
-        s.nama_siswa, s.kelas,
-        tp.nama_tempat_pkl
+        jh.id_jurnal_harian, jh.tanggal, jh.pekerjaan, jh.catatan
     FROM jurnal_harian jh
-    LEFT JOIN siswa s ON jh.siswa_id = s.id_siswa
-    LEFT JOIN tempat_pkl tp ON s.tempat_pkl_id = tp.id_tempat_pkl
-    WHERE jh.siswa_id = ?
+    WHERE " . implode(" AND ", $where_clauses) . "
     ORDER BY jh.tanggal ASC, jh.id_jurnal_harian ASC
 ";
 
 $stmt = $koneksi->prepare($query_sql);
-$stmt->bind_param("i", $id_siswa_filter);
+$stmt->bind_param($query_types, ...$query_params);
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -44,12 +86,9 @@ while ($row = $result->fetch_assoc()) {
     $laporan_harian_data[] = $row;
 }
 $stmt->close();
+$koneksi->close();
 
-$nama_peserta_didik_header     = strtoupper($laporan_harian_data[0]['nama_siswa'] ?? '-');
-$kelas_header                  = $laporan_harian_data[0]['kelas'] ?? '-';
-$dunia_kerja_tempat_pkl_header = strtoupper($laporan_harian_data[0]['nama_tempat_pkl'] ?? '-');
-
-// --- HTML & STYLE ---
+// --- [UI DIKEMBALIKAN] HTML & STYLE ---
 $html = '
 <!DOCTYPE html>
 <html lang="id">
@@ -119,7 +158,7 @@ $html = '
         <p><strong>Kelas</strong>: ' . htmlspecialchars($kelas_header) . '</p>
         <p><strong>Dunia Kerja/Tempat PKL</strong>: ' . htmlspecialchars($dunia_kerja_tempat_pkl_header) . '</p>
         <p><strong>Pembimbing Dunia Kerja</strong>: ........................................</p>
-        <p><strong>Guru Pembimbing Sekolah</strong>: ........................................</p>
+        <p><strong>Guru Pembimbing Sekolah</strong>: ' . htmlspecialchars($guru_pembimbing_header) . '</p>
     </div>
 
     <table>
@@ -158,7 +197,8 @@ if (!empty($laporan_harian_data)) {
         $no++;
     }
 } else {
-    $html .= "<tr><td colspan='5' style='text-align:center;color:#777;padding:15px'>Tidak ada data</td></tr>";
+    $pesan_kosong = !empty($start_date) || !empty($end_date) ? "Tidak ada data pada rentang tanggal yang dipilih." : "Tidak ada data jurnal untuk ditampilkan.";
+    $html .= "<tr><td colspan='5' style='text-align:center;color:#777;padding:15px'>{$pesan_kosong}</td></tr>";
 }
 
 $html .= '
@@ -172,6 +212,7 @@ $html .= '
 </body>
 </html>';
 
+
 // --- CETAK PDF ---
 $options = new Options();
 $options->set('isHtml5ParserEnabled', true);
@@ -181,5 +222,6 @@ $dompdf->loadHtml($html);
 $dompdf->setPaper('A4', 'portrait');
 $dompdf->render();
 
-$dompdf->stream("Jurnal_Harian_PKL.pdf", ["Attachment" => false]);
+$filename = "Jurnal_Harian_" . str_replace(' ', '_', $nama_peserta_didik_header) . ".pdf";
+$dompdf->stream($filename, ["Attachment" => false]);
 exit;

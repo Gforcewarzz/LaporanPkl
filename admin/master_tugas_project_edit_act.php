@@ -1,31 +1,29 @@
 <?php
 session_start();
+ob_start(); // Mulai output buffering untuk mencegah error "headers already sent"
 include 'partials/db.php';
 
+// --- LOGIKA KEAMANAN & HAK AKSES ---
 $is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
 $is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
 
-if (!$is_siswa && !$is_admin) {
-
-    if ($is_guru) {
-        header('Location: ../halaman_guru.php'); // Redirect guru ke halaman guru
-        exit();
-    } else {
-        header('Location: ../login.php'); // Jika tidak login sama sekali, redirect ke halaman login
-        exit();
-    }
+// Jika tidak login sebagai salah satu dari peran yang diizinkan, redirect
+if (!$is_siswa && !$is_admin && !$is_guru) {
+    header('Location: ../login.php');
+    exit();
 }
+
 // Fungsi SweetAlert2 untuk notifikasi dan redirect
 function showAlertAndRedirect($icon, $title, $text, $redirectUrl)
 {
+    // Hapus semua output yang mungkin sudah ada
     ob_clean();
     echo <<<HTML
     <!DOCTYPE html>
     <html lang="id">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Notifikasi</title>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     </head>
@@ -35,13 +33,11 @@ function showAlertAndRedirect($icon, $title, $text, $redirectUrl)
                 Swal.fire({
                     icon: '{$icon}',
                     title: '{$title}',
-                    text: '{$text}',
+                    html: '{$text}', // Menggunakan 'html' agar bisa menampilkan baris baru
                     confirmButtonColor: '#696cff',
                     allowOutsideClick: false
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = '{$redirectUrl}';
-                    }
+                }).then(() => {
+                    window.location.href = '{$redirectUrl}';
                 });
             });
         </script>
@@ -52,85 +48,104 @@ HTML;
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Ambil data dari form
     $id_jurnal_kegiatan = $_POST['id_jurnal_kegiatan'] ?? null;
     $nama_pekerjaan = trim($_POST['nama_pekerjaan'] ?? '');
     $perencanaan_kegiatan = trim($_POST['perencanaan_kegiatan'] ?? '');
     $pelaksanaan_kegiatan = trim($_POST['pelaksanaan_kegiatan'] ?? '');
-    $catatan_instruktur = trim($_POST['catatan_instruktur'] ?? '');
-    $gambar_lama = $_POST['gambar_lama'] ?? null; // Nama gambar lama
-    $siswa_id_original = $_POST['siswa_id_original'] ?? null; // ID siswa pemilik laporan asli
-    $redirect_siswa_id = $_POST['redirect_siswa_id'] ?? null; // ID siswa untuk redirect admin
+    $catatan_instruktur = trim($_POST['catatan_instruktur'] ?? ''); // Boleh kosong
+    $gambar_lama = $_POST['gambar_lama'] ?? null;
+    $siswa_id_original = $_POST['siswa_id_original'] ?? null;
+    $redirect_siswa_id = $_POST['redirect_siswa_id'] ?? null;
 
-    $gambar_nama_file = $gambar_lama; // Default, gunakan gambar lama
-    $upload_dir = 'images/';
-
-    // Validasi ID laporan dan input wajib
-    if (empty($id_jurnal_kegiatan) || empty($nama_pekerjaan) || empty($perencanaan_kegiatan) || empty($pelaksanaan_kegiatan) || empty($siswa_id_original)) {
-        showAlertAndRedirect(
-            'error',
-            'Gagal Memperbarui',
-            'ID laporan, nama pekerjaan, perencanaan, pelaksanaan, dan ID siswa asli wajib diisi.',
-            'master_tugas_project_edit.php?id=' . htmlspecialchars($id_jurnal_kegiatan)
-        );
+    // --- VALIDASI INPUT WAJIB YANG SPESIFIK ---
+    $errors = [];
+    if (empty($nama_pekerjaan)) {
+        $errors[] = '&#8226; Nama Tugas / Aktivitas Utama wajib diisi.';
+    }
+    if (empty($perencanaan_kegiatan)) {
+        $errors[] = '&#8226; Perencanaan Kegiatan wajib diisi.';
+    }
+    if (empty($pelaksanaan_kegiatan)) {
+        $errors[] = '&#8226; Pelaksanaan Kegiatan wajib diisi.';
     }
 
-    // LOGIKA OTORISASI SEBELUM UPDATE
-    // Siswa hanya bisa mengedit laporan miliknya sendiri
-    if ($is_siswa && $siswa_id_original != ($_SESSION['id_siswa'] ?? null)) {
-        showAlertAndRedirect(
-            'error',
-            'Akses Ditolak',
-            'Anda tidak diizinkan mengedit laporan siswa lain.',
-            'master_tugas_project.php' // Kembali ke daftar laporan siswa
-        );
+    // Jika ditemukan error pada input
+    if (!empty($errors)) {
+        $error_message = "Mohon perbaiki kesalahan berikut:<br><br>" . implode("<br>", $errors);
+        showAlertAndRedirect('error', 'Gagal', $error_message, 'master_tugas_project_edit.php?id=' . htmlspecialchars($id_jurnal_kegiatan));
     }
 
-    // Penanganan Upload Gambar Baru
-    if (isset($_FILES['gambar_proyek']) && $_FILES['gambar_proyek']['error'] == UPLOAD_ERR_OK) {
-        $file_tmp = $_FILES['gambar_proyek']['tmp_name'];
-        $file_name = $_FILES['gambar_proyek']['name'];
-        $file_size = $_FILES['gambar_proyek']['size'];
-        $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+    // Validasi kritis untuk data tersembunyi dengan pesan detail
+    if (empty($id_jurnal_kegiatan) || empty($siswa_id_original)) {
+        $debug_message = "Terjadi kesalahan teknis:<br>";
+        if (empty($id_jurnal_kegiatan)) {
+            $debug_message .= "&#8226; ID Jurnal tidak terkirim dari form.<br>";
+        }
+        if (empty($siswa_id_original)) {
+            $debug_message .= "&#8226; ID Siswa asli tidak terkirim dari form.<br>";
+        }
+        $debug_message .= "Mohon kembali dan coba lagi.";
 
-        $allowed_extensions = array('jpg', 'jpeg', 'png', 'gif');
-        $max_file_size = 2 * 1024 * 1024; // 2 MB
+        showAlertAndRedirect('error', 'Data Tidak Lengkap', $debug_message, 'master_tugas_project.php');
+    }
 
-        if (!in_array($file_ext, $allowed_extensions)) {
-            showAlertAndRedirect(
-                'error',
-                'Gagal Upload Gambar',
-                'Ekstensi gambar tidak diizinkan. Hanya JPG, JPEG, PNG, GIF.',
-                'master_tugas_project_edit.php?id=' . htmlspecialchars($id_jurnal_kegiatan)
-            );
-        } elseif ($file_size > $max_file_size) {
-            showAlertAndRedirect(
-                'error',
-                'Gagal Upload Gambar',
-                'Ukuran gambar terlalu besar. Maksimal 2MB.',
-                'master_tugas_project_edit.php?id=' . htmlspecialchars($id_jurnal_kegiatan)
-            );
-        } else {
-            // Hapus gambar lama jika ada dan berhasil diupload gambar baru
-            if (!empty($gambar_lama) && file_exists($upload_dir . $gambar_lama)) {
-                unlink($upload_dir . $gambar_lama);
-            }
-            $new_file_name = uniqid('proyek_edit_', true) . '.' . $file_ext;
-            $destination_path = $upload_dir . $new_file_name;
-
-            if (move_uploaded_file($file_tmp, $destination_path)) {
-                $gambar_nama_file = $new_file_name;
-            } else {
-                showAlertAndRedirect(
-                    'error',
-                    'Gagal Upload Gambar',
-                    'Gagal memindahkan file gambar baru ke direktori penyimpanan.',
-                    'master_tugas_project_edit.php?id=' . htmlspecialchars($id_jurnal_kegiatan)
-                );
+    // --- LOGIKA OTORISASI SEBELUM UPDATE ---
+    $is_authorized = false;
+    if ($is_admin) {
+        $is_authorized = true;
+    } elseif ($is_siswa) {
+        if ($siswa_id_original == ($_SESSION['id_siswa'] ?? null)) {
+            $is_authorized = true;
+        }
+    } elseif ($is_guru) {
+        $guru_id_bimbingan = $_SESSION['id_guru_pendamping'] ?? null;
+        if ($guru_id_bimbingan !== null) {
+            $query_cek = "SELECT id_siswa FROM siswa WHERE id_siswa = ? AND pembimbing_id = ?";
+            $stmt_cek = $koneksi->prepare($query_cek);
+            if ($stmt_cek) {
+                $stmt_cek->bind_param("ii", $siswa_id_original, $guru_id_bimbingan);
+                $stmt_cek->execute();
+                $stmt_cek->store_result();
+                if ($stmt_cek->num_rows > 0) {
+                    $is_authorized = true;
+                }
+                $stmt_cek->close();
             }
         }
     }
 
-    // Siapkan query UPDATE menggunakan prepared statement
+    if (!$is_authorized) {
+        showAlertAndRedirect('error', 'Akses Ditolak', 'Anda tidak memiliki izin untuk mengubah laporan ini.', 'master_tugas_project.php');
+    }
+
+    // --- Penanganan Upload Gambar Baru ---
+    $gambar_nama_file = $gambar_lama;
+    $upload_dir = 'images/';
+    if (isset($_FILES['gambar_proyek']) && $_FILES['gambar_proyek']['error'] == UPLOAD_ERR_OK) {
+        $file_tmp = $_FILES['gambar_proyek']['tmp_name'];
+        $file_size = $_FILES['gambar_proyek']['size'];
+        $file_ext = strtolower(pathinfo($_FILES['gambar_proyek']['name'], PATHINFO_EXTENSION));
+        $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
+        $max_file_size = 2 * 1024 * 1024; // 2 MB
+
+        if (!in_array($file_ext, $allowed_extensions) || $file_size > $max_file_size) {
+            showAlertAndRedirect('error', 'Gagal Upload', 'Format gambar tidak valid atau ukuran melebihi 2MB.', 'master_tugas_project_edit.php?id=' . htmlspecialchars($id_jurnal_kegiatan));
+        }
+
+        if (!empty($gambar_lama) && file_exists($upload_dir . $gambar_lama)) {
+            unlink($upload_dir . $gambar_lama);
+        }
+
+        $new_file_name = uniqid('proyek_edit_', true) . '.' . $file_ext;
+        if (move_uploaded_file($file_tmp, $upload_dir . $new_file_name)) {
+            $gambar_nama_file = $new_file_name;
+        } else {
+            showAlertAndRedirect('error', 'Gagal Upload', 'Gagal memindahkan file gambar.', 'master_tugas_project_edit.php?id=' . htmlspecialchars($id_jurnal_kegiatan));
+        }
+    }
+
+    // --- PERSIAPAN QUERY UPDATE ---
     $sql = "UPDATE jurnal_kegiatan SET 
                 nama_pekerjaan = ?, 
                 perencanaan_kegiatan = ?, 
@@ -140,9 +155,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             WHERE id_jurnal_kegiatan = ? AND siswa_id = ?";
 
     $stmt = $koneksi->prepare($sql);
-
     if ($stmt) {
-        // Bind parameter: sssssii (5 string, 2 integer)
         $stmt->bind_param(
             "sssssii",
             $nama_pekerjaan,
@@ -151,52 +164,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $catatan_instruktur,
             $gambar_nama_file,
             $id_jurnal_kegiatan,
-            $siswa_id_original // Pastikan ini cocok dengan siswa_id di database untuk laporan ini
+            $siswa_id_original
         );
 
         if ($stmt->execute()) {
+            $status_type = 'success';
+            $title_swal = 'Berhasil!';
             $message_to_display = 'Laporan tugas proyek berhasil diperbarui!';
-            if ($stmt->affected_rows === 0) { // Jika tidak ada baris yang terpengaruh, mungkin tidak ada perubahan data
+            if ($stmt->affected_rows === 0) {
                 $status_type = 'info';
-                $title_swal = 'Tidak Ada Perubahan!';
-                $message_to_display = 'Tidak ada perubahan yang terdeteksi pada laporan.';
-            } else {
-                $status_type = 'success';
-                $title_swal = 'Berhasil!';
+                $title_swal = 'Informasi';
+                $message_to_display = 'Tidak ada perubahan data yang disimpan.';
             }
 
-            // Tentukan URL redirect setelah berhasil/info
-            $redirect_url_on_finish = 'master_tugas_project.php';
-            if ($is_admin && !empty($redirect_siswa_id)) { // Jika admin input untuk siswa spesifik
-                $redirect_url_on_finish .= '?siswa_id=' . htmlspecialchars($redirect_siswa_id);
-            }
-
-            showAlertAndRedirect(
-                $status_type,
-                $title_swal,
-                $message_to_display,
-                $redirect_url_on_finish
-            );
+            // --- PERUBAHAN DI SINI ---
+            // URL redirect sekarang tidak lagi menyertakan ?siswa_id=...
+            $redirect_url = 'master_tugas_project.php';
+            showAlertAndRedirect($status_type, $title_swal, $message_to_display, $redirect_url);
         } else {
-            showAlertAndRedirect(
-                'error',
-                'Gagal Menyimpan',
-                'Terjadi kesalahan saat menyimpan data ke database: ' . $stmt->error,
-                'master_tugas_project_edit.php?id=' . htmlspecialchars($id_jurnal_kegiatan)
-            );
+            showAlertAndRedirect('error', 'Gagal Menyimpan', 'Terjadi kesalahan saat menyimpan data: ' . $stmt->error, 'master_tugas_project_edit.php?id=' . htmlspecialchars($id_jurnal_kegiatan));
         }
         $stmt->close();
     } else {
-        showAlertAndRedirect(
-            'error',
-            'Gagal',
-            'Terjadi kesalahan pada persiapan query database: ' . $koneksi->error,
-            'master_tugas_project_edit.php?id=' . htmlspecialchars($id_jurnal_kegiatan)
-        );
+        showAlertAndRedirect('error', 'Gagal', 'Terjadi kesalahan pada persiapan query: ' . $koneksi->error, 'master_tugas_project_edit.php?id=' . htmlspecialchars($id_jurnal_kegiatan));
     }
-
     $koneksi->close();
 } else {
-    header("Location: master_tugas_project.php"); // Jika tidak diakses melalui POST
+    header("Location: master_tugas_project.php");
     exit();
 }
+ob_end_flush(); // Kirim output buffer ke browser

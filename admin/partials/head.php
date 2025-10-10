@@ -31,7 +31,7 @@ if (session_status() == PHP_SESSION_NONE) {
     <link rel="stylesheet" href="./assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
 
     <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.css" />
-
+    <link rel="stylesheet" type="text.css" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">
     <link rel="stylesheet" href="./assets/vendor/libs/apex-charts/apex-charts.css" />
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">

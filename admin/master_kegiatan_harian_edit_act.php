@@ -1,108 +1,95 @@
 <?php
 session_start();
+ob_start(); // Memulai output buffering untuk mengatasi masalah header
+date_default_timezone_set('Asia/Jakarta');
+
 include 'partials/db.php';
 
+// --- FUNGSI & KEAMANAN ---
 $is_siswa = isset($_SESSION['siswa_status_login']) && $_SESSION['siswa_status_login'] === 'logged_in';
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
-$is_guru  = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
 
-// akses hanya siswa & admin
+// Akses hanya untuk siswa & admin
 if (!$is_siswa && !$is_admin) {
-    if ($is_guru) {
-        header('Location: ../halaman_guru.php');
-    } else {
-        header('Location: ../login.php');
-    }
+    header('Location: ../login.php');
     exit();
 }
 
-// fungsi helper swal2
-function showAlertAndRedirect($icon, $title, $text, $redirectUrl)
+// Fungsi notifikasi menggunakan Session yang lebih andal
+function setAlertAndRedirect($icon, $title, $text, $redirectUrl)
 {
-    ob_clean();
-    echo <<<HTML
-    <!DOCTYPE html>
-    <html lang="id">
-    <head>
-        <meta charset="UTF-8">
-        <title>Notifikasi</title>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-    </head>
-    <body>
-        <script>
-        Swal.fire({
-            icon: '{$icon}',
-            title: '{$title}',
-            text: '{$text}',
-            confirmButtonColor: '#696cff',
-            allowOutsideClick: false,
-            showClass: { popup: 'animate__animated animate__fadeInDown animate__faster' },
-            hideClass: { popup: 'animate__animated animate__fadeOutUp animate__faster' }
-        }).then(() => { window.location.href = '{$redirectUrl}'; });
-        </script>
-    </body>
-    </html>
-HTML;
+    // Simpan pesan ke session
+    $_SESSION['alert_message'] = $text;
+    $_SESSION['alert_type'] = $icon;
+    $_SESSION['alert_title'] = $title;
+    // Lakukan redirect
+    header("Location: " . $redirectUrl);
     exit();
 }
 
-// ambil data dari form
-$id_jurnal_harian   = $_POST['id_jurnal_harian'] ?? null;
-$tanggal            = $_POST['tanggal'] ?? '';
-$pekerjaan          = trim($_POST['pekerjaan'] ?? '');
-$catatan            = trim($_POST['catatan'] ?? ''); // opsional
-$siswa_id_original  = $_POST['siswa_id_original'] ?? null;
-$redirect_siswa_id  = $_POST['redirect_siswa_id'] ?? null;
+// 1. Ambil semua data dari form
+$id_jurnal_harian = $_POST['id_jurnal_harian'] ?? null;
+$tanggal          = $_POST['tanggal'] ?? '';
+$pekerjaan        = trim($_POST['pekerjaan'] ?? '');
+$catatan          = trim($_POST['catatan'] ?? ''); // Catatan bersifat opsional
+$siswa_id_original = $_POST['siswa_id_original'] ?? null;
 
-// validasi data wajib
+// URL untuk redirect jika terjadi error, agar tidak kehilangan ID
+$redirect_url_on_error = 'master_kegiatan_harian_edit.php?id=' . urlencode($id_jurnal_harian);
+
+// 2. [PERBAIKAN] Validasi hanya untuk data wajib. 'catatan' tidak ikut divalidasi.
 if (empty($id_jurnal_harian) || empty($tanggal) || empty($pekerjaan) || empty($siswa_id_original)) {
-    $redirect_url = 'master_kegiatan_harian_edit.php?id=' . urlencode($id_jurnal_harian);
-    showAlertAndRedirect('error', 'Input Tidak Lengkap!', 'ID laporan, tanggal, pekerjaan, dan ID siswa wajib diisi.', $redirect_url);
+    setAlertAndRedirect('error', 'Gagal!', 'Terjadi kesalahan. Data wajib tidak boleh kosong.', $redirect_url_on_error);
 }
 
-// otorisasi
+// 3. Otorisasi: Siswa hanya boleh mengedit laporannya sendiri
 if ($is_siswa && $siswa_id_original != ($_SESSION['id_siswa'] ?? null)) {
-    showAlertAndRedirect('error', 'Akses Ditolak', 'Anda tidak diizinkan mengedit laporan siswa lain.', 'master_kegiatan_harian.php');
+    setAlertAndRedirect('error', 'Akses Ditolak', 'Anda tidak diizinkan mengedit laporan ini.', 'master_kegiatan_harian.php');
 }
 
-// jika catatan kosong → set NULL
-$catatan_for_db = ($catatan === '') ? null : htmlspecialchars($catatan);
+// 4. Cek duplikasi jika tanggal diubah
+// Query ini akan mencari apakah ada laporan LAIN (id_jurnal_harian != ?) 
+// yang dimiliki siswa yang sama pada tanggal yang baru.
+$stmt_check = $koneksi->prepare("SELECT id_jurnal_harian FROM jurnal_harian WHERE siswa_id = ? AND tanggal = ? AND id_jurnal_harian != ?");
+$stmt_check->bind_param("isi", $siswa_id_original, $tanggal, $id_jurnal_harian);
+$stmt_check->execute();
+$stmt_check->store_result();
 
-// update query
-$query = "UPDATE jurnal_harian 
-          SET tanggal = ?, pekerjaan = ?, catatan = ? 
-          WHERE id_jurnal_harian = ? AND siswa_id = ?";
-$stmt  = $koneksi->prepare($query);
+if ($stmt_check->num_rows > 0) {
+    $stmt_check->close();
+    setAlertAndRedirect('warning', 'Gagal Update!', 'Sudah ada laporan lain di tanggal yang Anda pilih.', $redirect_url_on_error);
+}
+$stmt_check->close();
 
-if ($stmt) {
-    $stmt->bind_param("sssii", $tanggal, $pekerjaan, $catatan_for_db, $id_jurnal_harian, $siswa_id_original);
+// 5. Jika semua validasi lolos, lanjutkan proses UPDATE ke database
+$stmt_update = $koneksi->prepare("UPDATE jurnal_harian SET tanggal = ?, pekerjaan = ?, catatan = ? WHERE id_jurnal_harian = ? AND siswa_id = ?");
 
-    if ($stmt->execute()) {
-        if ($stmt->affected_rows === 0) {
-            $status  = 'info';
-            $title   = 'Tidak Ada Perubahan!';
-            $message = 'Data sama, tidak ada perubahan yang tersimpan.';
+if ($stmt_update) {
+    // Jika catatan kosong, simpan sebagai NULL di database
+    $catatan_db = !empty($catatan) ? $catatan : NULL;
+
+    $stmt_update->bind_param("sssii", $tanggal, $pekerjaan, $catatan_db, $id_jurnal_harian, $siswa_id_original);
+
+    if ($stmt_update->execute()) {
+        $redirect_url_success = 'master_kegiatan_harian.php';
+        if ($is_admin) {
+            // Arahkan admin kembali ke daftar jurnal siswa yang bersangkutan
+            $redirect_url_success .= '?siswa_id=' . urlencode($siswa_id_original);
+        }
+
+        // Cek apakah ada baris yang benar-benar berubah
+        if ($stmt_update->affected_rows > 0) {
+            setAlertAndRedirect('success', 'Berhasil!', 'Laporan harian berhasil diperbarui.', $redirect_url_success);
         } else {
-            $status  = 'success';
-            $title   = 'Berhasil!';
-            $message = 'Laporan harian berhasil diperbarui!';
+            setAlertAndRedirect('info', 'Tidak Ada Perubahan', 'Tidak ada data yang diubah dari sebelumnya.', $redirect_url_success);
         }
-
-        $redirect_url = 'master_kegiatan_harian.php';
-        if ($is_admin && !empty($redirect_siswa_id)) {
-            $redirect_url .= '?siswa_id=' . urlencode($redirect_siswa_id);
-        }
-
-        showAlertAndRedirect($status, $title, $message, $redirect_url);
     } else {
-        $redirect_url = 'master_kegiatan_harian_edit.php?id=' . urlencode($id_jurnal_harian);
-        showAlertAndRedirect('error', 'Gagal Menyimpan', 'Kesalahan saat update: ' . $stmt->error, $redirect_url);
+        setAlertAndRedirect('error', 'Gagal Menyimpan', 'Terjadi kesalahan pada database saat update.', $redirect_url_on_error);
     }
-    $stmt->close();
+    $stmt_update->close();
 } else {
-    $redirect_url = 'master_kegiatan_harian_edit.php?id=' . urlencode($id_jurnal_harian);
-    showAlertAndRedirect('error', 'Gagal', 'Kesalahan query: ' . $koneksi->error, $redirect_url);
+    setAlertAndRedirect('error', 'Server Error', 'Gagal mempersiapkan query database.', $redirect_url_on_error);
 }
 
 $koneksi->close();
+ob_end_flush(); // Mengakhiri dan mengirim output buffer

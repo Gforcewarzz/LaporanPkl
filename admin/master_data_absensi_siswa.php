@@ -1,6 +1,6 @@
 <?php
 session_start();
-date_default_timezone_set('Asia/Jakarta'); // Ensure timezone is set for date functions
+date_default_timezone_set('Asia/Jakarta');
 
 $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_login'] === 'logged_in';
 $is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
@@ -17,16 +17,13 @@ $limit = 10;
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
-// Filter untuk tabel tampilan (sekarang bisa rentang tanggal untuk semua role)
-// Default filter_tanggal_mulai set to July 14, 2025
 $filter_tanggal_mulai = $_GET['tanggal_mulai'] ?? '2025-07-14';
-$filter_tanggal_akhir = $_GET['tanggal_akhir'] ?? date('Y-m-d');  // Filter universal untuk tabel, defaults to current date
-$filter_status = $_GET['status'] ?? 'Semua';                    // Filter universal untuk tabel
-$keyword = $_GET['keyword'] ?? '';                               // Filter universal untuk tabel
-$kelas_filter_tabel = $_GET['kelas_tabel'] ?? '';              // Filter universal untuk tabel (Admin Only)
+$filter_tanggal_akhir = $_GET['tanggal_akhir'] ?? date('Y-m-d');
+$filter_status = $_GET['status'] ?? 'Semua';
+$keyword = $_GET['keyword'] ?? '';
+$kelas_filter_tabel = $_GET['kelas_tabel'] ?? '';
 
-
-// Ambil daftar kelas untuk dropdown filter (hanya jika Admin)
+// Ambil daftar kelas (hanya untuk admin)
 $list_kelas = [];
 if ($is_admin) {
     $query_kelas = "SELECT DISTINCT kelas FROM siswa ORDER BY kelas ASC";
@@ -39,138 +36,132 @@ if ($is_admin) {
     }
 }
 
-// =========================================================================
-// LOGIKA FILTER PHP UNTUK QUERY UTAMA DAN COUNT (Diperbarui untuk Universal Filter)
-// =========================================================================
-$teacher_condition_sql = "";
-$teacher_params = [];
-$teacher_types = '';
+// === BUILD WHERE CLAUSE BERDASARKAN ROLE ===
+$where_conditions = ["(s.status = 'Aktif' OR s.status = 'Selesai')"];
+$params = [$filter_tanggal_mulai, $filter_tanggal_akhir];
+$types = "ss";
 
-// Filter peran dasar (siswa melihat diri sendiri, guru melihat bimbingan)
+// Filter berdasarkan role
 if ($is_siswa) {
-    $loggedInUserId = $_SESSION['id_siswa'] ?? null;
-    if ($loggedInUserId) {
-        $teacher_condition_sql = " AND s.id_siswa = ?";
-        $teacher_params[] = $loggedInUserId;
-        $teacher_types = 'i';
-    }
+    $siswa_id = $_SESSION['id_siswa'] ?? 0;
+    $where_conditions[] = "s.id_siswa = ?";
+    $params[] = $siswa_id;
+    $types .= "i";
 } elseif ($is_guru) {
-    $loggedInGuruId = $_SESSION['id_guru_pendamping'] ?? null;
+    $guru_id = $_SESSION['id_guru_pendamping'] ?? null;
     $param_pembimbing_id = $_GET['pembimbing_id'] ?? null;
-
-    if ($param_pembimbing_id !== null) {
-        $teacher_condition_sql = " AND s.pembimbing_id = ?";
-        $teacher_params[] = $param_pembimbing_id;
-        $teacher_types = 'i';
-    } elseif ($loggedInGuruId !== null) {
-        $teacher_condition_sql = " AND s.pembimbing_id = ?";
-        $teacher_params[] = $loggedInGuruId;
-        $teacher_types = 'i';
+    $target_guru_id = $param_pembimbing_id ?? $guru_id;
+    if ($target_guru_id) {
+        $where_conditions[] = "s.pembimbing_id = ?";
+        $params[] = $target_guru_id;
+        $types .= "i";
     }
 }
 
-$base_query_sql_abs = "
-    SELECT
-        s.id_siswa, s.nama_siswa, s.kelas, s.no_induk, s.nisn,
-        j.nama_jurusan, tp.nama_tempat_pkl, as_abs.id_absensi,
-        COALESCE(as_abs.status_absen, 'Alfa') AS status_absensi_hari_ini,
-        as_abs.bukti_foto, as_abs.waktu_input,
-        as_abs.jam_datang, as_abs.jam_pulang,
-        as_abs.tanggal_absen,
-        as_abs.keterangan 
-    FROM
-        siswa s
-    LEFT JOIN absensi_siswa as_abs ON s.id_siswa = as_abs.siswa_id AND as_abs.tanggal_absen BETWEEN ? AND ?
-    LEFT JOIN jurusan j ON s.jurusan_id = j.id_jurusan
-    LEFT JOIN tempat_pkl tp ON s.tempat_pkl_id = tp.id_tempat_pkl
-    WHERE s.status = 'Aktif'
-    {$teacher_condition_sql}
-";
-
-// Parameters for both count and main query, built universally
-$common_params = array_merge([$filter_tanggal_mulai, $filter_tanggal_akhir], $teacher_params);
-$common_types = 'ss' . $teacher_types;
-
-// Filter Universal (Status, Keyword, Kelas) - Diterapkan jika BUKAN SISWA
+// Filter tambahan (hanya untuk non-siswa)
 if (!$is_siswa) {
-    // Filter Status
-    if ($filter_status !== 'Semua') {
-        $base_query_sql_abs .= " AND COALESCE(as_abs.status_absen, 'Alfa') = ?";
-        $common_params[] = $filter_status;
-        $common_types .= 's';
-    }
-
-    // Filter Keyword
     if (!empty($keyword)) {
         $like_keyword = "%" . $keyword . "%";
         $search_columns = ['s.nama_siswa', 's.no_induk', 's.nisn', 's.kelas', 'j.nama_jurusan', 'tp.nama_tempat_pkl'];
         $search_conditions = [];
         foreach ($search_columns as $col) {
             $search_conditions[] = "$col LIKE ?";
-            $common_params[] = $like_keyword;
-            $common_types .= 's';
+            $params[] = $like_keyword;
+            $types .= 's';
         }
-        if (strpos($base_query_sql_abs, 'HAVING') !== false) {
-            $base_query_sql_abs .= " AND (" . implode(" OR ", $search_conditions) . ")";
-        } else {
-            $base_query_sql_abs .= " AND (" . implode(" OR ", $search_conditions) . ")";
-        }
+        $where_conditions[] = "(" . implode(" OR ", $search_conditions) . ")";
     }
-
-    // Filter Kelas (hanya Admin)
     if ($is_admin && !empty($kelas_filter_tabel)) {
-        $base_query_sql_abs .= " AND s.kelas = ?";
-        $common_params[] = $kelas_filter_tabel;
-        $common_types .= 's';
+        $where_conditions[] = "s.kelas = ?";
+        $params[] = $kelas_filter_tabel;
+        $types .= 's';
     }
 }
 
+$where_sql = implode(" AND ", $where_conditions);
 
-// Query untuk menghitung total data
-$final_count_query_full = "SELECT COUNT(*) AS total_data FROM (" . $base_query_sql_abs . ") AS subquery_filtered";
-$stmt_count = $koneksi->prepare($final_count_query_full);
+// === QUERY UTAMA: LEFT JOIN + LOGIKA ALFA YANG BENAR ===
+$base_query_sql_abs = "
+    SELECT
+        s.id_siswa, s.nama_siswa, s.kelas, s.no_induk, s.nisn,
+        j.nama_jurusan, tp.nama_tempat_pkl, as_abs.id_absensi,
+        CASE
+            WHEN s.status = 'Selesai' AND ? < s.tanggal_selesai_pkl THEN NULL
+            WHEN s.status = 'Selesai' AND ? > s.tanggal_selesai_pkl THEN NULL
+            WHEN as_abs.status_absen IS NULL THEN 'Alfa'
+            ELSE as_abs.status_absen
+        END AS status_absensi_hari_ini,
+        as_abs.bukti_foto, as_abs.waktu_input,
+        as_abs.jam_datang, as_abs.jam_pulang,
+        as_abs.tanggal_absen,
+        as_abs.keterangan 
+    FROM
+        siswa s
+    LEFT JOIN absensi_siswa as_abs 
+        ON s.id_siswa = as_abs.siswa_id 
+        AND as_abs.tanggal_absen BETWEEN ? AND ?
+    LEFT JOIN jurusan j ON s.jurusan_id = j.id_jurusan
+    LEFT JOIN tempat_pkl tp ON s.tempat_pkl_id = tp.id_tempat_pkl
+    WHERE $where_sql
+";
 
+// Parameter: tanggal mulai & akhir (2x untuk CASE)
+$final_params = array_merge([$filter_tanggal_mulai, $filter_tanggal_akhir], $params);
+$final_types = "ss" . $types;
+
+// Filter status (abaikan NULL dari CASE)
+if (!$is_siswa && $filter_status !== 'Semua') {
+    $base_query_sql_abs = "
+        SELECT * FROM (
+            $base_query_sql_abs
+        ) AS filtered
+        WHERE filtered.status_absensi_hari_ini = ?
+    ";
+    $final_params[] = $filter_status;
+    $final_types .= 's';
+}
+
+// Query count
+$count_query = "SELECT COUNT(*) AS total_data FROM ($base_query_sql_abs) AS counted";
+$stmt_count = $koneksi->prepare($count_query);
 if ($stmt_count === false) {
     die("Error preparing count query: " . $koneksi->error);
 }
-if (!empty($common_params)) {
-    $bind_args_count = [];
-    $bind_args_count[] = $common_types;
-    foreach ($common_params as &$param) {
-        $bind_args_count[] = &$param;
-    }
-    call_user_func_array([$stmt_count, 'bind_param'], $bind_args_count);
+
+$bind_args_count = [$final_types];
+foreach ($final_params as &$param) {
+    $bind_args_count[] = &$param;
 }
+call_user_func_array([$stmt_count, 'bind_param'], $bind_args_count);
+
 $stmt_count->execute();
 $count_result = $stmt_count->get_result();
 $total_data = $count_result->fetch_assoc()['total_data'];
 $total_pages = ceil($total_data / $limit);
 $stmt_count->close();
 
+// Query data
+$data_query = "$base_query_sql_abs ORDER BY as_abs.tanggal_absen DESC, s.kelas ASC, s.nama_siswa ASC LIMIT ? OFFSET ?";
+$data_params = array_merge($final_params, [$limit, $offset]);
+$data_types = $final_types . 'ii';
 
-// Query untuk mengambil data per halaman
-$query_sql = $base_query_sql_abs . " ORDER BY as_abs.tanggal_absen DESC, s.kelas ASC, s.nama_siswa ASC LIMIT ? OFFSET ?";
-$data_params_final = array_merge($common_params, [&$limit, &$offset]);
-$data_types_final = $common_types . 'ii';
-
-$stmt_data = $koneksi->prepare($query_sql);
+$stmt_data = $koneksi->prepare($data_query);
 if ($stmt_data === false) {
     die("Error preparing data query: " . $koneksi->error);
 }
-if (!empty($data_params_final)) {
-    $bind_args_data = [];
-    $bind_args_data[] = $data_types_final;
-    foreach ($data_params_final as &$param) {
-        $bind_args_data[] = &$param;
-    }
-    call_user_func_array([$stmt_data, 'bind_param'], $bind_args_data);
+
+$bind_args_data = [$data_types];
+foreach ($data_params as &$param) {
+    $bind_args_data[] = &$param;
 }
+call_user_func_array([$stmt_data, 'bind_param'], $bind_args_data);
+
 $stmt_data->execute();
 $result_absensi = $stmt_data->get_result();
 $stmt_data->close();
 $koneksi->close();
-
 ?>
+
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="./assets/"
     data-template="vertical-menu-template-free">
@@ -226,23 +217,6 @@ $koneksi->close();
                                             value="<?= htmlspecialchars($filter_tanggal_akhir) ?>" readonly>
                                     </div>
                                     <?php if (!$is_siswa): ?>
-                                        <div class="col-md-4 col-lg-3">
-                                            <label for="statusFilterPdf" class="form-label">Filter Status (PDF):</label>
-                                            <select id="statusFilterPdf" name="status" class="form-select">
-                                                <option value="Semua" <?= $filter_status == 'Semua' ? 'selected' : '' ?>>
-                                                    Semua Status</option>
-                                                <option value="Hadir" <?= $filter_status == 'Hadir' ? 'selected' : '' ?>>
-                                                    Hadir</option>
-                                                <option value="Sakit" <?= $filter_status == 'Sakit' ? 'selected' : '' ?>>
-                                                    Sakit</option>
-                                                <option value="Izin" <?= $filter_status == 'Izin' ? 'selected' : '' ?>>Izin
-                                                </option>
-                                                <option value="Libur" <?= $filter_status == 'Libur' ? 'selected' : '' ?>>
-                                                    Libur</option>
-                                                <option value="Alfa" <?= $filter_status == 'Alfa' ? 'selected' : '' ?>>Alfa
-                                                </option>
-                                            </select>
-                                        </div>
                                         <?php if ($is_admin): ?>
                                             <div class="col-md-4 col-lg-3">
                                                 <label for="kelasPdfFilter" class="form-label">Filter Kelas (PDF):</label>
@@ -431,7 +405,7 @@ $koneksi->close();
                                                         default => 'bg-label-secondary',
                                                     };
                                                     $keterangan_display_for_column = !empty($row['keterangan']) ? htmlspecialchars($row['keterangan']) : '-';
-                                                    $status_absen_display_table = htmlspecialchars($row['status_absensi_hari_ini']);
+                                                    $status_absen_display_table = htmlspecialchars($row['status_absensi_hari_ini'] ?? 'N/A');
                                                     $bukti_foto_display = !empty($row['bukti_foto']) ? "<a href='#' class='badge bg-primary view-image-btn' data-bs-toggle='modal' data-bs-target='#viewImageModal' data-image-url='image_absensi/" . htmlspecialchars($row['bukti_foto']) . "'><i class='bx bx-image'></i> Lihat</a>" : '-';
                                                     $jam_datang_display_table = !empty($row['jam_datang']) ? date('H:i', strtotime($row['jam_datang'])) : '-';
                                                     $jam_pulang_display_table = !empty($row['jam_pulang']) ? date('H:i', strtotime($row['jam_pulang'])) : '-';
@@ -441,7 +415,7 @@ $koneksi->close();
                                                         <?php if ($is_admin || $is_guru): ?>
                                                             <td><strong><?= htmlspecialchars($row['nama_siswa']) ?></strong></td>
                                                             <td><?= htmlspecialchars($row['kelas']) ?></td>
-                                                            <td><?= htmlspecialchars($row['nama_jurusan'] ?? '-') ?></td>
+                                                            <td><?= htmlspecialchars($row['nama_jurusan'] ?: '-') ?></td>
                                                             <td><?= htmlspecialchars($row['nama_tempat_pkl'] ?? '-') ?></td>
                                                         <?php endif; ?>
                                                         <td>
@@ -588,8 +562,8 @@ $koneksi->close();
                                                                 <?= htmlspecialchars($row_mobile['kelas']) ?></small></p>
                                                         <p class="card-text mb-1"><small class="text-muted"><i
                                                                     class="bx bx-book-open me-1"></i> Jurusan:
-                                                                <?= htmlspecialchars($row_mobile['nama_jurusan'] ?? '-') ?></small>
-                                                        </p>
+                                                                <?= htmlspecialchars($row_mobile['nama_jurusan'] ?: '-') ?>
+                                                            </small></p>
                                                         <p class="card-text mb-1"><small class="text-muted"><i
                                                                     class="bx bx-map-pin me-1"></i> Tempat PKL:
                                                                 <?= htmlspecialchars($row_mobile['nama_tempat_pkl'] ?? '-') ?></small>

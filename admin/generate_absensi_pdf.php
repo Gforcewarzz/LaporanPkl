@@ -22,8 +22,9 @@ function tgl_id($dateYmd)
     $y = date('Y', $ts);
     return $hari[$h] . ', ' . $d . ' ' . $bulan[$m] . ' ' . $y;
 }
+
 function tgl_id_nama($dateYmd)
-{ // tanpa nama hari
+{
     static $bulan = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     $ts = strtotime($dateYmd);
     if ($ts === false) return htmlspecialchars($dateYmd);
@@ -32,6 +33,7 @@ function tgl_id_nama($dateYmd)
     $y = date('Y', $ts);
     return $d . ' ' . $bulan[$m] . ' ' . $y;
 }
+
 function fmt_jam($val)
 {
     $val = trim((string)($val ?? ''));
@@ -116,7 +118,7 @@ if ($is_detailed_report && $filter_status !== 'Semua' && !empty($filter_status))
     $query_types    .= 's';
 }
 
-/* Filter kelas (admin) mempengaruhi query detail & juga set siswa target rekap */
+/* Filter kelas (admin) */
 if ($is_admin && !empty($kelas_filter_pdf)) {
     $where_clauses[] = 's.kelas = ?';
     $query_params[]  = &$kelas_filter_pdf;
@@ -162,7 +164,78 @@ $result = $stmt->get_result();
 $absensi_data = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-/* ========== Data rekap untuk Admin/Guru (tanpa siswa spesifik) ========== */
+/* ========== CARI TANGGAL SELESAI DARI TABEL SISWA ========== */
+$selesai_pkl_map = []; // siswa_id => tanggal_selesai_pkl
+
+$selesai_where_clauses = [];
+$selesai_query_params = [];
+$selesai_query_types = "";
+
+if ($is_siswa) {
+    $selesai_where_clauses[] = 's.id_siswa = ?';
+    $selesai_query_params[] = &$final_filter_siswa_id;
+    $selesai_query_types .= 'i';
+} elseif ($is_guru) {
+    if ($final_filter_pembimbing_id !== null) {
+        $selesai_where_clauses[] = 's.pembimbing_id = ?';
+        $selesai_query_params[] = &$final_filter_pembimbing_id;
+        $selesai_query_types .= 'i';
+    }
+    if ($final_filter_siswa_id !== null) {
+        $selesai_where_clauses[] = 's.id_siswa = ?';
+        $selesai_query_params[] = &$final_filter_siswa_id;
+        $selesai_query_types .= 'i';
+    }
+} elseif ($is_admin) {
+    if ($final_filter_pembimbing_id !== null) {
+        $selesai_where_clauses[] = 's.pembimbing_id = ?';
+        $selesai_query_params[] = &$final_filter_pembimbing_id;
+        $selesai_query_types .= 'i';
+    }
+    if ($final_filter_siswa_id !== null) {
+        $selesai_where_clauses[] = 's.id_siswa = ?';
+        $selesai_query_params[] = &$final_filter_siswa_id;
+        $selesai_query_types .= 'i';
+    }
+    if (!empty($kelas_filter_pdf)) {
+        $selesai_where_clauses[] = 's.kelas = ?';
+        $selesai_query_params[] = &$kelas_filter_pdf;
+        $selesai_query_types .= 's';
+    }
+}
+
+$selesai_filter_sql = !empty($selesai_where_clauses) ? " WHERE " . implode(" AND ", $selesai_where_clauses) : "";
+
+$selesai_query_sql = "
+    SELECT 
+        s.id_siswa,
+        s.tanggal_selesai_pkl
+    FROM siswa s
+    $selesai_filter_sql
+";
+
+$stmt_selesai = $koneksi->prepare($selesai_query_sql);
+if ($stmt_selesai === false) {
+    die("Gagal menyiapkan query tanggal selesai: " . $koneksi->error);
+}
+
+if (!empty($selesai_query_params)) {
+    $selesai_bind_args = [];
+    $selesai_bind_args[] = $selesai_query_types;
+    foreach ($selesai_query_params as $k => $v) {
+        $selesai_bind_args[] = &$selesai_query_params[$k];
+    }
+    call_user_func_array([$stmt_selesai, 'bind_param'], $selesai_bind_args);
+}
+
+$stmt_selesai->execute();
+$result_selesai = $stmt_selesai->get_result();
+while ($row = $result_selesai->fetch_assoc()) {
+    $selesai_pkl_map[$row['id_siswa']] = $row['tanggal_selesai_pkl']; // bisa null
+}
+$stmt_selesai->close();
+
+/* ========== Data rekap untuk Admin/Guru ========== */
 $all_relevant_students = [];
 if ($generate_recap_report) {
     $siswa_where = [];
@@ -207,16 +280,15 @@ if ($generate_recap_report) {
     $stmt_siswa->close();
 }
 
-/* Masih butuh koneksi? Tidak. */
 $koneksi->close();
 
-/* Map absensi per siswa per tanggal (untuk rekap) */
+/* ========== Bangun map absensi per siswa per tanggal ========== */
 $absensi_per_siswa_tanggal = [];
 foreach ($absensi_data as $rec) {
     $absensi_per_siswa_tanggal[$rec['id_siswa']][$rec['tanggal_absen']] = $rec['status_absen'];
 }
 
-/* Tanggal terakhir absen untuk TTD */
+/* ========== Tanggal terakhir absen untuk TTD ========== */
 $tanggal_terakhir_absen = null;
 foreach ($absensi_data as $row) {
     if (!$tanggal_terakhir_absen || $row['tanggal_absen'] > $tanggal_terakhir_absen) {
@@ -243,14 +315,12 @@ body { font-family: Arial, sans-serif; font-size: 10pt; margin: 15mm; color: #33
 .school-info { text-align: center; font-size: 12pt; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
 .report-period { text-align: center; font-size: 11pt; margin-bottom: 20px; }
 
-/* Identitas siswa (detail mode): rata kiri, tanpa kotak */
 .student-info { font-size: 10pt; margin-bottom: 15px; line-height: 1.6; }
 .student-info table { width: 100%; border-collapse: collapse; }
 .student-info td { border: none !important; padding: 2px 0; vertical-align: top; }
 .student-info td:first-child { width: 170px; font-weight: bold; text-align: left; }
 .student-info td:last-child { text-align: left; }
 
-/* Tabel absensi & rekap */
 table.attendance, table.recap { width: 100%; border-collapse: collapse; margin-top: 15px; }
 table.attendance th, table.attendance td,
 table.recap th, table.recap td { border: 1px solid #333; padding: 8px; text-align: center; font-size: 9.5pt; }
@@ -269,7 +339,6 @@ table.attendance th, table.recap th { background-color: #e0e0e0; font-weight: bo
 
 /* ===== BODY ===== */
 if ($generate_recap_report) {
-    /* ===== MODE REKAP (Admin/Guru tanpa pilih siswa) ===== */
     if (empty($all_relevant_students)) {
         $html .= '<p style="text-align:center;">Tidak ada data rekapitulasi untuk ditampilkan.</p>';
     } else {
@@ -295,17 +364,31 @@ if ($generate_recap_report) {
         foreach ($all_relevant_students as $s) {
             $sid = $s['id_siswa'];
             $mulai_ts_siswa = !empty($s['tanggal_mulai_pkl']) ? strtotime($s['tanggal_mulai_pkl']) : $start_ts;
+            $tanggal_selesai_siswa = $selesai_pkl_map[$sid] ?? null;
+            $selesai_ts_siswa = $tanggal_selesai_siswa ? strtotime($tanggal_selesai_siswa) : null;
 
             $rekap = ['Hadir' => 0, 'Sakit' => 0, 'Izin' => 0, 'Libur' => 0, 'Alfa' => 0];
 
             for ($i = $start_ts; $i <= $end_ts; $i = strtotime('+1 day', $i)) {
                 $dow = (int)date('N', $i);
-                if ($i < $mulai_ts_siswa) continue;
-                if ($dow >= 1 && $dow <= 5) { // kerja: Senin-Jumat
-                    $tgl = date('Y-m-d', $i);
+                $current_ts = $i;
+                $tgl = date('Y-m-d', $i);
+
+                // Lewati jika sebelum mulai PKL
+                if ($current_ts < $mulai_ts_siswa) continue;
+
+                // ✅ INI PERBAIKAN UTAMA: Lewati jika sudah selesai PKL
+                if ($selesai_ts_siswa !== null && $current_ts > $selesai_ts_siswa) {
+                    continue;
+                }
+
+                if ($dow >= 1 && $dow <= 5) { // Senin-Jumat
                     if (isset($absensi_per_siswa_tanggal[$sid][$tgl])) {
                         $st = $absensi_per_siswa_tanggal[$sid][$tgl];
-                        if (isset($rekap[$st])) $rekap[$st]++;
+                        if (isset($rekap[$st])) {
+                            $rekap[$st]++;
+                        }
+                        // Jika status tidak dikenali, abaikan (tapi biasanya tidak terjadi)
                     } else {
                         $rekap['Alfa']++;
                     }
@@ -327,7 +410,6 @@ if ($generate_recap_report) {
         $html .= '</tbody></table>';
     }
 } else {
-    /* ===== MODE DETAIL (Siswa / pilih 1 siswa) ===== */
     if (empty($absensi_data)) {
         $html .= '<p style="text-align:center;">Tidak ada data absensi untuk ditampilkan.</p>';
     } else {
@@ -363,13 +445,12 @@ if ($generate_recap_report) {
             if (strcasecmp($status, 'Hadir') === 0) {
                 if ($jamDatang === '') $jamDatang = '-';
                 if ($jamPulang === '') $jamPulang = '-';
-                $ket = 'Hadir'; // <-- selalu "Hadir"
+                $ket = 'Hadir';
             } else {
                 $jamDatang = '-';
                 $jamPulang = '-';
-                $ket = ($status === '') ? '-' : $status; // Sakit/Izin/Libur/Alfa tetap sesuai status
+                $ket = ($status === '') ? '-' : $status;
             }
-
 
             $html .= '<tr>
                 <td>' . $no++ . '</td>
