@@ -14,10 +14,10 @@ if (!$is_admin && !$is_guru) die("Akses ditolak.");
 $siswa_id = isset($_GET['siswa_id']) ? (int)$_GET['siswa_id'] : 0;
 if ($siswa_id === 0) die("ID Siswa tidak valid.");
 
-// Query untuk mengambil semua data siswa yang dibutuhkan
+// --- PERUBAHAN 1: Ambil kolom tanggal_selesai_pkl dari tabel siswa ---
 $query_detail = "
     SELECT 
-        s.nama_siswa, s.nisn, s.kelas,
+        s.nama_siswa, s.nisn, s.kelas, s.tanggal_selesai_pkl,
         j.nama_jurusan,
         j.prodi,
         tp.nama_tempat_pkl,
@@ -36,11 +36,12 @@ $stmt_siswa->close();
 
 if (!$siswa) die("Data siswa tidak ditemukan.");
 
-// Ambil Tanggal PKL dan Tahun Ajaran dari Absensi
+// --- PERUBAHAN 2: Logika baru untuk menentukan tanggal mulai dan selesai PKL ---
 $tanggal_pkl_mulai = '...';
 $tanggal_pkl_selesai = '...';
 $tahun_ajaran = date('Y') . '/' . (date('Y') + 1);
 
+// Tetap ambil tanggal mulai dan tanggal absen terakhir dari tabel absensi sebagai referensi
 $query_absen = "SELECT MIN(tanggal_absen) AS tanggal_mulai, MAX(tanggal_absen) AS tanggal_selesai 
                   FROM absensi_siswa WHERE siswa_id = ?";
 $stmt_absen = $koneksi->prepare($query_absen);
@@ -49,14 +50,26 @@ $stmt_absen->execute();
 $absen_info = $stmt_absen->get_result()->fetch_assoc();
 $stmt_absen->close();
 
+// Tentukan tanggal yang akan digunakan untuk loop dan tampilan
+$tanggal_mulai_loop = null;
+$tanggal_selesai_loop = null;
+
 if ($absen_info && $absen_info['tanggal_mulai']) {
-    $tanggal_pkl_mulai = date('d F Y', strtotime($absen_info['tanggal_mulai']));
-    $tanggal_pkl_selesai = date('d F Y', strtotime($absen_info['tanggal_selesai']));
+    $tanggal_mulai_loop = $absen_info['tanggal_mulai'];
     $tahun_awal = date('Y', strtotime($absen_info['tanggal_mulai']));
     $tahun_ajaran = $tahun_awal . '/' . ($tahun_awal + 1);
+    
+    // Prioritaskan tanggal_selesai_pkl dari tabel siswa. 
+    // Jika kosong, baru gunakan tanggal absensi terakhir sebagai fallback.
+    $tanggal_selesai_loop = !empty($siswa['tanggal_selesai_pkl']) ? $siswa['tanggal_selesai_pkl'] : $absen_info['tanggal_selesai'];
+
+    // Format tanggal untuk ditampilkan di rapor
+    $tanggal_pkl_mulai = date('d F Y', strtotime($tanggal_mulai_loop));
+    $tanggal_pkl_selesai = date('d F Y', strtotime($tanggal_selesai_loop));
 }
 
-// --- PERHITUNGAN KEHADIRAN BARU (LEBIH AKURAT) ---
+
+// --- PERUBAHAN 3: Perhitungan absensi menggunakan tanggal yang sudah ditentukan ---
 $jumlah_sakit = 0;
 $jumlah_izin = 0;
 $jumlah_alfa = 0;
@@ -72,24 +85,29 @@ while ($row = $result_absensi->fetch_assoc()) {
 }
 $stmt_absensi_all->close();
 
-if ($absen_info && !empty($absen_info['tanggal_mulai']) && !empty($absen_info['tanggal_selesai'])) {
-    $start_ts = strtotime($absen_info['tanggal_mulai']);
-    $end_ts = strtotime($absen_info['tanggal_selesai']);
+// Pastikan tanggal mulai dan selesai valid sebelum melakukan perulangan
+if ($tanggal_mulai_loop && $tanggal_selesai_loop) {
+    $start_ts = strtotime($tanggal_mulai_loop);
+    $end_ts = strtotime($tanggal_selesai_loop); // Menggunakan tanggal selesai yang sudah diprioritaskan
+    
     for ($i = $start_ts; $i <= $end_ts; $i = strtotime('+1 day', $i)) {
         $day_of_week = date('N', $i);
+        // Hanya hitung hari kerja (Senin-Jumat)
         if ($day_of_week >= 1 && $day_of_week <= 5) {
             $current_date_str = date('Y-m-d', $i);
             if (isset($absensi_lookup[$current_date_str])) {
                 $status = $absensi_lookup[$current_date_str];
                 if ($status == 'Sakit') $jumlah_sakit++;
                 elseif ($status == 'Izin') $jumlah_izin++;
+                // Jika statusnya 'Hadir' atau lainnya, tidak dihitung sebagai S, I, atau A
             } else {
+                // Jika tidak ada catatan absen di hari kerja, dianggap Alfa
                 $jumlah_alfa++;
             }
         }
     }
 }
-// --- AKHIR PERHITUNGAN KEHADIRAN BARU ---
+// --- AKHIR PERUBAHAN ---
 
 // Ambil semua TP statis dan susun dalam hierarki
 $tp_result = $koneksi->query("SELECT * FROM tujuan_pembelajaran ORDER BY id_induk, kode_tp");
@@ -223,6 +241,7 @@ function generate_rapor_rows($id_siswa, $koneksi, $semua_tp, $tp_anak, &$cache_n
 
 $table_content = generate_rapor_rows($siswa_id, $koneksi, $semua_tp, $tp_anak, $cache_nilai);
 
+// --- Bagian HTML (tidak ada perubahan signifikan, hanya memastikan variabel tanggal benar) ---
 $html = '
 <!DOCTYPE html>
 <html>
