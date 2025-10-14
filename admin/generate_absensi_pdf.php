@@ -52,12 +52,16 @@ if (!$is_admin && !$is_guru && !$is_siswa) {
 }
 
 /* ========== Filters ========== */
-$tanggal_mulai = $_GET['tanggal_mulai'] ?? date('Y-m-01');
-$tanggal_akhir = $_GET['tanggal_akhir'] ?? date('Y-m-t');
+$input_tanggal_mulai = $_GET['tanggal_mulai'] ?? date('Y-m-01');
+$input_tanggal_akhir = $_GET['tanggal_akhir'] ?? date('Y-m-t');
 $filter_status = $_GET['status'] ?? 'Semua';
 $kelas_filter_pdf = $_GET['kelas_pdf'] ?? '';
 $siswa_id_from_form = $_GET['siswa_id_pdf'] ?? null;
 $pembimbing_id_from_form = $_GET['pembimbing_id_pdf'] ?? null;
+
+// Default rentang
+$tanggal_mulai = $input_tanggal_mulai;
+$tanggal_akhir = $input_tanggal_akhir;
 
 /* ========== Where builder ========== */
 $where_clauses = [];
@@ -102,6 +106,25 @@ if ($is_siswa) {
         $query_params[]  = &$final_filter_pembimbing_id;
         $query_types    .= 'i';
     }
+}
+
+/* ========== PENYESUAIAN RENTANG UNTUK LAPORAN DETAIL ========== */
+if ($is_siswa || ($final_filter_siswa_id !== null)) {
+    // Ambil tanggal_selesai_pkl dari tabel siswa
+    $stmt_tgl_selesai = $koneksi->prepare("SELECT tanggal_selesai_pkl FROM siswa WHERE id_siswa = ?");
+    $stmt_tgl_selesai->bind_param("i", $final_filter_siswa_id);
+    $stmt_tgl_selesai->execute();
+    $result_tgl = $stmt_tgl_selesai->get_result();
+    if ($row_tgl = $result_tgl->fetch_assoc()) {
+        $tgl_selesai_db = $row_tgl['tanggal_selesai_pkl'];
+        if (!empty($tgl_selesai_db)) {
+            // Batasi tanggal_akhir = min(input_akhir, tgl_selesai_db)
+            if (strtotime($tgl_selesai_db) < strtotime($tanggal_akhir)) {
+                $tanggal_akhir = $tgl_selesai_db;
+            }
+        }
+    }
+    $stmt_tgl_selesai->close();
 }
 
 /* Rentang tanggal wajib */
@@ -382,16 +405,14 @@ if ($generate_recap_report) {
                     continue;
                 }
 
-                if ($dow >= 1 && $dow <= 5) { // Senin-Jumat
-                    if (isset($absensi_per_siswa_tanggal[$sid][$tgl])) {
-                        $st = $absensi_per_siswa_tanggal[$sid][$tgl];
-                        if (isset($rekap[$st])) {
-                            $rekap[$st]++;
-                        }
-                        // Jika status tidak dikenali, abaikan (tapi biasanya tidak terjadi)
-                    } else {
-                        $rekap['Alfa']++;
+                // ✅ HITUNG SEMUA HARI (termasuk Sabtu & Minggu) - SESUAI DENGAN RAPOR
+                if (isset($absensi_per_siswa_tanggal[$sid][$tgl])) {
+                    $st = $absensi_per_siswa_tanggal[$sid][$tgl];
+                    if (isset($rekap[$st])) {
+                        $rekap[$st]++;
                     }
+                } else {
+                    $rekap['Alfa']++;
                 }
             }
 

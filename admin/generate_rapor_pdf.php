@@ -14,12 +14,11 @@ if (!$is_admin && !$is_guru) die("Akses ditolak.");
 $siswa_id = isset($_GET['siswa_id']) ? (int)$_GET['siswa_id'] : 0;
 if ($siswa_id === 0) die("ID Siswa tidak valid.");
 
-// --- PERUBAHAN 1: Ambil kolom tanggal_selesai_pkl dari tabel siswa ---
+// Ambil data detail siswa
 $query_detail = "
     SELECT 
         s.nama_siswa, s.nisn, s.kelas, s.tanggal_selesai_pkl,
-        j.nama_jurusan,
-        j.prodi,
+        j.nama_jurusan, j.prodi,
         tp.nama_tempat_pkl,
         gp.nama_pembimbing
     FROM siswa s
@@ -36,21 +35,18 @@ $stmt_siswa->close();
 
 if (!$siswa) die("Data siswa tidak ditemukan.");
 
-// --- PERUBAHAN 2: Logika baru untuk menentukan tanggal mulai dan selesai PKL ---
+// Logika penentuan tanggal PKL
 $tanggal_pkl_mulai = '...';
 $tanggal_pkl_selesai = '...';
 $tahun_ajaran = date('Y') . '/' . (date('Y') + 1);
 
-// Tetap ambil tanggal mulai dan tanggal absen terakhir dari tabel absensi sebagai referensi
-$query_absen = "SELECT MIN(tanggal_absen) AS tanggal_mulai, MAX(tanggal_absen) AS tanggal_selesai 
-                  FROM absensi_siswa WHERE siswa_id = ?";
+$query_absen = "SELECT MIN(tanggal_absen) AS tanggal_mulai, MAX(tanggal_absen) AS tanggal_selesai FROM absensi_siswa WHERE siswa_id = ?";
 $stmt_absen = $koneksi->prepare($query_absen);
 $stmt_absen->bind_param("i", $siswa_id);
 $stmt_absen->execute();
 $absen_info = $stmt_absen->get_result()->fetch_assoc();
 $stmt_absen->close();
 
-// Tentukan tanggal yang akan digunakan untuk loop dan tampilan
 $tanggal_mulai_loop = null;
 $tanggal_selesai_loop = null;
 
@@ -58,18 +54,14 @@ if ($absen_info && $absen_info['tanggal_mulai']) {
     $tanggal_mulai_loop = $absen_info['tanggal_mulai'];
     $tahun_awal = date('Y', strtotime($absen_info['tanggal_mulai']));
     $tahun_ajaran = $tahun_awal . '/' . ($tahun_awal + 1);
-    
-    // Prioritaskan tanggal_selesai_pkl dari tabel siswa. 
-    // Jika kosong, baru gunakan tanggal absensi terakhir sebagai fallback.
+
     $tanggal_selesai_loop = !empty($siswa['tanggal_selesai_pkl']) ? $siswa['tanggal_selesai_pkl'] : $absen_info['tanggal_selesai'];
 
-    // Format tanggal untuk ditampilkan di rapor
     $tanggal_pkl_mulai = date('d F Y', strtotime($tanggal_mulai_loop));
     $tanggal_pkl_selesai = date('d F Y', strtotime($tanggal_selesai_loop));
 }
 
-
-// --- PERUBAHAN 3: Perhitungan absensi menggunakan tanggal yang sudah ditentukan ---
+// Perhitungan absensi
 $jumlah_sakit = 0;
 $jumlah_izin = 0;
 $jumlah_alfa = 0;
@@ -85,31 +77,24 @@ while ($row = $result_absensi->fetch_assoc()) {
 }
 $stmt_absensi_all->close();
 
-// Pastikan tanggal mulai dan selesai valid sebelum melakukan perulangan
 if ($tanggal_mulai_loop && $tanggal_selesai_loop) {
-    $start_ts = strtotime($tanggal_mulai_loop);
-    $end_ts = strtotime($tanggal_selesai_loop); // Menggunakan tanggal selesai yang sudah diprioritaskan
-    
-    for ($i = $start_ts; $i <= $end_ts; $i = strtotime('+1 day', $i)) {
-        $day_of_week = date('N', $i);
-        // Hanya hitung hari kerja (Senin-Jumat)
-        if ($day_of_week >= 1 && $day_of_week <= 5) {
-            $current_date_str = date('Y-m-d', $i);
-            if (isset($absensi_lookup[$current_date_str])) {
-                $status = $absensi_lookup[$current_date_str];
-                if ($status == 'Sakit') $jumlah_sakit++;
-                elseif ($status == 'Izin') $jumlah_izin++;
-                // Jika statusnya 'Hadir' atau lainnya, tidak dihitung sebagai S, I, atau A
-            } else {
-                // Jika tidak ada catatan absen di hari kerja, dianggap Alfa
-                $jumlah_alfa++;
-            }
+    $current_ts = strtotime($tanggal_mulai_loop);
+    $end_ts = strtotime($tanggal_selesai_loop);
+
+    while ($current_ts <= $end_ts) {
+        $current_date_str = date('Y-m-d', $current_ts);
+        if (isset($absensi_lookup[$current_date_str])) {
+            $status = $absensi_lookup[$current_date_str];
+            if ($status == 'Sakit') $jumlah_sakit++;
+            elseif ($status == 'Izin') $jumlah_izin++;
+        } else {
+            $jumlah_alfa++;
         }
+        $current_ts = strtotime('+1 day', $current_ts);
     }
 }
-// --- AKHIR PERUBAHAN ---
 
-// Ambil semua TP statis dan susun dalam hierarki
+// Ambil Tujuan Pembelajaran (TP)
 $tp_result = $koneksi->query("SELECT * FROM tujuan_pembelajaran ORDER BY id_induk, kode_tp");
 $semua_tp = [];
 $tp_anak = [];
@@ -118,7 +103,7 @@ while ($row = $tp_result->fetch_assoc()) {
     $tp_anak[$row['id_induk']][] = $row['id_tp'];
 }
 
-// --- LOGIKA BARU: Ambil Jurnal Kegiatan Siswa sebagai Sub-TP Dinamis ---
+// Logika TP dinamis dari Jurnal Kegiatan
 $id_tp_teknis = null;
 foreach ($semua_tp as $id => $tp) {
     if ($tp['kode_tp'] === '3') {
@@ -129,9 +114,7 @@ foreach ($semua_tp as $id => $tp) {
 
 if ($id_tp_teknis) {
     $query_jurnal_dinamis = "
-        SELECT 
-            ns.jurnal_kegiatan_id, 
-            jk.nama_pekerjaan
+        SELECT ns.jurnal_kegiatan_id, jk.nama_pekerjaan
         FROM nilai_siswa ns
         JOIN jurnal_kegiatan jk ON ns.jurnal_kegiatan_id = jk.id_jurnal_kegiatan
         WHERE ns.siswa_id = ? AND ns.jurnal_kegiatan_id IS NOT NULL
@@ -154,15 +137,14 @@ if ($id_tp_teknis) {
     }
     $stmt_jurnal->close();
 }
-// --- AKHIR LOGIKA BARU ---
 
 $cache_nilai = [];
 
-// Fungsi hitung_nilai() dan generate_deskripsi_narasi()
 function hitung_nilai($id_siswa, $id_tp, $koneksi, $tp_anak, &$cache_nilai)
 {
     $cache_key = "$id_siswa-$id_tp";
     if (isset($cache_nilai[$cache_key])) return $cache_nilai[$cache_key];
+
     $punya_anak = isset($tp_anak[$id_tp]);
     if (!$punya_anak) {
         $nilai = 0;
@@ -197,12 +179,15 @@ function generate_deskripsi_narasi($id_siswa, $id_tp_utama, $koneksi, $semua_tp,
 {
     $anak_utama = $tp_anak[$id_tp_utama] ?? [];
     if (empty($anak_utama)) return "-";
+
     $nilai_kompetensi = [];
     $cache_nilai_lokal = [];
     foreach ($anak_utama as $id_anak) {
         $nilai_kompetensi[] = ['deskripsi' => $semua_tp[$id_anak]['deskripsi_tp'], 'nilai' => hitung_nilai($id_siswa, $id_anak, $koneksi, $tp_anak, $cache_nilai_lokal)];
     }
+
     if (empty(array_filter($nilai_kompetensi, fn($n) => $n['nilai'] > 0))) return "Nilai belum terisi.";
+
     $tertinggi = ['nilai' => -1, 'deskripsi' => ''];
     $terendah = ['nilai' => 101, 'deskripsi' => ''];
     foreach ($nilai_kompetensi as $kompetensi) {
@@ -211,13 +196,17 @@ function generate_deskripsi_narasi($id_siswa, $id_tp_utama, $koneksi, $semua_tp,
             if ($kompetensi['nilai'] < $terendah['nilai']) $terendah = $kompetensi;
         }
     }
-    $tertinggi['deskripsi'] = explode('(', $tertinggi['deskripsi'])[0];
-    $terendah['deskripsi'] = explode('(', $terendah['deskripsi'])[0];
+
+    $tertinggi['deskripsi'] = trim(explode('(', $tertinggi['deskripsi'])[0]);
+    $terendah['deskripsi'] = trim(explode('(', $terendah['deskripsi'])[0]);
+
     if ($tertinggi['nilai'] <= 0) return "Nilai belum lengkap.";
+
     if ($tertinggi['nilai'] == $terendah['nilai']) {
-        return "Peserta didik sudah memiliki soft skills sesuai harapan dalam " . lcfirst(trim($tertinggi['deskripsi'])) . ".";
+        return "Peserta didik sudah memiliki soft skills sesuai harapan dalam " . lcfirst($tertinggi['deskripsi']) . ".";
     }
-    return "Peserta didik sudah memiliki soft skills sesuai harapan dalam " . lcfirst(trim($tertinggi['deskripsi'])) . " (Y) namun masih perlu ditingkatkan dalam hal " . lcfirst(trim($terendah['deskripsi'])) . " (T).";
+
+    return "Peserta didik sudah memiliki soft skills sesuai harapan dalam " . lcfirst($tertinggi['deskripsi']) . " namun masih perlu ditingkatkan dalam hal " . lcfirst($terendah['deskripsi']) . ".";
 }
 
 function generate_rapor_rows($id_siswa, $koneksi, $semua_tp, $tp_anak, &$cache_nilai)
@@ -241,7 +230,6 @@ function generate_rapor_rows($id_siswa, $koneksi, $semua_tp, $tp_anak, &$cache_n
 
 $table_content = generate_rapor_rows($siswa_id, $koneksi, $semua_tp, $tp_anak, $cache_nilai);
 
-// --- Bagian HTML (tidak ada perubahan signifikan, hanya memastikan variabel tanggal benar) ---
 $html = '
 <!DOCTYPE html>
 <html>
@@ -249,31 +237,29 @@ $html = '
     <meta charset="UTF-8">
     <title>Rapor Penilaian PKL - ' . htmlspecialchars($siswa['nama_siswa']) . '</title>
     <style>
-        body { font-family: Times, serif; font-size: 12pt; }
-        .header { text-align: center; margin-bottom: 20px; }
-        .header h4, .header h5 { margin: 0; padding: 0; }
+        body { font-family: Times, serif; font-size: 12pt; line-height: 1.4; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h3, .header h4, .header h5 { margin: 0; padding: 0; }
+        .header h3 { margin-bottom: 15px; }
+        .header h4, .header h5 { font-weight: normal; }
         .info-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        .info-table td { padding: 3px 0; vertical-align: top;}
+        .info-table td { padding: 3px 0; vertical-align: top; }
         .info-table .label { width: 180px; }
         .info-table .separator { width: 10px; }
         .report-table { width: 100%; border-collapse: collapse; }
         .report-table th, .report-table td { border: 1px solid black; padding: 7px; vertical-align: top; }
-        .report-table th { text-align: center; font-weight: bold; }
+        .report-table th { text-align: center; }
+        .kehadiran-container { page-break-inside: avoid; margin-top: 20px; }
         .kehadiran-table { border-collapse: collapse; }
         .kehadiran-table td { border: 1px solid black; padding: 5px; }
-        .kehadiran-container { page-break-inside: avoid; margin-top: 20px; }
-        .signature-table { width: 100%; margin-top: 20px; border: none; page-break-inside: avoid; }
-        .signature-table td { width: 50%; text-align: center; border: none; vertical-align: top; }
-        .signature-name {
-            text-decoration: underline;
-            font-weight: bold;
-        }
+        .catatan-section { page-break-inside: avoid; margin-top: 20px; }
     </style>
 </head>
 <body>
     <div class="header">
+        <h3>DAFTAR NILAI PESERTA DIDIK MATA PELAJARAN PKL</h3>
         <h4>SMK NEGERI 1 GANTAR</h4>
-        <h5>Tahun Ajaran ' . $tahun_ajaran . '</h5>
+        <h5>Tahun Ajaran ' . htmlspecialchars($tahun_ajaran) . '</h5>
     </div>
     <table class="info-table">
         <tr><td class="label">Nama Peserta Didik</td><td class="separator">:</td><td>' . htmlspecialchars($siswa['nama_siswa']) . '</td></tr>
@@ -294,7 +280,7 @@ $html = '
         <tbody>
             ' . $table_content . '
             <tr>
-                <td colspan="4">
+                <td colspan="4" class="catatan-section">
                     <strong>Catatan:</strong>
                     <br><br><br><br>
                 </td>
@@ -311,28 +297,36 @@ $html = '
         </table>
     </div>
 
-    <table class="signature-table">
-        <tbody>
-            <tr>
-                <td>
-                    Guru Pembimbing
-                    <br><br><br><br><br>
-                    <span class="signature-name">' . htmlspecialchars($siswa['nama_pembimbing'] ?? '.........................') . '</span>
-                </td>
-                <td>
-                    Gantar, ...................................... ' . date('Y') . '
-                    <br>
-                    Pembimbing Dunia Kerja
-                    <br><br><br><br><br>
-                    <span class="signature-name">.........................</span>
-                </td>
-            </tr>
-        </tbody>
+    <table style="width: 100%; margin-top: 60px; border-collapse: collapse; page-break-inside: avoid;">
+        <tr>
+            <td colspan="2" style="text-align: right; padding-bottom: 5px">
+                Indramayu,   Desember ' . date('Y') . '
+            </td>
+        </tr>
+        <tr>
+            <td style="width: 50%; text-align: center; vertical-align: top; padding: 5px;">
+                <p><strong>Guru Pembimbing</strong></p>
+                <br><br><br><br>
+                <span>........................................</span>
+            </td>
+            <td style="width: 50%; text-align: center; vertical-align: top; padding: 5px;">
+                <p><strong>Pembimbing Dunia Kerja</strong></p>
+                <br><br><br><br>
+                <span>........................................</span>
+            </td>
+        </tr>
     </table>
+
+    <div style="text-align: center; margin-top: 60px; page-break-inside: avoid;">
+        <p style="margin-bottom: 0;"><strong>Mengetahui,</strong></p>
+        <p style="margin-top: 0; margin-bottom: 60px;"><strong>Kepala Sekolah</strong></p>
+        
+        <p style="margin-bottom: 0;">Haryono Suhendro, S.T., M.A., M.Pd</p>
+        <p style="margin-top: 0;">NIP. 197210005 200112 1 001</p>
+    </div>
 </body>
 </html>';
 
-// Proses Generate PDF
 $options = new Options();
 $options->set('isHtml5ParserEnabled', true);
 $options->set('isRemoteEnabled', true);
@@ -340,5 +334,7 @@ $dompdf = new Dompdf($options);
 $dompdf->loadHtml($html);
 $dompdf->setPaper('A4', 'portrait');
 $dompdf->render();
-$dompdf->stream("Rapor_PKL_" . str_replace(' ', '_', $siswa['nama_siswa']) . ".pdf", ["Attachment" => false]);
+
+$filename = "Rapor_PKL_" . str_replace(' ', '_', $siswa['nama_siswa']) . ".pdf";
+$dompdf->stream($filename, ["Attachment" => false]);
 exit();

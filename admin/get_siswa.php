@@ -7,7 +7,7 @@ $is_admin = isset($_SESSION['admin_status_login']) && $_SESSION['admin_status_lo
 $is_guru = isset($_SESSION['guru_pendamping_status_login']) && $_SESSION['guru_pendamping_status_login'] === 'logged_in';
 
 if (!$is_admin && !$is_guru) {
-    http_response_code(403); // Forbidden
+    http_response_code(403);
     echo json_encode(['error' => 'Akses ditolak']);
     exit();
 }
@@ -16,7 +16,7 @@ header('Content-Type: application/json');
 
 $search_term = $_GET['search'] ?? '';
 
-// Query dasar untuk mengambil data siswa
+// ✅ Tambahkan WHERE 1=1 agar aman menambahkan AND
 $sql = "
     SELECT 
         s.id_siswa, 
@@ -24,11 +24,15 @@ $sql = "
         s.jurusan_id,
         (SELECT COUNT(*) FROM nilai_siswa ns WHERE ns.siswa_id = s.id_siswa) as jumlah_nilai
     FROM siswa s
-    WHERE s.status = 'aktif'
+    WHERE 1=1  -- ✅ Trik aman untuk dynamic WHERE
 ";
 
 $params = [];
 $types = '';
+
+// ✅ Filter status: Aktif atau Selesai
+$sql .= " AND s.status IN ('Aktif', 'Selesai')";
+// Tidak perlu bind_param karena nilai hardcoded
 
 // Filter berdasarkan nama jika ada keyword pencarian
 if (!empty($search_term)) {
@@ -44,7 +48,7 @@ if ($is_guru) {
     $types .= 'i';
 }
 
-$sql .= " ORDER BY s.nama_siswa ASC LIMIT 20"; // Batasi hasil untuk performa
+$sql .= " ORDER BY s.nama_siswa ASC LIMIT 20";
 
 $stmt = $koneksi->prepare($sql);
 if ($stmt === false) {
